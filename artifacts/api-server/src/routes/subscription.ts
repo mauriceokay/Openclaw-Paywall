@@ -10,53 +10,38 @@ import {
 
 const router: IRouter = Router();
 
-router.get("/products", async (req, res) => {
+router.get("/products", async (_req, res) => {
   try {
-    const rows = await storage.listProductsWithPrices();
+    const stripe = await getUncachableStripeClient();
 
-    const productsMap = new Map<
-      string,
-      {
-        id: string;
-        name: string;
-        description: string | null;
-        prices: {
-          id: string;
-          unitAmount: number | null;
-          currency: string;
-          interval: string | null;
-          intervalCount: number | null;
-        }[];
-      }
-    >();
+    const [productsRes, pricesRes] = await Promise.all([
+      stripe.products.list({ active: true, limit: 20 }),
+      stripe.prices.list({ active: true, limit: 100 }),
+    ]);
 
-    for (const row of rows) {
-      const r = row as any;
-      if (!productsMap.has(r.product_id)) {
-        productsMap.set(r.product_id, {
-          id: r.product_id,
-          name: r.product_name,
-          description: r.product_description || null,
-          prices: [],
-        });
-      }
-      if (r.price_id) {
-        const recurring = r.recurring as any;
-        productsMap.get(r.product_id)!.prices.push({
-          id: r.price_id,
-          unitAmount: r.unit_amount ? Number(r.unit_amount) : null,
-          currency: r.currency,
-          interval: recurring?.interval || null,
-          intervalCount: recurring?.interval_count || null,
-        });
-      }
+    const pricesByProduct = new Map<string, typeof pricesRes.data>();
+    for (const price of pricesRes.data) {
+      const productId = typeof price.product === "string" ? price.product : price.product.id;
+      if (!pricesByProduct.has(productId)) pricesByProduct.set(productId, []);
+      pricesByProduct.get(productId)!.push(price);
     }
 
-    const data = ListProductsResponse.parse({
-      products: Array.from(productsMap.values()),
-    });
+    const products = productsRes.data.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description ?? null,
+      prices: (pricesByProduct.get(product.id) ?? []).map((price) => ({
+        id: price.id,
+        unitAmount: price.unit_amount ?? null,
+        currency: price.currency,
+        interval: price.recurring?.interval ?? null,
+        intervalCount: price.recurring?.interval_count ?? null,
+      })),
+    }));
+
+    const data = ListProductsResponse.parse({ products });
     res.json(data);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error listing products:", err);
     res.status(500).json({ error: "Failed to fetch products" });
   }
@@ -66,26 +51,17 @@ router.get("/subscription/status", async (req, res) => {
   try {
     const email = req.query.email as string;
     if (!email) {
-      const data = GetSubscriptionStatusResponse.parse({
-        hasActiveSubscription: false,
-      });
-      return res.json(data);
+      return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
 
     const customer = await storage.getCustomerByEmail(email);
     if (!customer) {
-      const data = GetSubscriptionStatusResponse.parse({
-        hasActiveSubscription: false,
-      });
-      return res.json(data);
+      return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
 
     const sub = await storage.getSubscriptionByCustomerId((customer as any).id);
     if (!sub) {
-      const data = GetSubscriptionStatusResponse.parse({
-        hasActiveSubscription: false,
-      });
-      return res.json(data);
+      return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
 
     const s = sub as any;
@@ -100,15 +76,16 @@ router.get("/subscription/status", async (req, res) => {
       ? new Date(Number(s.current_period_end) * 1000).toISOString()
       : null;
 
-    const data = GetSubscriptionStatusResponse.parse({
-      hasActiveSubscription: true,
-      subscriptionId: s.id,
-      planName,
-      status: s.status,
-      currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: s.cancel_at_period_end,
-    });
-    res.json(data);
+    return res.json(
+      GetSubscriptionStatusResponse.parse({
+        hasActiveSubscription: true,
+        subscriptionId: s.id,
+        planName,
+        status: s.status,
+        currentPeriodEnd: periodEnd,
+        cancelAtPeriodEnd: s.cancel_at_period_end,
+      }),
+    );
   } catch (err) {
     console.error("Error getting subscription status:", err);
     res.status(500).json({ error: "Failed to get subscription status" });
@@ -137,8 +114,7 @@ router.post("/subscription/checkout", async (req, res) => {
       customerId = customer.id;
     }
 
-    const host =
-      process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
+    const host = process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
     const baseUrl = `https://${host}`;
 
     const session = await stripe.checkout.sessions.create({
@@ -150,8 +126,7 @@ router.post("/subscription/checkout", async (req, res) => {
       cancel_url: `${baseUrl}/pricing?canceled=true`,
     });
 
-    const data = CreateCheckoutResponse.parse({ url: session.url });
-    res.json(data);
+    return res.json(CreateCheckoutResponse.parse({ url: session.url }));
   } catch (err: any) {
     console.error("Error creating checkout:", err);
     res.status(400).json({ error: err.message || "Failed to create checkout" });
@@ -171,17 +146,14 @@ router.post("/subscription/portal", async (req, res) => {
     }
 
     const stripe = await getUncachableStripeClient();
-    const host =
-      process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
-    const baseUrl = `https://${host}`;
+    const host = process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: (customer as any).id,
-      return_url: `${baseUrl}/dashboard`,
+      return_url: `https://${host}/dashboard`,
     });
 
-    const data = CreatePortalSessionResponse.parse({ url: portalSession.url });
-    res.json(data);
+    return res.json(CreatePortalSessionResponse.parse({ url: portalSession.url }));
   } catch (err: any) {
     console.error("Error creating portal:", err);
     res.status(400).json({ error: err.message || "Failed to create portal" });
