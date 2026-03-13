@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Terminal, Shield, MessageSquare, Workflow, Zap, Globe } from "lucide-react";
+import { Terminal, Shield, MessageSquare, Workflow, Zap, Globe, X, Check, Star } from "lucide-react";
 
 export function Home() {
   const container = {
@@ -18,6 +18,37 @@ export function Home() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
+
+  const testimonials = [
+    {
+      name: "Marcus T.",
+      handle: "@marcust_dev",
+      avatar: "M",
+      text: "Tried setting up OpenClaw myself for 3 days. Port conflicts, Python version hell, Docker issues. Switched to this and had it running in 2 minutes. I'm not even exaggerating.",
+      stars: 5,
+    },
+    {
+      name: "Priya K.",
+      handle: "@priyak",
+      avatar: "P",
+      text: "My assistant now handles my Telegram messages while I sleep. Reminds me of meetings, answers FAQs on my behalf, and summarises my emails every morning. Worth every penny.",
+      stars: 5,
+    },
+    {
+      name: "Jonas W.",
+      handle: "@jonaswdev",
+      avatar: "J",
+      text: "The fact that I can connect Discord, WhatsApp, AND iMessage to the same AI — from a single dashboard — is insane. Setup took literally minutes.",
+      stars: 5,
+    },
+    {
+      name: "Aisha M.",
+      handle: "@aisham_ai",
+      avatar: "A",
+      text: "I needed an AI assistant that doesn't send my data to some third party. This is self-hosted, actually private, and it just works. Finally.",
+      stars: 5,
+    },
+  ];
 
   return (
     <div className="min-h-screen pt-20 flex flex-col">
@@ -129,6 +160,206 @@ export function Home() {
                 <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Why most people never use OpenClaw */}
+      <section className="py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-5xl font-display leading-tight mb-4">
+              Why most people never actually<br />use OpenClaw
+            </h2>
+            <p className="text-muted-foreground text-lg">It's not that it's hard. It's that nobody has time for this.</p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Without us */}
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5 }}
+              className="rounded-2xl border border-white/10 overflow-hidden"
+            >
+              <div className="px-5 py-3 border-b border-white/10 bg-white/5">
+                <span className="text-xs font-semibold tracking-widest text-destructive uppercase">Without us</span>
+              </div>
+
+              {/* Terminal */}
+              <div className="bg-black/60 p-5 font-mono text-sm">
+                <div className="flex gap-1.5 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-destructive" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                </div>
+                <p className="text-muted-foreground">$ git clone openclaw &amp;&amp; cd openclaw</p>
+                <p className="text-muted-foreground">$ docker compose up</p>
+                <p className="text-destructive">ERROR: port 5432 already in use</p>
+                <p className="text-muted-foreground mt-1">$ npm install</p>
+                <p className="text-destructive">ERROR: node 18 required, found 22</p>
+                <p className="text-muted-foreground mt-1">$ openclaw configure</p>
+                <p className="text-destructive">Build failed. 7 errors. See log.</p>
+              </div>
+
+              {/* Pain points */}
+              <div className="p-5 space-y-3 bg-card/40">
+                {[
+                  "Find a server to run it on",
+                  "Fight with dependencies",
+                  "Something inevitably breaks",
+                  "Give up after 4 hours",
+                ].map((pain, i) => (
+                  <div key={i} className={`flex items-center gap-3 ${i === 3 ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                    <X className="w-4 h-4 shrink-0 text-destructive" />
+                    <span>{pain}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* With us */}
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="rounded-2xl border border-primary/30 overflow-hidden shadow-[0_0_40px_rgba(255,81,47,0.08)]"
+            >
+              <div className="px-5 py-3 border-b border-primary/20 bg-primary/5">
+                <span className="text-xs font-semibold tracking-widest text-primary uppercase">With OpenClaw Cloud</span>
+              </div>
+
+              {/* Success terminal */}
+              <div className="bg-black/60 p-5 font-mono text-sm">
+                <div className="flex gap-1.5 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-destructive" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                </div>
+                <p className="text-muted-foreground">$ # Already running in the cloud ✓</p>
+                <p className="text-green-400 mt-1">✓ Gateway online</p>
+                <p className="text-green-400">✓ AI model ready (Claude)</p>
+                <p className="text-green-400">✓ Telegram connected</p>
+                <p className="text-green-400">✓ WhatsApp connected</p>
+                <p className="text-green-400 animate-pulse mt-1">Waiting for your first message...</p>
+              </div>
+
+              {/* Wins */}
+              <div className="p-5 space-y-3 bg-card/40">
+                {[
+                  "Sign up in 30 seconds",
+                  "Your workspace is ready instantly",
+                  "Connect any channel in one click",
+                  "Your AI is live — no setup needed",
+                ].map((win, i) => (
+                  <div key={i} className={`flex items-center gap-3 ${i === 3 ? "text-primary font-semibold" : "text-foreground"}`}>
+                    <Check className="w-4 h-4 shrink-0 text-green-400" />
+                    <span>{win}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-center mt-10"
+          >
+            <Link href="/signup">
+              <Button size="lg" className="text-lg h-14 px-10 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_30px_rgba(255,81,47,0.3)] hover:shadow-[0_0_40px_rgba(255,81,47,0.5)] transition-all">
+                Skip the setup — Start Now
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 bg-card/30 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-14"
+          >
+            <h2 className="text-3xl md:text-4xl font-display mb-4">Loved by AI power users</h2>
+            <p className="text-muted-foreground">Join thousands of people running their own AI assistant.</p>
+          </motion.div>
+
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
+          >
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={i}
+                variants={item}
+                className="glass-panel rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300"
+              >
+                {/* Stars */}
+                <div className="flex gap-0.5">
+                  {Array.from({ length: t.stars }).map((_, s) => (
+                    <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+
+                {/* Quote */}
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">"{t.text}"</p>
+
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                  <div className="w-9 h-9 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-sm shrink-0">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.handle}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-28 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col items-center gap-6"
+          >
+            <span className="text-5xl">🦞</span>
+            <h2 className="text-4xl md:text-5xl font-display leading-tight">
+              Your AI assistant is<br />waiting for you.
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-lg">
+              No servers. No config files. No Docker. Just your own personal AI running 24/7 — on every platform you use.
+            </p>
+            <Link href="/signup">
+              <Button size="lg" className="text-lg h-14 px-12 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_40px_rgba(255,81,47,0.3)] hover:shadow-[0_0_50px_rgba(255,81,47,0.5)] transition-all mt-2">
+                Start OpenClaw Now
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
