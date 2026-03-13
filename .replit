@@ -34,7 +34,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace/openclaw-app && fuser -k 3001/tcp 2>/dev/null; sleep 1; ./node_modules/.bin/openclaw gateway run --allow-unconfigured --port 3001 --dev --auth none"
+args = "cd /home/runner/workspace/openclaw-app && bash start-gateway.sh"
 
 [agent]
 stack = "PNPM_WORKSPACE"

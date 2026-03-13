@@ -1,29 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, User, Mail } from "lucide-react";
+import { ArrowRight, User, Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
 export function SignUp() {
   const { signUp, user } = useAuth();
   const [, navigate] = useLocation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (user) {
-    navigate("/pricing");
-    return null;
-  }
+  useEffect(() => {
+    if (user) navigate("/pricing");
+  }, [user, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (user) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      await fetch(`${BASE_URL}/api/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim() }),
+      });
+    } catch {
+      // Non-fatal — still continue even if DB save fails
+    }
+
     signUp(name.trim(), email.trim());
     navigate("/pricing");
+    setLoading(false);
   };
 
   return (
@@ -88,12 +107,23 @@ export function SignUp() {
                 </div>
               </div>
 
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full h-12 bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold rounded-xl group"
               >
-                Continue to Pricing
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Continue to Pricing
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </Button>
             </form>
 

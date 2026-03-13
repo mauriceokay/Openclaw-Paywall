@@ -7,12 +7,21 @@ import { useQuery } from "@tanstack/react-query";
 import type { SubscriptionStatus } from "@workspace/api-client-react";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
-const GATEWAY_PATH = `${BASE_URL}/api/gateway/`;
+
+// Build the gateway iframe src: proxy path + ?gatewayUrl= so the control panel
+// pre-fills and auto-connects to the WebSocket via our proxy
+function buildIframeSrc(): string {
+  const domain = window.location.hostname;
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${domain}/api/gateway`;
+  const proxyBase = `${BASE_URL}/api/gateway/`;
+  return `${proxyBase}?gatewayUrl=${encodeURIComponent(wsUrl)}`;
+}
 
 export function OpenClawApp() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  const [iframeKey, setIframeKey] = useState(0);
+  const [iframeSrc] = useState(buildIframeSrc);
 
   const { data: status, isLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
@@ -70,17 +79,19 @@ export function OpenClawApp() {
         <div className="flex items-center gap-2 ml-1">
           <span className="text-base">🦞</span>
           <span className="text-sm font-semibold text-foreground/80">OpenClaw</span>
+          {user?.name && (
+            <span className="text-xs text-muted-foreground">· {user.name}</span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 ml-auto">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs text-muted-foreground">Connected</span>
+          <span className="text-xs text-muted-foreground">Gateway online</span>
         </div>
       </div>
 
-      {/* Full-screen gateway control panel */}
+      {/* Full-screen gateway control panel — pre-filled with gatewayUrl param */}
       <iframe
-        key={iframeKey}
-        src={GATEWAY_PATH}
+        src={iframeSrc}
         className="flex-1 w-full border-0"
         title="OpenClaw"
         allow="clipboard-read; clipboard-write; microphone"
