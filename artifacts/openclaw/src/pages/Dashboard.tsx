@@ -44,7 +44,7 @@ export function Dashboard() {
       { data: { email: user?.email ?? "" } },
       {
         onSuccess: (data) => {
-          window.location.href = data.url;
+          window.open(data.url, "_blank", "noopener,noreferrer");
         },
         onError: (err: CreatePortalSessionMutationError) => {
           const apiMessage = err?.data?.error ?? null;
