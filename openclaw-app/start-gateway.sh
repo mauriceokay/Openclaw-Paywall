@@ -5,6 +5,10 @@ set -e
 CONFIG="$HOME/.openclaw/openclaw.json"
 DOMAIN=$(echo "$REPLIT_DOMAINS" | cut -d, -f1)
 
+# Wire the Replit AI integration credentials so OpenClaw can call Claude
+export ANTHROPIC_API_KEY="${AI_INTEGRATIONS_ANTHROPIC_API_KEY}"
+export ANTHROPIC_BASE_URL="${AI_INTEGRATIONS_ANTHROPIC_BASE_URL}"
+
 node << JSEOF
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('${CONFIG}', 'utf8'));

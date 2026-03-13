@@ -48,13 +48,37 @@ artifacts-monorepo/
 - Once the secret key is stored, run: `pnpm --filter @workspace/scripts run seed-products` to create products in Stripe.
 - After products are created, the paywall on the pricing page will show real plans.
 
-## OpenClaw Gateway
+## OpenClaw Architecture
 
-The OpenClaw gateway (https://github.com/openclaw/openclaw) is installed at `openclaw-app/` via npm (`openclaw@2026.3.12`).
+The OpenClaw gateway (https://github.com/openclaw/openclaw) v2026.3.12 is installed at `openclaw-app/` via npm.
 
-- **Running**: `openclaw gateway run --allow-unconfigured --port 3001 --dev`
-- **Configure**: Run `./node_modules/.bin/openclaw configure` in `openclaw-app/` to set up AI provider + channels
-- **Onboard**: Run `./node_modules/.bin/openclaw onboard` for the interactive wizard
+### Gateway Proxy
+The API server proxies the real OpenClaw control UI through `/api/gateway/*`:
+- **HTTP proxy**: `app.ts` uses `http-proxy-middleware` with `responseInterceptor` to:
+  - Strip `X-Frame-Options: DENY` (allows iframe embedding)
+  - Remove `frame-ancestors: none` from CSP
+  - Inject `window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway"` into HTML
+- **WebSocket proxy**: `index.ts` intercepts WS upgrades at `/api/gateway` and proxies to `ws://127.0.0.1:3001`
+
+### AI Provider
+OpenClaw uses the Replit AI Integration for Anthropic (Claude):
+- `ANTHROPIC_API_KEY` = `$AI_INTEGRATIONS_ANTHROPIC_API_KEY` (set in `start-gateway.sh`)
+- `ANTHROPIC_BASE_URL` = `$AI_INTEGRATIONS_ANTHROPIC_BASE_URL` (set in `start-gateway.sh`)
+- Model: `anthropic/claude-opus-4-6` (configured by OpenClaw)
+
+### Per-User Agent Provisioning
+Each subscriber gets their own OpenClaw agent workspace:
+- `POST /api/openclaw/provision` — calls `openclaw agents add --non-interactive --workspace <dir>`
+- `GET /api/openclaw/agent?email=<email>` — get user's agent info
+- Stored in `user_agents` PostgreSQL table
+- Workspaces at `~/.openclaw/workspaces/user-<sanitized-email>/`
+
+### User Flow
+1. User subscribes via Stripe checkout
+2. User clicks "Open OpenClaw" on Dashboard
+3. App provisions their OpenClaw agent workspace (first time only)
+4. Real OpenClaw control UI loads in full-screen iframe (proxied via `/api/gateway/`)
+5. User can configure channels (Telegram, Discord, WhatsApp), set up skills, chat with AI
 
 ## API Routes
 
@@ -64,6 +88,18 @@ The OpenClaw gateway (https://github.com/openclaw/openclaw) is installed at `ope
 - `POST /api/subscription/checkout` — Create Stripe checkout session `{ priceId, userId, email }`
 - `POST /api/subscription/portal` — Create Stripe billing portal session `{ email }`
 - `POST /api/stripe/webhook` — Stripe webhook (registered before express.json())
+- `POST /api/openclaw/provision` — Provision per-user OpenClaw agent `{ userId, email }`
+- `GET /api/openclaw/agent?email=<email>` — Get user's agent info
+- `GET /api/openclaw/agents` — List all provisioned agents
+- `GET /api/gateway/*` — Proxied OpenClaw control UI (HTTP)
+- `WS /api/gateway` — Proxied OpenClaw gateway WebSocket
+
+## Database Tables
+
+- `app.users` — `id TEXT PK DEFAULT gen_random_uuid()`, `name TEXT`, `email TEXT UNIQUE`, `created_at TIMESTAMPTZ`
+- `app.conversations` — Anthropic chat conversation history
+- `app.messages` — Anthropic chat messages
+- `app.user_agents` — Per-user OpenClaw agent provisioning info
 
 ## Seeds
 

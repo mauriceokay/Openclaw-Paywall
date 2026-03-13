@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { createProxyMiddleware, responseInterceptor } from "http-proxy-middleware";
 import router from "./routes";
 import { WebhookHandlers } from "./webhookHandlers";
 
@@ -32,6 +33,44 @@ app.post(
     }
   },
 );
+
+// Gateway HTTP proxy — serves the real OpenClaw control UI at /api/gateway/*
+// Strips X-Frame-Options and frame-ancestors CSP so it can be embedded in our iframe.
+// Injects window.__OPENCLAW_CONTROL_UI_BASE_PATH__ so the gateway WS connects at /api/gateway.
+const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: "http://127.0.0.1:3001",
+  changeOrigin: true,
+  selfHandleResponse: true,
+  pathRewrite: { "^/api/gateway": "" },
+  on: {
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
+      // Strip iframe-blocking headers
+      res.removeHeader("x-frame-options");
+      const csp = res.getHeader("content-security-policy");
+      if (typeof csp === "string") {
+        const relaxed = csp
+          .replace(/frame-ancestors[^;]*(;|$)/g, "")
+          .replace(/frame-src[^;]*(;|$)/g, "");
+        res.setHeader("content-security-policy", relaxed);
+      }
+
+      // Inject base path into HTML so the gateway WS connects via /api/gateway
+      const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+      if (contentType.includes("text/html")) {
+        let html = responseBuffer.toString("utf8");
+        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>`;
+        html = html.includes("<head>")
+          ? html.replace("<head>", `<head>${injection}`)
+          : `${injection}${html}`;
+        return Buffer.from(html, "utf8");
+      }
+
+      return responseBuffer;
+    }),
+  },
+});
+
+app.use("/api/gateway", gatewayHttpProxy);
 
 app.use(cors());
 app.use(cookieParser());

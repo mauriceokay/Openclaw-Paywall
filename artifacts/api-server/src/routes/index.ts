@@ -5,6 +5,7 @@ import configRouter from "./config";
 import gatewayRouter from "./gateway";
 import usersRouter from "./users";
 import anthropicRouter from "./anthropic";
+import openclawRouter from "./openclaw";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(gatewayRouter);
 router.use(usersRouter);
 router.use(subscriptionRouter);
 router.use(anthropicRouter);
+router.use("/openclaw", openclawRouter);
 
 export default router;
