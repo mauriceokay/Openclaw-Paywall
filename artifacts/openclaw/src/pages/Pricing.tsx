@@ -39,6 +39,9 @@ export function Pricing() {
       .catch(() => {});
   }, [user, navigate]);
 
+  // Synchronous render guard — returns null immediately so pricing content never flashes
+  if (!user) return null;
+
   const handleSubscribeClick = async (priceId: string) => {
     if (!user) { navigate("/signup"); return; }
     setSelectedPriceId(priceId);

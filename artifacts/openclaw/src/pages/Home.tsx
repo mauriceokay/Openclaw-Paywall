@@ -59,7 +59,7 @@ export function Home() {
               </p>
               
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-                <Link href="/pricing" className="w-full sm:w-auto">
+                <Link href="/signup" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full text-lg h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_30px_rgba(255,81,47,0.3)] hover:shadow-[0_0_40px_rgba(255,81,47,0.5)] transition-all">
                     Unlock Premium
                   </Button>
