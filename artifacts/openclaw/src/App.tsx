@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Home } from "@/pages/Home";
 import { Pricing } from "@/pages/Pricing";
 import { Dashboard } from "@/pages/Dashboard";
+import { Setup } from "@/pages/Setup";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/pricing" component={Pricing} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/setup" component={Setup} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

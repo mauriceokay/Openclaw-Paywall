@@ -122,7 +122,7 @@ router.post("/subscription/checkout", async (req, res) => {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${baseUrl}/dashboard?success=true`,
+      success_url: `${baseUrl}/setup?success=true`,
       cancel_url: `${baseUrl}/pricing?canceled=true`,
     });
 
