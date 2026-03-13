@@ -7,11 +7,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { SEOHead } from "@/components/SEOHead";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 export function SignUp() {
   const { signUp, user } = useAuth();
+  const { t, locale } = useLanguage();
   const [, navigate] = useLocation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +49,13 @@ export function SignUp() {
   };
 
   return (
+    <>
+    <SEOHead
+      locale={locale}
+      title={t.seo.signupTitle}
+      description={t.seo.signupDesc}
+      canonicalPath="/signup"
+    />
     <div className="min-h-screen flex items-center justify-center bg-mesh px-6">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -134,5 +144,6 @@ export function SignUp() {
         </Card>
       </motion.div>
     </div>
+    </>
   );
 }

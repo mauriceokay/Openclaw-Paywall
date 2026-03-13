@@ -92,6 +92,18 @@ const ja = {
     privacy: "プライバシーポリシー",
   },
   langSwitcher: "言語",
+  seo: {
+    homeTitle: "OpenClaw Cloud — あなたのパーソナルAIアシスタント、完全マネージド",
+    homeDesc: "WhatsApp、Telegram、Discordなど20以上のプラットフォームで自分のOpenClaw AIアシスタントを動かせます。サーバー不要、設定不要。30秒で始められます。",
+    pricingTitle: "料金プラン — OpenClaw Cloud",
+    pricingDesc: "OpenClaw Cloudのシンプルで透明な料金設定。自分に合ったプランを選んで、今日からパーソナルAIアシスタントを始めましょう。",
+    blogTitle: "ブログ — ガイド、比較、ヒント | OpenClaw Cloud",
+    blogDesc: "OpenClaw、openclawd、ClawdBot、MoltBot、そして自分のAIアシスタントを構築することについてのすべて。",
+    dashboardTitle: "ダッシュボード — OpenClaw Cloud",
+    dashboardDesc: "OpenClaw AIアシスタントを管理し、サブスクリプションを確認し、パーソナルAIワークスペースにアクセスできます。",
+    signupTitle: "始める — OpenClaw Cloud",
+    signupDesc: "OpenClaw Cloudアカウントを作成して、数分でパーソナルAIアシスタントを起動しましょう。サインアップにクレジットカードは不要です。",
+  },
 } as const;
 
 export default ja;

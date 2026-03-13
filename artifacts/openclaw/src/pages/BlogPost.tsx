@@ -1,6 +1,7 @@
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowLeft, Clock, ChevronRight, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type BlogSection } from "@/data/blog-posts";
@@ -167,17 +168,16 @@ export function BlogPost() {
 
   return (
     <>
+      <SEOHead
+        locale={locale}
+        title={post.metaTitle}
+        description={post.metaDescription}
+        canonicalPath={`/blog/${post.slug}`}
+        type="article"
+        keywords={post.keywords.join(", ")}
+        publishedAt={post.publishedAt}
+      />
       <Helmet>
-        <title>{post.metaTitle}</title>
-        <meta name="description" content={post.metaDescription} />
-        <meta name="keywords" content={post.keywords.join(", ")} />
-        <meta property="og:title" content={post.metaTitle} />
-        <meta property="og:description" content={post.metaDescription} />
-        <meta property="og:type" content="article" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={post.metaTitle} />
-        <meta name="twitter:description" content={post.metaDescription} />
-        <link rel="canonical" href={`https://openclaw.cloud/blog/${post.slug}`} />
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 

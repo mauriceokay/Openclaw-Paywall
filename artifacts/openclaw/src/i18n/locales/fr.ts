@@ -92,6 +92,18 @@ const fr = {
     privacy: "Confidentialité",
   },
   langSwitcher: "Langue",
+  seo: {
+    homeTitle: "OpenClaw Cloud — Votre assistant IA personnel, déjà géré",
+    homeDesc: "Faites tourner votre propre assistant IA OpenClaw sur WhatsApp, Telegram, Discord et 20+ plateformes. Sans serveur, sans configuration. Prêt en 30 secondes.",
+    pricingTitle: "Tarifs — OpenClaw Cloud",
+    pricingDesc: "Des tarifs simples et transparents pour OpenClaw Cloud. Choisissez votre formule et démarrez votre assistant IA personnel dès aujourd'hui.",
+    blogTitle: "Blog — Guides, comparatifs & conseils | OpenClaw Cloud",
+    blogDesc: "Tout ce que vous devez savoir sur OpenClaw, openclawd, ClawdBot, MoltBot et comment créer votre propre assistant IA.",
+    dashboardTitle: "Tableau de bord — OpenClaw Cloud",
+    dashboardDesc: "Gérez votre assistant IA OpenClaw, vérifiez votre abonnement et accédez à votre espace de travail IA personnel.",
+    signupTitle: "Commencer — OpenClaw Cloud",
+    signupDesc: "Créez votre compte OpenClaw Cloud et démarrez votre assistant IA personnel en quelques minutes. Aucune carte bancaire requise.",
+  },
 } as const;
 
 export default fr;

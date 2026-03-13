@@ -92,6 +92,18 @@ const zhTW = {
     privacy: "隱私權政策",
   },
   langSwitcher: "語言",
+  seo: {
+    homeTitle: "OpenClaw Cloud — 您的個人 AI 助手，完整託管服務",
+    homeDesc: "在 WhatsApp、Telegram、Discord 等 20+ 平台上執行您自己的 OpenClaw AI 助手。無需伺服器，無需設定，30 秒即可上手。",
+    pricingTitle: "定價 — OpenClaw Cloud",
+    pricingDesc: "OpenClaw Cloud 簡單透明的定價方案。選擇適合您的方案，立即啟動您的個人 AI 助手。",
+    blogTitle: "部落格 — 指南、比較與技巧 | OpenClaw Cloud",
+    blogDesc: "關於 OpenClaw、openclawd、ClawdBot、MoltBot 以及建立您自己的 AI 助手的一切。",
+    dashboardTitle: "控制台 — OpenClaw Cloud",
+    dashboardDesc: "管理您的 OpenClaw AI 助手，查看訂閱狀態，存取您的個人 AI 工作區。",
+    signupTitle: "開始使用 — OpenClaw Cloud",
+    signupDesc: "建立您的 OpenClaw Cloud 帳戶，幾分鐘內啟動您的個人 AI 助手。無需信用卡即可註冊。",
+  },
 } as const;
 
 export default zhTW;

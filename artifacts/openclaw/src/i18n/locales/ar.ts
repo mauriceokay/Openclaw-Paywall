@@ -92,6 +92,18 @@ const ar = {
     privacy: "الخصوصية",
   },
   langSwitcher: "اللغة",
+  seo: {
+    homeTitle: "OpenClaw Cloud — مساعدك الذكي الشخصي، مُدار بالكامل",
+    homeDesc: "شغّل مساعدك الذكي OpenClaw على WhatsApp وTelegram وDiscord وأكثر من 20 منصة. بدون خوادم، بدون إعداد. ابدأ في 30 ثانية.",
+    pricingTitle: "الأسعار — OpenClaw Cloud",
+    pricingDesc: "أسعار OpenClaw Cloud بسيطة وشفافة. اختر الخطة المناسبة وابدأ مساعدك الذكي الشخصي اليوم.",
+    blogTitle: "المدونة — أدلة ومقارنات ونصائح | OpenClaw Cloud",
+    blogDesc: "كل ما تحتاج معرفته عن OpenClaw وopenclawd وClawdBot وMoltBot وبناء مساعدك الذكي الخاص.",
+    dashboardTitle: "لوحة التحكم — OpenClaw Cloud",
+    dashboardDesc: "أدر مساعدك الذكي OpenClaw، تحقق من اشتراكك، وادخل إلى مساحة عمل الذكاء الاصطناعي الشخصية.",
+    signupTitle: "ابدأ الآن — OpenClaw Cloud",
+    signupDesc: "أنشئ حسابك على OpenClaw Cloud وابدأ مساعدك الذكي الشخصي في دقائق. لا بطاقة ائتمانية مطلوبة للتسجيل.",
+  },
 } as const;
 
 export default ar;

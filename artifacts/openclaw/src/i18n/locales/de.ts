@@ -92,6 +92,18 @@ const de = {
     privacy: "Datenschutz",
   },
   langSwitcher: "Sprache",
+  seo: {
+    homeTitle: "OpenClaw Cloud — Dein persönlicher KI-Assistent, fertig verwaltet",
+    homeDesc: "Betreibe deinen eigenen OpenClaw-KI-Assistenten auf WhatsApp, Telegram, Discord und 20+ Plattformen. Ohne Server, ohne Einrichtung. In 30 Sekunden startklar.",
+    pricingTitle: "Preise — OpenClaw Cloud",
+    pricingDesc: "Einfache, transparente Preise für OpenClaw Cloud. Wähle den passenden Plan und starte deinen persönlichen KI-Assistenten noch heute.",
+    blogTitle: "Blog — Anleitungen, Vergleiche & Tipps | OpenClaw Cloud",
+    blogDesc: "Alles über OpenClaw, openclawd, ClawdBot, MoltBot und wie du deinen eigenen KI-Assistenten erstellst.",
+    dashboardTitle: "Dashboard — OpenClaw Cloud",
+    dashboardDesc: "Verwalte deinen OpenClaw-KI-Assistenten, prüfe dein Abonnement und greife auf deinen persönlichen KI-Arbeitsbereich zu.",
+    signupTitle: "Loslegen — OpenClaw Cloud",
+    signupDesc: "Erstelle dein OpenClaw Cloud-Konto und starte deinen persönlichen KI-Assistenten in Minuten. Keine Kreditkarte nötig.",
+  },
 } as const;
 
 export default de;

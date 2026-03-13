@@ -15,11 +15,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { useQuery } from "@tanstack/react-query";
 import { useCreatePortalSession, type SubscriptionStatus, type CreatePortalSessionMutationError } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { SEOHead } from "@/components/SEOHead";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { t, locale } = useLanguage();
   const [, navigate] = useLocation();
 
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
@@ -113,6 +116,14 @@ export function Dashboard() {
   }
 
   return (
+    <>
+    <SEOHead
+      locale={locale}
+      title={t.seo.dashboardTitle}
+      description={t.seo.dashboardDesc}
+      canonicalPath="/dashboard"
+      noindex
+    />
     <div className="min-h-screen pt-32 pb-24 bg-background">
       <div className="max-w-5xl mx-auto px-6">
 
@@ -226,5 +237,6 @@ export function Dashboard() {
 
       </div>
     </div>
+    </>
   );
 }

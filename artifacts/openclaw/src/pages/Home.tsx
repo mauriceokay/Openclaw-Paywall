@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Terminal, Shield, MessageSquare, Workflow, Zap, Globe, X, Check, Star } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { SEOHead } from "@/components/SEOHead";
 
 const FEATURE_ICONS = [Globe, MessageSquare, Workflow, Shield, Terminal, Zap];
 
@@ -42,7 +43,7 @@ const WITH_STYLES = [
 ];
 
 export function Home() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   const container = {
     hidden: { opacity: 0 },
@@ -55,6 +56,14 @@ export function Home() {
   };
 
   return (
+    <>
+    <SEOHead
+      locale={locale}
+      title={t.seo.homeTitle}
+      description={t.seo.homeDesc}
+      canonicalPath="/"
+      keywords="openclaw, personal ai assistant, self-hosted ai, whatsapp ai, telegram ai, discord ai"
+    />
     <div className="min-h-screen pt-20 flex flex-col">
       {/* Hero Section */}
       <section className="relative w-full py-32 overflow-hidden flex-1 flex items-center">
@@ -338,5 +347,6 @@ export function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }

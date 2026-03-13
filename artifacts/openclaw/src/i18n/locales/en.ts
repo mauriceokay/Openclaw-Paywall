@@ -92,6 +92,18 @@ const en = {
     privacy: "Privacy",
   },
   langSwitcher: "Language",
+  seo: {
+    homeTitle: "OpenClaw Cloud — Your Personal AI Assistant, Managed",
+    homeDesc: "Run your own OpenClaw AI assistant on WhatsApp, Telegram, Discord and 20+ platforms. No servers, no setup. Start in 30 seconds.",
+    pricingTitle: "Pricing — OpenClaw Cloud",
+    pricingDesc: "Simple, transparent pricing for OpenClaw Cloud. Choose the plan that fits and start your personal AI assistant today.",
+    blogTitle: "Blog — Guides, Comparisons & Tips | OpenClaw Cloud",
+    blogDesc: "Everything you need to know about OpenClaw, openclawd, ClawdBot, MoltBot, and building your own AI assistant.",
+    dashboardTitle: "Dashboard — OpenClaw Cloud",
+    dashboardDesc: "Manage your OpenClaw AI assistant, check your subscription, and access your personal AI workspace.",
+    signupTitle: "Get Started — OpenClaw Cloud",
+    signupDesc: "Create your OpenClaw Cloud account and start your personal AI assistant in minutes. No credit card required to sign up.",
+  },
 } as const;
 
 export default en;

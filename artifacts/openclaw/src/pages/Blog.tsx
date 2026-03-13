@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
+import { SEOHead } from "@/components/SEOHead";
 import { Clock, Tag, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { getBlogPostsForLocale } from "@/data/blog-index";
@@ -35,13 +35,13 @@ export function Blog() {
 
   return (
     <>
-      <Helmet>
-        <title>OpenClaw Blog — {t.blog.title} | OpenClaw Cloud</title>
-        <meta name="description" content={t.blog.description} />
-        <meta name="keywords" content="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant" />
-        <link rel="canonical" href="https://openclaw.cloud/blog" />
-        <html lang={locale} />
-      </Helmet>
+      <SEOHead
+        locale={locale}
+        title={t.seo.blogTitle}
+        description={t.seo.blogDesc}
+        canonicalPath="/blog"
+        keywords="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant"
+      />
 
       <div className="min-h-screen pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-6">

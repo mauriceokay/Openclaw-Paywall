@@ -11,9 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useListProducts, createCheckout } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { SEOHead } from "@/components/SEOHead";
 
 export function Pricing() {
   const { user } = useAuth();
+  const { t, locale } = useLanguage();
   const [, navigate] = useLocation();
   const { data: productsData, isLoading, error } = useListProducts();
 
@@ -80,6 +83,14 @@ export function Pricing() {
   if (!user) return null;
 
   return (
+    <>
+    <SEOHead
+      locale={locale}
+      title={t.seo.pricingTitle}
+      description={t.seo.pricingDesc}
+      canonicalPath="/pricing"
+      keywords="openclaw pricing, openclaw cloud plans, ai assistant subscription"
+    />
     <div className="min-h-screen pt-32 pb-24 bg-mesh">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -215,5 +226,6 @@ export function Pricing() {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
