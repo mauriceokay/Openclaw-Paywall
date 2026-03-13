@@ -61,15 +61,9 @@ export function Home() {
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
                 <Link href="/signup" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full text-lg h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_30px_rgba(255,81,47,0.3)] hover:shadow-[0_0_40px_rgba(255,81,47,0.5)] transition-all">
-                    Unlock Premium
+                    Start OpenClaw Now
                   </Button>
                 </Link>
-                <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noreferrer" className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full text-lg h-14 px-8 rounded-full border-white/10 hover:bg-white/5">
-                    <Terminal className="mr-2 w-5 h-5" />
-                    Read Docs
-                  </Button>
-                </a>
               </div>
             </motion.div>
 
