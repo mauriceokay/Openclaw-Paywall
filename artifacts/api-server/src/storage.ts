@@ -46,7 +46,7 @@ export class Storage {
 
   async getCustomerByEmail(email: string) {
     const result = await db.execute(
-      sql`SELECT * FROM stripe.customers WHERE email = ${email} AND deleted = false LIMIT 1`,
+      sql`SELECT * FROM stripe.customers WHERE email = ${email} AND deleted IS NOT TRUE LIMIT 1`,
     );
     return result.rows[0] || null;
   }
