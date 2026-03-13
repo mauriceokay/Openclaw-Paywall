@@ -87,7 +87,7 @@ export function Pricing() {
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-muted-foreground">
-            Unlock the full potential of your personal AI assistant. Get premium features, priority routing, and unlimited automations.
+            Unlock the full potential of your personal AI assistant. Get premium features, all channel integrations, and unlimited automations.
           </p>
           {checkoutError && (
             <p className="mt-4 text-sm text-destructive">{checkoutError}</p>
