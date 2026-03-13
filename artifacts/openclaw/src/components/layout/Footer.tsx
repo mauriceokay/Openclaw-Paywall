@@ -14,6 +14,7 @@ export function Footer() {
         </p>
 
         <div className="flex items-center gap-6">
+          <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">Blog</Link>
           <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</Link>
           <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
           <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">GitHub</a>
