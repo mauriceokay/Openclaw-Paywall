@@ -6,35 +6,39 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const FEATURE_ICONS = [Globe, MessageSquare, Workflow, Shield, Terminal, Zap];
 
-const TESTIMONIALS = [
-  {
-    name: "Marcus T.",
-    handle: "@marcust_dev",
-    avatar: "M",
-    text: "Tried setting up OpenClaw myself for 3 days. Port conflicts, Python version hell, Docker issues. Switched to this and had it running in 2 minutes. I'm not even exaggerating.",
-    stars: 5,
-  },
-  {
-    name: "Priya K.",
-    handle: "@priyak",
-    avatar: "P",
-    text: "My assistant now handles my Telegram messages while I sleep. Reminds me of meetings, answers FAQs on my behalf, and summarises my emails every morning. Worth every penny.",
-    stars: 5,
-  },
-  {
-    name: "Jonas W.",
-    handle: "@jonaswdev",
-    avatar: "J",
-    text: "The fact that I can connect Discord, WhatsApp, AND iMessage to the same AI — from a single dashboard — is insane. Setup took literally minutes.",
-    stars: 5,
-  },
-  {
-    name: "Aisha M.",
-    handle: "@aisham_ai",
-    avatar: "A",
-    text: "I needed an AI assistant that doesn't send my data to some third party. This is self-hosted, actually private, and it just works. Finally.",
-    stars: 5,
-  },
+const TESTIMONIAL_META = [
+  { name: "Marcus T.", handle: "@marcust_dev", avatar: "M", stars: 5 },
+  { name: "Priya K.",  handle: "@priyak",       avatar: "P", stars: 5 },
+  { name: "Jonas W.",  handle: "@jonaswdev",    avatar: "J", stars: 5 },
+  { name: "Aisha M.",  handle: "@aisham_ai",    avatar: "A", stars: 5 },
+];
+
+const HERO_STYLES = [
+  "text-muted-foreground",
+  "",
+  "text-blue-400",
+  "text-yellow-400",
+  "text-green-400",
+  "text-muted-foreground mt-4 animate-pulse",
+];
+
+const WITHOUT_STYLES = [
+  "text-muted-foreground",
+  "text-muted-foreground",
+  "text-destructive",
+  "text-muted-foreground mt-1",
+  "text-destructive",
+  "text-muted-foreground mt-1",
+  "text-destructive",
+];
+
+const WITH_STYLES = [
+  "text-muted-foreground",
+  "text-green-400 mt-1",
+  "text-green-400",
+  "text-green-400",
+  "text-green-400",
+  "text-green-400 animate-pulse mt-1",
 ];
 
 export function Home() {
@@ -42,10 +46,7 @@ export function Home() {
 
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const item = {
@@ -117,13 +118,10 @@ export function Home() {
                   <div className="text-xs font-mono text-muted-foreground flex-1 text-center pr-8">openclaw-gateway</div>
                 </div>
 
-                <div className="flex-1 font-mono text-sm text-green-400 space-y-2">
-                  <p className="text-muted-foreground">$ openclaw onboard</p>
-                  <p>🦞 EXFOLIATE! EXFOLIATE!</p>
-                  <p className="text-blue-400">➜ Starting Gateway on ws://127.0.0.1:18789</p>
-                  <p className="text-yellow-400">➜ Connecting to Telegram...</p>
-                  <p className="text-green-400">✓ Connected successfully.</p>
-                  <p className="text-muted-foreground mt-4 animate-pulse">Waiting for messages...</p>
+                <div className="flex-1 font-mono text-sm space-y-2">
+                  {(t.home.terminalHero as readonly string[]).map((line, i) => (
+                    <p key={i} className={HERO_STYLES[i]}>{line}</p>
+                  ))}
                 </div>
               </div>
             </motion.div>
@@ -197,13 +195,9 @@ export function Home() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500" />
                   <div className="w-3 h-3 rounded-full bg-green-500" />
                 </div>
-                <p className="text-muted-foreground">$ git clone openclaw &amp;&amp; cd openclaw</p>
-                <p className="text-muted-foreground">$ docker compose up</p>
-                <p className="text-destructive">ERROR: port 5432 already in use</p>
-                <p className="text-muted-foreground mt-1">$ npm install</p>
-                <p className="text-destructive">ERROR: node 18 required, found 22</p>
-                <p className="text-muted-foreground mt-1">$ openclaw configure</p>
-                <p className="text-destructive">Build failed. 7 errors. See log.</p>
+                {(t.home.terminalWithout as readonly string[]).map((line, i) => (
+                  <p key={i} className={WITHOUT_STYLES[i]}>{line}</p>
+                ))}
               </div>
 
               <div className="p-5 space-y-3 bg-card/40">
@@ -234,12 +228,9 @@ export function Home() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500" />
                   <div className="w-3 h-3 rounded-full bg-green-500" />
                 </div>
-                <p className="text-muted-foreground">$ # Already running in the cloud ✓</p>
-                <p className="text-green-400 mt-1">✓ Gateway online</p>
-                <p className="text-green-400">✓ AI model ready (Claude)</p>
-                <p className="text-green-400">✓ Telegram connected</p>
-                <p className="text-green-400">✓ WhatsApp connected</p>
-                <p className="text-green-400 animate-pulse mt-1">Waiting for your first message...</p>
+                {(t.home.terminalWithUs as readonly string[]).map((line, i) => (
+                  <p key={i} className={WITH_STYLES[i]}>{line}</p>
+                ))}
               </div>
 
               <div className="p-5 space-y-3 bg-card/40">
@@ -290,27 +281,29 @@ export function Home() {
             viewport={{ once: true, margin: "-80px" }}
             className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
           >
-            {TESTIMONIALS.map((testimonial, i) => (
+            {TESTIMONIAL_META.map((meta, i) => (
               <motion.div
                 key={i}
                 variants={item}
                 className="glass-panel rounded-2xl p-6 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex gap-0.5">
-                  {Array.from({ length: testimonial.stars }).map((_, s) => (
+                  {Array.from({ length: meta.stars }).map((_, s) => (
                     <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
 
-                <p className="text-sm text-muted-foreground leading-relaxed flex-1">"{testimonial.text}"</p>
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                  "{(t.home.testimonialTexts as readonly string[])[i]}"
+                </p>
 
                 <div className="flex items-center gap-3 pt-2 border-t border-white/5">
                   <div className="w-9 h-9 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-sm shrink-0">
-                    {testimonial.avatar}
+                    {meta.avatar}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{testimonial.name}</p>
-                    <p className="text-xs text-muted-foreground">{testimonial.handle}</p>
+                    <p className="text-sm font-semibold text-foreground">{meta.name}</p>
+                    <p className="text-xs text-muted-foreground">{meta.handle}</p>
                   </div>
                 </div>
               </motion.div>
