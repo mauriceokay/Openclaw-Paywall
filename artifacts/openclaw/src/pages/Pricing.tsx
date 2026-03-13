@@ -87,9 +87,16 @@ export function Pricing() {
             animate="show"
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center max-w-5xl mx-auto"
           >
-            {productsData?.products?.map((product) => {
-              // Get first price for simplicity
-              const price = product.prices[0];
+            {productsData?.products
+              ?.filter((p) => p.name.toLowerCase().startsWith("openclaw"))
+              .sort((a, b) => {
+                const order = ["free", "pro", "team"];
+                const ai = order.findIndex((k) => a.name.toLowerCase().includes(k));
+                const bi = order.findIndex((k) => b.name.toLowerCase().includes(k));
+                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+              })
+              .map((product) => {
+              const price = product.prices.find((p) => p.interval === "month") ?? product.prices[0] ?? null;
               const formattedPrice = price?.unitAmount ? (price.unitAmount / 100).toFixed(2) : "0.00";
               const isPremium = product.name.toLowerCase().includes("pro") || product.name.toLowerCase().includes("premium");
               
@@ -129,14 +136,14 @@ export function Pricing() {
                     
                     <CardFooter>
                       <Button 
-                        onClick={() => handleSubscribeClick(price.id)}
+                        onClick={() => price ? handleSubscribeClick(price.id) : window.location.href = '/dashboard'}
                         className={`w-full py-6 rounded-xl text-md font-semibold transition-all ${
                           isPremium 
                             ? 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25' 
                             : 'bg-white/10 hover:bg-white/20 text-white'
                         }`}
                       >
-                        Subscribe to {product.name}
+                        {price ? `Subscribe to ${product.name}` : "Get Started Free"}
                       </Button>
                     </CardFooter>
                   </Card>
