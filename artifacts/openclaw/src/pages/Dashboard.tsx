@@ -1,0 +1,176 @@
+import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { ArrowRight, Loader2, Settings, ShieldAlert, Sparkles, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useGetSubscriptionStatus, useCreatePortalSession } from "@workspace/api-client-react";
+
+export function Dashboard() {
+  const { data: status, isLoading, error } = useGetSubscriptionStatus();
+  const portalMutation = useCreatePortalSession();
+
+  const handleManageSubscription = () => {
+    portalMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        window.location.href = data.url;
+      }
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-32 flex flex-col items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground animate-pulse">Loading workspace...</p>
+      </div>
+    );
+  }
+
+  if (error || !status) {
+    return (
+      <div className="min-h-screen pt-32 flex items-center justify-center px-6">
+        <Card className="max-w-md w-full border-destructive/20 bg-destructive/5 text-center p-8">
+          <ShieldAlert className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Access Error</h2>
+          <p className="text-muted-foreground mb-6">Could not verify your subscription status.</p>
+          <Button onClick={() => window.location.reload()} variant="outline">Try Again</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  // PAYWALL: Block access if no active subscription
+  if (!status.hasActiveSubscription) {
+    return (
+      <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center relative overflow-hidden bg-mesh">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-0" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, type: "spring" }}
+          className="relative z-10 w-full max-w-xl"
+        >
+          <Card className="glass-panel border-primary/30 shadow-[0_0_50px_rgba(255,81,47,0.15)] p-2">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-3xl font-display mb-2">Premium Workspace</CardTitle>
+              <CardDescription className="text-base text-muted-foreground">
+                This dashboard is locked. Upgrade your account to manage your OpenClaw gateway, view analytics, and configure advanced routing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center pt-6 pb-4">
+              <Link href="/pricing" className="w-full">
+                <Button size="lg" className="w-full h-14 text-lg bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 shadow-lg text-white font-bold rounded-xl group">
+                  View Subscription Plans
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ACTIVE SUBSCRIPTION DASHBOARD
+  return (
+    <div className="min-h-screen pt-32 pb-24 bg-background">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl font-display font-bold mb-2">Workspace Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back. Your gateway is active and fully operational.</p>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleManageSubscription}
+            disabled={portalMutation.isPending}
+            className="border-white/10 hover:bg-white/5"
+          >
+            {portalMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
+            Manage Subscription
+          </Button>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+            <CardHeader className="pb-2">
+              <CardDescription>Current Plan</CardDescription>
+              <CardTitle className="text-2xl text-primary">{status.planName || "Pro Tier"}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className={`w-2 h-2 rounded-full ${status.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                Status: {status.status || "Active"}
+              </div>
+              {status.currentPeriodEnd && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Renews: {new Date(Number(status.currentPeriodEnd) * 1000).toLocaleDateString()}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+            <CardHeader className="pb-2">
+              <CardDescription>Gateway Status</CardDescription>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Activity className="w-6 h-6 text-green-500" />
+                Online
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground">
+                Connected to 4 channels
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+            <CardHeader className="pb-2">
+              <CardDescription>Messages Processed</CardDescription>
+              <CardTitle className="text-2xl">14,285</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-green-400">
+                +12% from last week
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mocked UI for Dashboard configuration */}
+        <div className="glass-panel rounded-2xl p-8 border-white/5">
+          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Settings className="w-5 h-5 text-primary" />
+            Gateway Configuration
+          </h3>
+          <div className="space-y-4">
+            {[
+              { name: "Telegram Bot", status: "Connected", desc: "Routing via @OpenClawBot" },
+              { name: "Discord", status: "Connected", desc: "Server: Personal Workspace" },
+              { name: "Voice Wake", status: "Inactive", desc: "Requires macOS Node configuration" }
+            ].map((integration, idx) => (
+              <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5">
+                <div>
+                  <h4 className="font-semibold text-foreground">{integration.name}</h4>
+                  <p className="text-sm text-muted-foreground">{integration.desc}</p>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                  integration.status === 'Connected' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-muted border-white/10 text-muted-foreground'
+                }`}>
+                  {integration.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

@@ -6,4 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./checkoutRequest";
+export * from "./checkoutResponse";
+export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./portalResponse";
+export * from "./price";
+export * from "./product";
+export * from "./productsResponse";
+export * from "./subscriptionStatus";

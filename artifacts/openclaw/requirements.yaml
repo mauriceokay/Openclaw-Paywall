@@ -1,0 +1,13 @@
+packages:
+  "framer-motion": "For stunning page transitions, staggering feature cards, and micro-interactions"
+  "lucide-react": "For beautiful consistent icons"
+
+images:
+  - path: "artifacts/openclaw/public/images/hero-bg.png"
+    description: "Abstract deep ocean underwater background with subtle bioluminescent glowing red and orange particles, dark and cinematic, professional 3D render, sleek and minimal"
+    aspect_ratio: "16:9"
+
+notes:
+  - "Importing API hooks from @workspace/api-client-react as per workspace configuration"
+  - "Using a simulated checkout flow for the paywall since auth is not explicitly implemented in this bounded scope"
+  - "Assuming standard Shadcn UI components are pre-existing in src/components/ui/ based on the directory structure provided"

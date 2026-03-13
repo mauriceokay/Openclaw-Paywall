@@ -14,3 +14,61 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns all available subscription plans with pricing
+ * @summary List available plans
+ */
+export const ListProductsResponse = zod.object({
+  products: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      description: zod.string().optional(),
+      prices: zod.array(
+        zod.object({
+          id: zod.string(),
+          unitAmount: zod.number().nullish(),
+          currency: zod.string(),
+          interval: zod.string().nullish(),
+          intervalCount: zod.number().nullish(),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
+ * Returns the subscription status for the current user
+ * @summary Get current subscription status
+ */
+export const GetSubscriptionStatusResponse = zod.object({
+  hasActiveSubscription: zod.boolean(),
+  subscriptionId: zod.string().nullish(),
+  planName: zod.string().nullish(),
+  status: zod.string().nullish(),
+  currentPeriodEnd: zod.string().nullish(),
+  cancelAtPeriodEnd: zod.boolean().nullish(),
+});
+
+/**
+ * Creates a Stripe checkout session for a given price
+ * @summary Create a checkout session
+ */
+export const CreateCheckoutBody = zod.object({
+  priceId: zod.string(),
+  userId: zod.string(),
+  email: zod.string(),
+});
+
+export const CreateCheckoutResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * Creates a Stripe billing portal session for managing subscriptions
+ * @summary Create billing portal session
+ */
+export const CreatePortalSessionResponse = zod.object({
+  url: zod.string(),
+});

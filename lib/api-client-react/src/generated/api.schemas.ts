@@ -8,3 +8,49 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Price {
+  id: string;
+  unitAmount?: number | null;
+  currency: string;
+  interval?: string | null;
+  intervalCount?: number | null;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  prices: Price[];
+}
+
+export interface ProductsResponse {
+  products: Product[];
+}
+
+export interface SubscriptionStatus {
+  hasActiveSubscription: boolean;
+  subscriptionId?: string | null;
+  planName?: string | null;
+  status?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean | null;
+}
+
+export interface CheckoutRequest {
+  priceId: string;
+  userId: string;
+  email: string;
+}
+
+export interface CheckoutResponse {
+  url: string;
+}
+
+export interface PortalResponse {
+  url: string;
+}
+
+export interface ErrorResponse {
+  error: string;
+}

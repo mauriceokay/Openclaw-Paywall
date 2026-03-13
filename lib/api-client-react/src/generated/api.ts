@@ -5,18 +5,29 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  CheckoutRequest,
+  CheckoutResponse,
+  ErrorResponse,
+  HealthStatus,
+  PortalResponse,
+  ProductsResponse,
+  SubscriptionStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +110,324 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns all available subscription plans with pricing
+ * @summary List available plans
+ */
+export const getListProductsUrl = () => {
+  return `/api/products`;
+};
+
+export const listProducts = async (
+  options?: RequestInit,
+): Promise<ProductsResponse> => {
+  return customFetch<ProductsResponse>(getListProductsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListProductsQueryKey = () => {
+  return [`/api/products`] as const;
+};
+
+export const getListProductsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listProducts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listProducts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListProductsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listProducts>>> = ({
+    signal,
+  }) => listProducts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listProducts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListProductsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listProducts>>
+>;
+export type ListProductsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List available plans
+ */
+
+export function useListProducts<
+  TData = Awaited<ReturnType<typeof listProducts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listProducts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListProductsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns the subscription status for the current user
+ * @summary Get current subscription status
+ */
+export const getGetSubscriptionStatusUrl = () => {
+  return `/api/subscription/status`;
+};
+
+export const getSubscriptionStatus = async (
+  options?: RequestInit,
+): Promise<SubscriptionStatus> => {
+  return customFetch<SubscriptionStatus>(getGetSubscriptionStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSubscriptionStatusQueryKey = () => {
+  return [`/api/subscription/status`] as const;
+};
+
+export const getGetSubscriptionStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSubscriptionStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSubscriptionStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSubscriptionStatusQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSubscriptionStatus>>
+  > = ({ signal }) => getSubscriptionStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSubscriptionStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSubscriptionStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSubscriptionStatus>>
+>;
+export type GetSubscriptionStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current subscription status
+ */
+
+export function useGetSubscriptionStatus<
+  TData = Awaited<ReturnType<typeof getSubscriptionStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSubscriptionStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSubscriptionStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Creates a Stripe checkout session for a given price
+ * @summary Create a checkout session
+ */
+export const getCreateCheckoutUrl = () => {
+  return `/api/subscription/checkout`;
+};
+
+export const createCheckout = async (
+  checkoutRequest: CheckoutRequest,
+  options?: RequestInit,
+): Promise<CheckoutResponse> => {
+  return customFetch<CheckoutResponse>(getCreateCheckoutUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(checkoutRequest),
+  });
+};
+
+export const getCreateCheckoutMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckout>>,
+    TError,
+    { data: BodyType<CheckoutRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCheckout>>,
+  TError,
+  { data: BodyType<CheckoutRequest> },
+  TContext
+> => {
+  const mutationKey = ["createCheckout"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCheckout>>,
+    { data: BodyType<CheckoutRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCheckout(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCheckoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCheckout>>
+>;
+export type CreateCheckoutMutationBody = BodyType<CheckoutRequest>;
+export type CreateCheckoutMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Create a checkout session
+ */
+export const useCreateCheckout = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckout>>,
+    TError,
+    { data: BodyType<CheckoutRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCheckout>>,
+  TError,
+  { data: BodyType<CheckoutRequest> },
+  TContext
+> => {
+  return useMutation(getCreateCheckoutMutationOptions(options));
+};
+
+/**
+ * Creates a Stripe billing portal session for managing subscriptions
+ * @summary Create billing portal session
+ */
+export const getCreatePortalSessionUrl = () => {
+  return `/api/subscription/portal`;
+};
+
+export const createPortalSession = async (
+  options?: RequestInit,
+): Promise<PortalResponse> => {
+  return customFetch<PortalResponse>(getCreatePortalSessionUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCreatePortalSessionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPortalSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPortalSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["createPortalSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPortalSession>>,
+    void
+  > = () => {
+    return createPortalSession(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePortalSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPortalSession>>
+>;
+
+export type CreatePortalSessionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Create billing portal session
+ */
+export const useCreatePortalSession = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPortalSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPortalSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCreatePortalSessionMutationOptions(options));
+};

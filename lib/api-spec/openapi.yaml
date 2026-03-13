@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,6 +9,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: subscription
+    description: Subscription and paywall operations
+  - name: products
+    description: Products and pricing
 paths:
   /healthz:
     get:
@@ -24,6 +27,81 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List available plans
+      description: Returns all available subscription plans with pricing
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductsResponse"
+
+  /subscription/status:
+    get:
+      operationId: getSubscriptionStatus
+      tags: [subscription]
+      summary: Get current subscription status
+      description: Returns the subscription status for the current user
+      responses:
+        "200":
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStatus"
+
+  /subscription/checkout:
+    post:
+      operationId: createCheckout
+      tags: [subscription]
+      summary: Create a checkout session
+      description: Creates a Stripe checkout session for a given price
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+      responses:
+        "200":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /subscription/portal:
+    post:
+      operationId: createPortalSession
+      tags: [subscription]
+      summary: Create billing portal session
+      description: Creates a Stripe billing portal session for managing subscriptions
+      responses:
+        "200":
+          description: Portal session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +112,111 @@ components:
       required:
         - status
 
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        prices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Price"
+      required:
+        - id
+        - name
+        - prices
+
+    Price:
+      type: object
+      properties:
+        id:
+          type: string
+        unitAmount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+        interval:
+          type: string
+          nullable: true
+        intervalCount:
+          type: number
+          nullable: true
+      required:
+        - id
+        - currency
+
+    ProductsResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+      required:
+        - products
+
+    SubscriptionStatus:
+      type: object
+      properties:
+        hasActiveSubscription:
+          type: boolean
+        subscriptionId:
+          type: string
+          nullable: true
+        planName:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        currentPeriodEnd:
+          type: string
+          nullable: true
+        cancelAtPeriodEnd:
+          type: boolean
+          nullable: true
+      required:
+        - hasActiveSubscription
+
+    CheckoutRequest:
+      type: object
+      properties:
+        priceId:
+          type: string
+        userId:
+          type: string
+        email:
+          type: string
+      required:
+        - priceId
+        - userId
+        - email
+
+    CheckoutResponse:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    PortalResponse:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
