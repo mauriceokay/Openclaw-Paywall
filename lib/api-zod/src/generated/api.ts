@@ -62,7 +62,7 @@ export const CreateCheckoutBody = zod.object({
 });
 
 export const CreateCheckoutResponse = zod.object({
-  url: zod.string(),
+  clientSecret: zod.string(),
 });
 
 /**

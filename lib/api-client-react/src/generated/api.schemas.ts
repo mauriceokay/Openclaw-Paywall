@@ -44,7 +44,7 @@ export interface CheckoutRequest {
 }
 
 export interface CheckoutResponse {
-  url: string;
+  clientSecret: string;
 }
 
 export interface PortalResponse {

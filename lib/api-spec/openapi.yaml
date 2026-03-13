@@ -200,10 +200,10 @@ components:
     CheckoutResponse:
       type: object
       properties:
-        url:
+        clientSecret:
           type: string
       required:
-        - url
+        - clientSecret
 
     PortalResponse:
       type: object

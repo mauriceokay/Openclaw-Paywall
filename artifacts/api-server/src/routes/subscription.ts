@@ -119,14 +119,13 @@ router.post("/subscription/checkout", async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${baseUrl}/setup?success=true`,
-      cancel_url: `${baseUrl}/pricing?canceled=true`,
+      ui_mode: "embedded",
+      return_url: `${baseUrl}/setup?success=true&session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    return res.json(CreateCheckoutResponse.parse({ url: session.url }));
+    return res.json(CreateCheckoutResponse.parse({ clientSecret: session.client_secret }));
   } catch (err: any) {
     console.error("Error creating checkout:", err);
     res.status(400).json({ error: err.message || "Failed to create checkout" });

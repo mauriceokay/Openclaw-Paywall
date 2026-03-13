@@ -7,5 +7,5 @@
  */
 
 export interface CheckoutResponse {
-  url: string;
+  clientSecret: string;
 }
