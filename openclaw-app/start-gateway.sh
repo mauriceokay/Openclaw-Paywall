@@ -12,17 +12,20 @@ const config = JSON.parse(fs.readFileSync('${CONFIG}', 'utf8'));
 // No auth required - proxy is the security layer
 config.gateway.auth = { mode: 'none' };
 
-// Trust our API server proxy (127.0.0.1) so connections are treated as local,
-// which bypasses the "pairing required" check on WebSocket connections
+// Trust our API server proxy (127.0.0.1)
 config.gateway.trustedProxies = ['127.0.0.1', '::1'];
 
 // Allow our Replit domain in the control UI
+// allowInsecureAuth: true — switches to token-only mode so the browser
+// doesn't need a device-identity cookie (which can't survive the proxy hop).
+// With this set, ?session=TOKEN in the URL is sufficient to connect.
 config.gateway.controlUi = {
-  allowedOrigins: ['https://${DOMAIN}']
+  allowedOrigins: ['https://${DOMAIN}'],
+  allowInsecureAuth: true
 };
 
 fs.writeFileSync('${CONFIG}', JSON.stringify(config, null, 2));
-console.log('[start-gateway] Config patched: trustedProxies=127.0.0.1, allowedOrigins=${DOMAIN}');
+console.log('[start-gateway] Config patched: allowInsecureAuth=true, allowedOrigins=${DOMAIN}');
 JSEOF
 
 fuser -k 3001/tcp 2>/dev/null || true

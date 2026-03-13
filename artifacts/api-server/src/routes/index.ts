@@ -4,6 +4,7 @@ import subscriptionRouter from "./subscription";
 import configRouter from "./config";
 import gatewayRouter from "./gateway";
 import usersRouter from "./users";
+import anthropicRouter from "./anthropic";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(configRouter);
 router.use(gatewayRouter);
 router.use(usersRouter);
 router.use(subscriptionRouter);
+router.use(anthropicRouter);
 
 export default router;
