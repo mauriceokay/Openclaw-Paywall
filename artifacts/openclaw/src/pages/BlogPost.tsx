@@ -3,16 +3,24 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Clock, ChevronRight, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getBlogPost, getRelatedPosts, type BlogSection } from "@/data/blog-posts";
+import { type BlogSection } from "@/data/blog-posts";
+import { getBlogPostForLocale, getRelatedPostsForLocale } from "@/data/blog-index";
+import { useLanguage } from "@/context/LanguageContext";
 import NotFound from "@/pages/not-found";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Guides: "text-blue-400 bg-blue-400/10",
   Technical: "text-purple-400 bg-purple-400/10",
   Comparisons: "text-orange-400 bg-orange-400/10",
+  Anleitungen: "text-blue-400 bg-blue-400/10",
+  Technisch: "text-purple-400 bg-purple-400/10",
+  Vergleiche: "text-orange-400 bg-orange-400/10",
+  指南: "text-blue-400 bg-blue-400/10",
+  技術: "text-purple-400 bg-purple-400/10",
+  比較: "text-orange-400 bg-orange-400/10",
 };
 
-function Section({ section }: { section: BlogSection }) {
+function Section({ section, ctaMoreInfo, faqTitle }: { section: BlogSection; ctaMoreInfo: string; faqTitle: string }) {
   switch (section.type) {
     case "h2":
       return (
@@ -72,7 +80,7 @@ function Section({ section }: { section: BlogSection }) {
           <div className="mt-4">
             <Link href="/signup">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-full">
-                Get Started with OpenClaw Cloud
+                {ctaMoreInfo}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
@@ -111,7 +119,7 @@ function Section({ section }: { section: BlogSection }) {
     case "faq":
       return (
         <div className="my-8 space-y-4">
-          <h2 className="text-2xl font-display font-bold mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-display font-bold mb-6">{section.faqTitle ?? faqTitle}</h2>
           {section.faqs?.map((faq, i) => (
             <details key={i} className="group rounded-xl border border-white/10 bg-card/40 overflow-hidden">
               <summary className="flex items-center justify-between px-5 py-4 cursor-pointer font-semibold text-foreground hover:text-primary transition-colors list-none">
@@ -133,12 +141,13 @@ function Section({ section }: { section: BlogSection }) {
 
 export function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const post = getBlogPost(slug);
-  const related = getRelatedPosts(slug);
+  const { t, locale } = useLanguage();
+  const post = getBlogPostForLocale(slug, locale);
+  const related = post ? getRelatedPostsForLocale(post.relatedSlugs, locale) : [];
 
   if (!post) return <NotFound />;
 
-  const publishedDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
+  const publishedDate = new Date(post.publishedAt).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -153,6 +162,7 @@ export function BlogPost() {
     author: { "@type": "Organization", name: "OpenClaw Cloud" },
     publisher: { "@type": "Organization", name: "OpenClaw Cloud" },
     keywords: post.keywords.join(", "),
+    inLanguage: locale,
   };
 
   return (
@@ -182,7 +192,7 @@ export function BlogPost() {
           >
             <Link href="/blog" className="hover:text-primary transition-colors flex items-center gap-1.5">
               <ArrowLeft className="w-4 h-4" />
-              Blog
+              {t.blogPost.back}
             </Link>
             <span>/</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[post.category] ?? "text-primary bg-primary/10"}`}>
@@ -230,7 +240,7 @@ export function BlogPost() {
             className="prose-invert max-w-none"
           >
             {post.content.map((section, i) => (
-              <Section key={i} section={section} />
+              <Section key={i} section={section} ctaMoreInfo={t.blogPost.ctaMoreInfo} faqTitle={t.blogPost.faqTitle} />
             ))}
           </motion.article>
 
@@ -243,13 +253,13 @@ export function BlogPost() {
             className="mt-16 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 text-center"
           >
             <div className="text-4xl mb-4">🦞</div>
-            <h2 className="text-2xl font-display font-bold mb-3">Ready to run your own AI?</h2>
+            <h2 className="text-2xl font-display font-bold mb-3">{t.blogPost.ctaTitle}</h2>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Get your personal OpenClaw instance running in minutes — no server, no config, no headaches.
+              {t.blogPost.ctaDesc}
             </p>
             <Link href="/signup">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full px-8 shadow-[0_0_30px_rgba(255,81,47,0.3)] hover:shadow-[0_0_40px_rgba(255,81,47,0.5)] transition-all">
-                Start OpenClaw Now
+                {t.blogPost.ctaBtn}
               </Button>
             </Link>
           </motion.div>
@@ -257,7 +267,7 @@ export function BlogPost() {
           {/* Related Posts */}
           {related.length > 0 && (
             <div className="mt-16">
-              <h2 className="text-2xl font-display font-bold mb-6">Related Articles</h2>
+              <h2 className="text-2xl font-display font-bold mb-6">{t.blogPost.related}</h2>
               <div className="grid md:grid-cols-3 gap-5">
                 {related.map((rp) => (
                   <Link key={rp.slug} href={`/blog/${rp.slug}`}>
@@ -269,7 +279,7 @@ export function BlogPost() {
                         {rp.title}
                       </h3>
                       <div className="flex items-center gap-1 text-primary text-xs font-semibold">
-                        Read <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        {t.blog.read} <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </Link>

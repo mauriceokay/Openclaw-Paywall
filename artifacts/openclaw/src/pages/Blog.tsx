@@ -2,15 +2,25 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Clock, Tag, ArrowRight } from "lucide-react";
-import { blogPosts } from "@/data/blog-posts";
+import { useLanguage } from "@/context/LanguageContext";
+import { getBlogPostsForLocale } from "@/data/blog-index";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Guides: "text-blue-400 bg-blue-400/10",
   Technical: "text-purple-400 bg-purple-400/10",
   Comparisons: "text-orange-400 bg-orange-400/10",
+  Anleitungen: "text-blue-400 bg-blue-400/10",
+  Technisch: "text-purple-400 bg-purple-400/10",
+  Vergleiche: "text-orange-400 bg-orange-400/10",
+  指南: "text-blue-400 bg-blue-400/10",
+  技術: "text-purple-400 bg-purple-400/10",
+  比較: "text-orange-400 bg-orange-400/10",
 };
 
 export function Blog() {
+  const { t, locale } = useLanguage();
+  const posts = getBlogPostsForLocale(locale);
+
   const container = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -20,19 +30,17 @@ export function Blog() {
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
   };
 
-  const featured = blogPosts[0];
-  const rest = blogPosts.slice(1);
+  const featured = posts[0];
+  const rest = posts.slice(1);
 
   return (
     <>
       <Helmet>
-        <title>OpenClaw Blog — Guides, Comparisons & Tips | OpenClaw Cloud</title>
-        <meta
-          name="description"
-          content="The OpenClaw blog covers everything about OpenClaw, openclawd, ClawdBot, MoltBot, and self-hosted AI assistants. Guides, comparisons, and tips for 2025."
-        />
+        <title>OpenClaw Blog — {t.blog.title} | OpenClaw Cloud</title>
+        <meta name="description" content={t.blog.description} />
         <meta name="keywords" content="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant" />
         <link rel="canonical" href="https://openclaw.cloud/blog" />
+        <html lang={locale} />
       </Helmet>
 
       <div className="min-h-screen pt-32 pb-24">
@@ -50,11 +58,10 @@ export function Blog() {
               OpenClaw Blog
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              Guides, Comparisons & Tips
+              {t.blog.title}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Everything you need to know about OpenClaw, openclawd, ClawdBot, MoltBot, and
-              building your own AI assistant.
+              {t.blog.description}
             </p>
           </motion.div>
 
@@ -76,16 +83,16 @@ export function Blog() {
                     {featured.readingTime}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(featured.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    {new Date(featured.publishedAt).toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" })}
                   </span>
-                  <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">Featured</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">{t.blog.featured}</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-display font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
                   {featured.title}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-5 max-w-3xl">{featured.excerpt}</p>
                 <div className="flex items-center gap-2 text-primary text-sm font-semibold">
-                  Read article
+                  {t.blog.readArticle}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -120,10 +127,10 @@ export function Blog() {
                     </p>
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
                       <span className="text-xs text-muted-foreground">
-                        {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                        {new Date(post.publishedAt).toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" })}
                       </span>
                       <span className="text-primary text-xs font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                        Read <ArrowRight className="w-3.5 h-3.5" />
+                        {t.blog.read} <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </div>
@@ -132,10 +139,10 @@ export function Blog() {
             ))}
           </motion.div>
 
-          {/* SEO keyword cloud (visually subtle, semantically rich) */}
+          {/* SEO keyword cloud */}
           <div className="mt-16 pt-10 border-t border-white/5">
             <p className="text-xs text-muted-foreground/40 text-center leading-relaxed">
-              Topics: openclaw · openclawd · clawdbot · moltbot · self-hosted ai · personal ai assistant ·
+              {t.blog.topicsLabel}: openclaw · openclawd · clawdbot · moltbot · self-hosted ai · personal ai assistant ·
               openclaw discord · openclaw telegram · openclaw whatsapp · openclaw integrations · clawdbot discord ·
               moltbot setup · openclaw cloud · openclaw tutorial · ai gateway · personal ai 2025
             </p>

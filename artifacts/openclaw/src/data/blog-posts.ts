@@ -20,6 +20,7 @@ export interface BlogSection {
   rows?: { cells: string[] }[];
   headers?: string[];
   faqs?: { q: string; a: string }[];
+  faqTitle?: string;
 }
 
 export const blogPosts: BlogPost[] = [

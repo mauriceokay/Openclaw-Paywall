@@ -3,16 +3,19 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export function Navbar() {
   const [location] = useLocation();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Blog", href: "/blog" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Dashboard", href: "/dashboard" },
+    { label: t.nav.home, href: "/" },
+    { label: t.nav.blog, href: "/blog" },
+    { label: t.nav.pricing, href: "/pricing" },
+    { label: t.nav.dashboard, href: "/dashboard" },
   ];
 
   return (
@@ -45,6 +48,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher />
           {user ? (
             <>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
@@ -62,13 +66,13 @@ export function Navbar() {
                 className="text-muted-foreground hover:text-foreground gap-1.5"
               >
                 <LogOut className="w-4 h-4" />
-                Sign out
+                {t.nav.signOut}
               </Button>
             </>
           ) : (
             <Link href="/signup">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(255,81,47,0.3)] hover:shadow-[0_0_25px_rgba(255,81,47,0.5)] transition-all font-semibold rounded-full px-6">
-                Get Started
+                {t.nav.getStarted}
               </Button>
             </Link>
           )}

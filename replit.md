@@ -101,6 +101,45 @@ Each subscriber gets their own OpenClaw agent workspace:
 - `app.messages` — Anthropic chat messages
 - `app.user_agents` — Per-user OpenClaw agent provisioning info
 
+## Internationalization (i18n)
+
+The OpenClaw frontend supports 8 languages with full translation coverage across all pages.
+
+### Architecture
+- **Custom typed context** — No react-i18next. Uses `LanguageProvider` (in `src/context/LanguageContext.tsx`) wrapping the entire app.
+- **Hook**: `useLanguage()` → `{ t, locale, setLocale, dir }` where `t` is a fully typed `Locale` object.
+- **Locale detection**: localStorage key `openclaw-language` → `navigator.language` → `"en"` fallback.
+- **RTL**: Arabic (`ar`) sets `document.documentElement.dir = "rtl"` automatically via `useEffect`.
+
+### Supported Languages
+`en` · `de` · `fr` · `zh-CN` · `zh-TW` · `ja` · `ar` (RTL) · `pl`
+
+### File Structure
+```
+src/i18n/
+  index.ts              # detectLocale, saveLocale, SUPPORTED_LANGUAGES, LocaleCode type
+  locales/
+    en.ts               # Source of truth (Locale type derived from this)
+    de.ts / fr.ts / zh-CN.ts / zh-TW.ts / ja.ts / ar.ts / pl.ts
+
+src/context/
+  LanguageContext.tsx   # LanguageProvider + useLanguage hook
+
+src/components/
+  LanguageSwitcher.tsx  # Flag + label dropdown in Navbar
+
+src/data/
+  blog-index.ts         # getBlogPostsForLocale / getBlogPostForLocale / getRelatedPostsForLocale
+  blog-translations/
+    de.ts / fr.ts / zh-CN.ts / zh-TW.ts / ja.ts / ar.ts / pl.ts
+```
+
+### Translated Sections
+- Navbar, Footer, LanguageSwitcher
+- `Home.tsx`: badge, hero, features, why section (pains/wins), testimonials headings, final CTA
+- `Blog.tsx`: title, description, featured label, read labels, topics
+- `BlogPost.tsx`: breadcrumb, CTA banner, related posts heading, FAQ heading, callout button
+
 ## Seeds
 
 Run after connecting Stripe:
