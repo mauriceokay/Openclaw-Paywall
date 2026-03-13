@@ -10,6 +10,7 @@ import { Pricing } from "@/pages/Pricing";
 import { Dashboard } from "@/pages/Dashboard";
 import { Setup } from "@/pages/Setup";
 import { SignUp } from "@/pages/SignUp";
+import { OpenClawApp } from "@/pages/OpenClawApp";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -28,16 +29,24 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/signup" component={SignUp} />
-        <Route path="/pricing" component={Pricing} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/setup" component={Setup} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {/* Full-screen route — no navbar/footer */}
+      <Route path="/openclaw" component={OpenClawApp} />
+
+      {/* Standard layout routes */}
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/signup" component={SignUp} />
+            <Route path="/pricing" component={Pricing} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/setup" component={Setup} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
 

@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -7,8 +7,7 @@ import {
   ShieldAlert,
   Sparkles,
   Activity,
-  ExternalLink,
-  Terminal,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -17,10 +16,11 @@ import { useCreatePortalSession, type SubscriptionStatus } from "@workspace/api-
 import { useAuth } from "@/context/AuthContext";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
-const GATEWAY_PATH = `${BASE_URL}/api/gateway/`;
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
+
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
@@ -33,6 +33,7 @@ export function Dashboard() {
     },
     enabled: true,
   });
+
   const portalMutation = useCreatePortalSession();
 
   const handleManageSubscription = () => {
@@ -104,13 +105,15 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen pt-32 pb-24 bg-background">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-6">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
           <div>
             <h1 className="text-4xl font-display font-bold mb-2">Workspace Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back. Your gateway is active and fully operational.</p>
+            <p className="text-muted-foreground">
+              Welcome back{user?.name ? `, ${user.name}` : ""}. Your gateway is online.
+            </p>
           </div>
           <Button
             variant="outline"
@@ -118,13 +121,47 @@ export function Dashboard() {
             disabled={portalMutation.isPending}
             className="border-white/10 hover:bg-white/5"
           >
-            {portalMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
+            {portalMutation.isPending
+              ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              : <Settings className="w-4 h-4 mr-2" />}
             Manage Subscription
           </Button>
         </div>
 
-        {/* Stats row */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {/* Primary CTA — Open OpenClaw */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, type: "spring" }}
+          className="mb-10"
+        >
+          <div className="relative rounded-2xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-[#F09819]/5 to-transparent p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_40px_rgba(255,81,47,0.1)]">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-3xl shrink-0">
+                🦞
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-display mb-1">Your OpenClaw Instance</h2>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+                  Gateway online · Port 3001 · Ready to chat
+                </div>
+              </div>
+            </div>
+            <Button
+              size="lg"
+              className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
+              onClick={() => navigate("/openclaw")}
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Open OpenClaw
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Stats */}
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
               <CardDescription>Current Plan</CardDescription>
@@ -152,9 +189,7 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">
-                Listening on port 3001
-              </div>
+              <div className="text-sm text-muted-foreground">Listening on port 3001</div>
             </CardContent>
           </Card>
 
@@ -162,44 +197,15 @@ export function Dashboard() {
             <CardHeader className="pb-2">
               <CardDescription>AI Mode</CardDescription>
               <CardTitle className="text-2xl capitalize">
-                {localStorage.getItem("oc_mode") ?? "Not configured"}
+                {localStorage.getItem("oc_mode") ?? "Not set"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Link href="/setup">
-                <span className="text-sm text-primary hover:underline cursor-pointer">
-                  Change setup →
-                </span>
+                <span className="text-sm text-primary hover:underline cursor-pointer">Change setup →</span>
               </Link>
             </CardContent>
           </Card>
-        </div>
-
-        {/* OpenClaw Control Panel */}
-        <div className="glass-panel rounded-2xl border-white/5 overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Terminal className="w-5 h-5 text-primary" />
-              OpenClaw Control Panel
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={() => window.open(GATEWAY_PATH, "_blank")}
-            >
-              <ExternalLink className="w-4 h-4" />
-              Open in new tab
-            </Button>
-          </div>
-          <div className="w-full" style={{ height: "640px" }}>
-            <iframe
-              src={GATEWAY_PATH}
-              className="w-full h-full border-0"
-              title="OpenClaw Control Panel"
-              allow="clipboard-read; clipboard-write"
-            />
-          </div>
         </div>
 
       </div>
