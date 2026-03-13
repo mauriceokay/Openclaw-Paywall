@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { useCreatePortalSession, type SubscriptionStatus } from "@workspace/api-client-react";
+import { useCreatePortalSession, type SubscriptionStatus, type CreatePortalSessionMutationError } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
@@ -35,13 +36,21 @@ export function Dashboard() {
   });
 
   const portalMutation = useCreatePortalSession();
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   const handleManageSubscription = () => {
+    setPortalError(null);
     portalMutation.mutate(
       { data: { email: user?.email ?? "" } },
       {
         onSuccess: (data) => {
           window.location.href = data.url;
+        },
+        onError: (err: CreatePortalSessionMutationError) => {
+          const apiMessage = err?.data?.error ?? null;
+          setPortalError(
+            apiMessage || "Could not open billing portal. Please try again."
+          );
         },
       }
     );
@@ -115,17 +124,24 @@ export function Dashboard() {
               Welcome back{user?.name ? `, ${user.name}` : ""}. Your gateway is online.
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleManageSubscription}
-            disabled={portalMutation.isPending}
-            className="border-white/10 hover:bg-white/5"
-          >
-            {portalMutation.isPending
-              ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              : <Settings className="w-4 h-4 mr-2" />}
-            Manage Subscription
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <Button
+              variant="outline"
+              onClick={handleManageSubscription}
+              disabled={portalMutation.isPending}
+              className="border-white/10 hover:bg-white/5"
+            >
+              {portalMutation.isPending
+                ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                : <Settings className="w-4 h-4 mr-2" />}
+              Manage Subscription
+            </Button>
+            {(portalMutation.isError || portalError) && (
+              <p className="text-sm text-destructive max-w-xs text-right">
+                {portalError || "Could not open billing portal. Please try again."}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Primary CTA — Open OpenClaw */}
