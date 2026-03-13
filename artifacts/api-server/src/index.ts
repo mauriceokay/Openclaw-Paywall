@@ -1,3 +1,8 @@
+import { createServer } from "http";
+import { createProxyMiddleware } from "http-proxy-middleware";
+import fs from "fs";
+import path from "path";
+import os from "os";
 import { runMigrations } from "stripe-replit-sync";
 import { getStripeSync } from "./stripeClient";
 import app from "./app";
@@ -14,17 +19,20 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+function getGatewayToken(): string {
+  try {
+    const configPath = path.join(os.homedir(), ".openclaw", "openclaw.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    return config?.gateway?.auth?.token ?? "";
+  } catch {
+    return "";
+  }
+}
+
 async function initStripe() {
   const databaseUrl = process.env.DATABASE_URL;
-
   if (!databaseUrl) {
     console.warn("DATABASE_URL not set — skipping Stripe initialization");
-    return;
-  }
-
-  const connectorHostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  if (!connectorHostname) {
-    console.warn("REPLIT_CONNECTORS_HOSTNAME not set — skipping Stripe initialization (connect Stripe integration first)");
     return;
   }
 
@@ -52,6 +60,27 @@ async function initStripe() {
 
 await initStripe();
 
-app.listen(port, () => {
+// Create HTTP server so we can also handle WebSocket upgrades for the gateway proxy
+const server = createServer(app);
+
+const wsProxy = createProxyMiddleware({
+  target: "http://127.0.0.1:3001",
+  changeOrigin: true,
+  pathRewrite: { "^/api/gateway": "" },
+  on: {
+    proxyReq: (proxyReq) => {
+      const token = getGatewayToken();
+      if (token) proxyReq.setHeader("Authorization", `Bearer ${token}`);
+    },
+  },
+});
+
+server.on("upgrade", (req, socket, head) => {
+  if (req.url?.startsWith("/api/gateway")) {
+    (wsProxy as any).upgrade(req, socket, head);
+  }
+});
+
+server.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });

@@ -1,11 +1,23 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, Settings, ShieldAlert, Sparkles, Activity } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  Settings,
+  ShieldAlert,
+  Sparkles,
+  Activity,
+  ExternalLink,
+  Terminal,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useCreatePortalSession, type SubscriptionStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
+
+const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+const GATEWAY_PATH = `${BASE_URL}/api/gateway/`;
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -13,8 +25,8 @@ export function Dashboard() {
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
       const url = user?.email
-        ? `/api/subscription/status?email=${encodeURIComponent(user.email)}`
-        : `/api/subscription/status`;
+        ? `${BASE_URL}/api/subscription/status?email=${encodeURIComponent(user.email)}`
+        : `${BASE_URL}/api/subscription/status`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch status");
       return res.json();
@@ -56,13 +68,11 @@ export function Dashboard() {
     );
   }
 
-  // PAYWALL: Block access if no active subscription
   if (!status.hasActiveSubscription) {
     return (
       <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center relative overflow-hidden bg-mesh">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-0" />
-        
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, type: "spring" }}
@@ -92,18 +102,18 @@ export function Dashboard() {
     );
   }
 
-  // ACTIVE SUBSCRIPTION DASHBOARD
   return (
     <div className="min-h-screen pt-32 pb-24 bg-background">
       <div className="max-w-7xl mx-auto px-6">
+
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-display font-bold mb-2">Workspace Dashboard</h1>
             <p className="text-muted-foreground">Welcome back. Your gateway is active and fully operational.</p>
           </div>
-          
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleManageSubscription}
             disabled={portalMutation.isPending}
             className="border-white/10 hover:bg-white/5"
@@ -113,6 +123,7 @@ export function Dashboard() {
           </Button>
         </div>
 
+        {/* Stats row */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
@@ -121,7 +132,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className={`w-2 h-2 rounded-full ${status.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <div className={`w-2 h-2 rounded-full ${status.status === "active" ? "bg-green-500" : "bg-yellow-500"}`} />
                 Status: {status.status || "Active"}
               </div>
               {status.currentPeriodEnd && (
@@ -142,48 +153,52 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-muted-foreground">
-                Connected to 4 channels
+                Listening on port 3001
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
-              <CardDescription>Messages Processed</CardDescription>
-              <CardTitle className="text-2xl">14,285</CardTitle>
+              <CardDescription>AI Mode</CardDescription>
+              <CardTitle className="text-2xl capitalize">
+                {localStorage.getItem("oc_mode") ?? "Not configured"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-green-400">
-                +12% from last week
-              </div>
+              <Link href="/setup">
+                <span className="text-sm text-primary hover:underline cursor-pointer">
+                  Change setup →
+                </span>
+              </Link>
             </CardContent>
           </Card>
         </div>
 
-        {/* Mocked UI for Dashboard configuration */}
-        <div className="glass-panel rounded-2xl p-8 border-white/5">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-primary" />
-            Gateway Configuration
-          </h3>
-          <div className="space-y-4">
-            {[
-              { name: "Telegram Bot", status: "Connected", desc: "Routing via @OpenClawBot" },
-              { name: "Discord", status: "Connected", desc: "Server: Personal Workspace" },
-              { name: "Voice Wake", status: "Inactive", desc: "Requires macOS Node configuration" }
-            ].map((integration, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5">
-                <div>
-                  <h4 className="font-semibold text-foreground">{integration.name}</h4>
-                  <p className="text-sm text-muted-foreground">{integration.desc}</p>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                  integration.status === 'Connected' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-muted border-white/10 text-muted-foreground'
-                }`}>
-                  {integration.status}
-                </div>
-              </div>
-            ))}
+        {/* OpenClaw Control Panel */}
+        <div className="glass-panel rounded-2xl border-white/5 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Terminal className="w-5 h-5 text-primary" />
+              OpenClaw Control Panel
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground gap-1.5"
+              onClick={() => window.open(GATEWAY_PATH, "_blank")}
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in new tab
+            </Button>
+          </div>
+          <div className="w-full" style={{ height: "640px" }}>
+            <iframe
+              src={GATEWAY_PATH}
+              className="w-full h-full border-0"
+              title="OpenClaw Control Panel"
+              allow="clipboard-read; clipboard-write"
+            />
           </div>
         </div>
 
