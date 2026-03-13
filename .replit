@@ -16,6 +16,26 @@ args = ["sh", "-c", "CI=true pnpm prune --prod && pnpm store prune"]
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "OpenClaw Gateway"
+
+[[workflows.workflow]]
+name = "OpenClaw Gateway"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/workspace/openclaw-app && ./node_modules/.bin/openclaw gateway run --allow-unconfigured --port 3001 --dev"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
