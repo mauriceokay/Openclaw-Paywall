@@ -3,18 +3,35 @@ import { motion } from "framer-motion";
 import { ArrowRight, Loader2, Settings, ShieldAlert, Sparkles, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { useGetSubscriptionStatus, useCreatePortalSession } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
+import { useCreatePortalSession, type SubscriptionStatus } from "@workspace/api-client-react";
+import { useAuth } from "@/context/AuthContext";
 
 export function Dashboard() {
-  const { data: status, isLoading, error } = useGetSubscriptionStatus();
+  const { user } = useAuth();
+  const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
+    queryKey: ["subscription-status", user?.email],
+    queryFn: async () => {
+      const url = user?.email
+        ? `/api/subscription/status?email=${encodeURIComponent(user.email)}`
+        : `/api/subscription/status`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch status");
+      return res.json();
+    },
+    enabled: true,
+  });
   const portalMutation = useCreatePortalSession();
 
   const handleManageSubscription = () => {
-    portalMutation.mutate(undefined, {
-      onSuccess: (data) => {
-        window.location.href = data.url;
+    portalMutation.mutate(
+      { data: { email: user?.email ?? "" } },
+      {
+        onSuccess: (data) => {
+          window.location.href = data.url;
+        },
       }
-    });
+    );
   };
 
   if (isLoading) {

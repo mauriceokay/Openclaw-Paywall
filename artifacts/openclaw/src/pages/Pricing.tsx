@@ -1,50 +1,60 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Loader2, X, ArrowLeft } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useListProducts, createCheckout } from "@workspace/api-client-react";
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
+import { useAuth } from "@/context/AuthContext";
 
 export function Pricing() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { data: productsData, isLoading, error } = useListProducts();
 
-  const [step, setStep] = useState<"idle" | "email" | "checkout">("idle");
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+  const [step, setStep] = useState<"idle" | "checkout">("idle");
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  const handleSubscribeClick = (priceId: string) => {
-    setSelectedPriceId(priceId);
-    setStep("email");
-    setCheckoutError(null);
-  };
+  useEffect(() => {
+    if (!user) {
+      navigate("/signup");
+      return;
+    }
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (cfg.stripePublishableKey) {
+          setStripePromise(loadStripe(cfg.stripePublishableKey));
+        }
+      })
+      .catch(() => {});
+  }, [user, navigate]);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPriceId || !email) return;
-    setEmailSubmitting(true);
+  const handleSubscribeClick = async (priceId: string) => {
+    if (!user) { navigate("/signup"); return; }
+    setSelectedPriceId(priceId);
+    setCheckoutLoading(true);
     setCheckoutError(null);
     try {
       const mockUserId = `usr_${Math.random().toString(36).slice(2, 9)}`;
-      const data = await createCheckout({ data: { priceId: selectedPriceId, userId: mockUserId, email } });
+      const data = await createCheckout({
+        data: { priceId, userId: mockUserId, email: user.email },
+      });
       setClientSecret(data.clientSecret);
       setStep("checkout");
     } catch (err: any) {
       setCheckoutError(err?.message || "Failed to start checkout. Please try again.");
     } finally {
-      setEmailSubmitting(false);
+      setCheckoutLoading(false);
     }
   };
 
@@ -55,9 +65,7 @@ export function Pricing() {
     setCheckoutError(null);
   };
 
-  const fetchClientSecret = useCallback(() => {
-    return Promise.resolve(clientSecret!);
-  }, [clientSecret]);
+  const fetchClientSecret = useCallback(() => Promise.resolve(clientSecret!), [clientSecret]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -67,6 +75,8 @@ export function Pricing() {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
   };
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen pt-32 pb-24 bg-mesh">
@@ -78,6 +88,9 @@ export function Pricing() {
           <p className="text-lg text-muted-foreground">
             Unlock the full potential of your personal AI assistant. Get premium features, priority routing, and unlimited automations.
           </p>
+          {checkoutError && (
+            <p className="mt-4 text-sm text-destructive">{checkoutError}</p>
+          )}
         </div>
 
         {isLoading ? (
@@ -108,7 +121,8 @@ export function Pricing() {
               .map((product) => {
                 const price = product.prices.find((p) => p.interval === "month") ?? product.prices[0] ?? null;
                 const formattedPrice = price?.unitAmount ? (price.unitAmount / 100).toFixed(2) : "0.00";
-                const isPremium = product.name.toLowerCase().includes("pro") || product.name.toLowerCase().includes("premium");
+                const isPremium = product.name.toLowerCase().includes("pro");
+                const isLoading = checkoutLoading && selectedPriceId === price?.id;
 
                 return (
                   <motion.div key={product.id} variants={item} className="h-full">
@@ -143,9 +157,11 @@ export function Pricing() {
 
                       <CardFooter>
                         <Button
-                          onClick={() => price ? handleSubscribeClick(price.id) : (window.location.href = "/dashboard")}
+                          onClick={() => price ? handleSubscribeClick(price.id) : navigate("/dashboard")}
+                          disabled={checkoutLoading}
                           className={`w-full py-6 rounded-xl text-md font-semibold transition-all ${isPremium ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25" : "bg-white/10 hover:bg-white/20 text-white"}`}
                         >
+                          {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                           {price ? `Subscribe to ${product.name}` : "Get Started Free"}
                         </Button>
                       </CardFooter>
@@ -157,48 +173,9 @@ export function Pricing() {
         )}
       </div>
 
-      {/* Email capture dialog */}
-      <Dialog open={step === "email"} onOpenChange={(open) => { if (!open) handleClose(); }}>
-        <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-3xl border-white/10">
-          <form onSubmit={handleEmailSubmit}>
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-2xl font-display">Enter your email</DialogTitle>
-              <DialogDescription>
-                We'll use this to create your Stripe account and manage your subscription.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mb-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-black/20 border-white/10"
-                />
-              </div>
-              {checkoutError && (
-                <p className="text-sm text-destructive">{checkoutError}</p>
-              )}
-            </div>
-            <Button
-              type="submit"
-              disabled={emailSubmitting}
-              className="w-full h-12 bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold rounded-xl"
-            >
-              {emailSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {emailSubmitting ? "Preparing checkout…" : "Continue to Payment"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-
       {/* Embedded Stripe checkout */}
       <AnimatePresence>
-        {step === "checkout" && clientSecret && (
+        {step === "checkout" && clientSecret && stripePromise && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -219,7 +196,7 @@ export function Pricing() {
                 <X className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setStep("email")}
+                onClick={handleClose}
                 className="absolute top-4 left-4 z-10 flex items-center gap-1 text-sm text-black/50 hover:text-black/80 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
