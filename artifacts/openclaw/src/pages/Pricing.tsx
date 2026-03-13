@@ -46,9 +46,7 @@ export function Pricing() {
     setCheckoutError(null);
     try {
       const mockUserId = `usr_${Math.random().toString(36).slice(2, 9)}`;
-      const data = await createCheckout({
-        data: { priceId, userId: mockUserId, email: user.email },
-      });
+      const data = await createCheckout({ priceId, userId: mockUserId, email: user.email });
       setClientSecret(data.clientSecret);
       setStep("checkout");
     } catch (err: any) {
