@@ -54,7 +54,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace/mission-control/backend && LOCAL_AUTH_TOKEN=$MISSION_CONTROL_TOKEN DATABASE_URL=\"postgresql+psycopg://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable\" CORS_ORIGINS=\"https://${REPLIT_DOMAINS:-$REPLIT_DEV_DOMAIN}\" BASE_URL=\"https://${REPLIT_DOMAINS:-$REPLIT_DEV_DOMAIN}/mc-api\" uvicorn app.main:app --host 0.0.0.0 --port 8001"
+args = "cd /home/runner/workspace/mission-control/backend && AUTH_MODE=proxy DATABASE_URL=\"postgresql+psycopg://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable\" CORS_ORIGINS=\"https://${REPLIT_DOMAINS:-$REPLIT_DEV_DOMAIN}\" BASE_URL=\"https://${REPLIT_DOMAINS:-$REPLIT_DEV_DOMAIN}/mc-api\" uvicorn app.main:app --host 0.0.0.0 --port 8001"
 waitForPort = 8001
 
 [[workflows.workflow]]
@@ -66,7 +66,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace/mission-control/frontend && npx next dev --port 3002 --hostname 0.0.0.0"
+args = "cd /home/runner/workspace/mission-control/frontend && NEXT_PUBLIC_AUTH_MODE=proxy NEXT_PUBLIC_API_URL=/mc-api npx next dev --port 3002 --hostname 0.0.0.0"
 waitForPort = 3002
 
 [agent]
