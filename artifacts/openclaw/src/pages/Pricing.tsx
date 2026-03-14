@@ -290,10 +290,6 @@ export function Pricing() {
           })}
         </motion.div>
 
-        {/* Footer note */}
-        <p className="text-center text-xs text-muted-foreground mt-8 md:mt-10">
-          All plans include a 7-day free trial. Cancel anytime. No hidden fees.
-        </p>
       </div>
 
       {/* Embedded Stripe checkout */}
