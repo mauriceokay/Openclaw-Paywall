@@ -64,7 +64,7 @@ export function Home() {
       canonicalPath="/"
       keywords="openclaw, personal ai assistant, self-hosted ai, whatsapp ai, telegram ai, discord ai"
     />
-    <div className="min-h-screen pt-16 md:pt-20 flex flex-col">
+    <div className="min-h-screen md:pt-20 flex flex-col">
       {/* Hero Section */}
       <section className="relative w-full pt-8 pb-16 md:py-32 overflow-hidden flex-1 flex items-start md:items-center">
         <div className="absolute inset-0 z-0">

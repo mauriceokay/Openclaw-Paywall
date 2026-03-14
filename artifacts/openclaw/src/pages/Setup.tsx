@@ -187,7 +187,7 @@ export function Setup() {
   }
 
   return (
-    <div className="min-h-screen pt-28 pb-24 bg-mesh">
+    <div className="min-h-screen md:pt-28 pb-24 bg-mesh">
       <div className="max-w-3xl mx-auto px-6">
         <div className="mb-10">
           <div className="flex items-center justify-center gap-3">

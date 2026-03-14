@@ -181,7 +181,7 @@ export function BlogPost() {
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 
-      <div className="min-h-screen pt-32 pb-24">
+      <div className="min-h-screen md:pt-32 pb-24">
         <div className="max-w-4xl mx-auto px-6">
 
           {/* Breadcrumb */}

@@ -82,7 +82,7 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-32 flex flex-col items-center justify-center">
+      <div className="min-h-screen md:pt-32 flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground animate-pulse">{d.loadingWorkspace}</p>
       </div>
@@ -91,7 +91,7 @@ export function Dashboard() {
 
   if (error || !status) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center px-6">
+      <div className="min-h-screen md:pt-32 flex items-center justify-center px-6">
         <Card className="max-w-md w-full border-destructive/20 bg-destructive/5 text-center p-8">
           <ShieldAlert className="w-12 h-12 text-destructive mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">{d.accessError}</h2>
@@ -104,7 +104,7 @@ export function Dashboard() {
 
   if (!status.hasActiveSubscription) {
     return (
-      <div className="min-h-screen pt-32 pb-24 px-6 flex items-center justify-center relative overflow-hidden bg-mesh">
+      <div className="min-h-screen md:pt-32 pb-24 px-6 flex items-center justify-center relative overflow-hidden bg-mesh">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-0" />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -145,7 +145,7 @@ export function Dashboard() {
       canonicalPath="/dashboard"
       noindex
     />
-    <div className="min-h-screen pt-20 md:pt-32 pb-12 md:pb-24 bg-background">
+    <div className="min-h-screen md:pt-32 pb-12 md:pb-24 bg-background">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
 
         {/* Header */}

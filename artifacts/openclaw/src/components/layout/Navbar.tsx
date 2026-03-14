@@ -21,7 +21,7 @@ export function Navbar() {
   ];
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
+    <header className="relative md:fixed md:top-0 md:inset-x-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group" onClick={() => setMobileOpen(false)}>
           <motion.div whileHover={{ rotate: 20, scale: 1.1 }} className="text-3xl">

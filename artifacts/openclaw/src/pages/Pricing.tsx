@@ -158,7 +158,7 @@ export function Pricing() {
       canonicalPath="/pricing"
       keywords="openclaw pricing, openclaw cloud plans, ai assistant subscription"
     />
-    <div className="min-h-screen pt-20 md:pt-32 pb-16 md:pb-24 bg-mesh">
+    <div className="min-h-screen md:pt-32 pb-16 md:pb-24 bg-mesh">
       <div className="max-w-6xl mx-auto px-4 md:px-6">
 
         {/* Header */}

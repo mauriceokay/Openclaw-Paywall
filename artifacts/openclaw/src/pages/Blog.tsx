@@ -43,7 +43,7 @@ export function Blog() {
         keywords="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant"
       />
 
-      <div className="min-h-screen pt-32 pb-24">
+      <div className="min-h-screen md:pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-6">
 
           {/* Header */}
