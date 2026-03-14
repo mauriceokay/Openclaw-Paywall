@@ -6,7 +6,7 @@ const router: IRouter = Router();
 
 const GATEWAY_URL = "http://127.0.0.1:3001";
 
-router.get("/gateway/control", async (req: Request, res: Response) => {
+router.get("/gateway-control", async (req: Request, res: Response) => {
   const email = req.query.email as string;
   if (!email) return res.status(400).json({ error: "email required" });
 
@@ -23,7 +23,7 @@ router.get("/gateway/control", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/gateway/control", async (req: Request, res: Response) => {
+router.post("/gateway-control", async (req: Request, res: Response) => {
   const { email, enabled } = req.body;
   if (!email) return res.status(400).json({ error: "email required" });
   if (typeof enabled !== "boolean") return res.status(400).json({ error: "enabled (boolean) required" });

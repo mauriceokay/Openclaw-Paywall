@@ -60,7 +60,7 @@ export function Dashboard() {
   const { data: gatewayData, isLoading: gatewayLoading } = useQuery<{ enabled: boolean }>({
     queryKey: ["gateway-status", user?.email],
     queryFn: async () => {
-      const url = `${BASE_URL}/api/gateway/control?email=${encodeURIComponent(user!.email)}`;
+      const url = `${BASE_URL}/api/gateway-control?email=${encodeURIComponent(user!.email)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch gateway status");
       return res.json();
@@ -72,7 +72,7 @@ export function Dashboard() {
   const [toggling, setToggling] = useState(false);
   const toggleMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const res = await fetch(`${BASE_URL}/api/gateway/control`, {
+      const res = await fetch(`${BASE_URL}/api/gateway-control`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user!.email, enabled }),
