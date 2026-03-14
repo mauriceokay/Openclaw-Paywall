@@ -46,10 +46,13 @@ export function OpenClawApp() {
         if (!res.ok) throw new Error("Provision failed");
         return res.json();
       })
+      .then(() =>
+        fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" })
+          .then((r) => r.json())
+      )
       .then((data) => {
-        console.log("[openclaw] agent ready:", data.agent?.agentName);
-        if (data.agent?.instanceUrl) {
-          setInstanceUrl(data.agent.instanceUrl);
+        if (data.instanceUrl) {
+          setInstanceUrl(data.instanceUrl);
           setProvisionState("ready");
         } else {
           setProvisionState("pending");
