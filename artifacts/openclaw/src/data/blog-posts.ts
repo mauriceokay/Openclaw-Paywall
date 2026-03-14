@@ -2183,7 +2183,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "Try OpenClaw Cloud free for 7 days — no credit card required. Connect your first channel in under 2 minutes and see what the full OpenClaw experience feels like without any setup.",
+          "Get started with OpenClaw Cloud today. Connect your first channel in under 2 minutes and see what the full OpenClaw experience feels like without any setup.",
       },
       {
         type: "faq",
@@ -2206,7 +2206,7 @@ export const blogPosts: BlogPost[] = [
           },
           {
             q: "Is there a free tier for OpenClaw Cloud?",
-            a: "OpenClaw Cloud does not have a permanent free tier, but offers a 7-day free trial. The self-hosted version is always free for technical users.",
+            a: "OpenClaw Cloud does not have a free tier. The self-hosted version is always free for technical users.",
           },
         ],
       },
@@ -2478,7 +2478,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "OpenClaw Cloud gets you everything the self-hosted community has built — 20+ platform integrations, persistent memory, voice mode, automations, and Claude AI — without touching a command line. Live in 2 minutes, from $49/month. Try it free for 7 days.",
+          "OpenClaw Cloud gets you everything the self-hosted community has built — 20+ platform integrations, persistent memory, voice mode, automations, and Claude AI — without touching a command line. Live in 2 minutes, from $49/month.",
       },
       {
         type: "h2",
@@ -2675,7 +2675,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "OpenClaw Cloud removes the need to choose between power and simplicity. Get the full OpenClaw feature set — voice, memory, 20+ channels, automations, Skills — in a managed instance that takes 2 minutes to set up. Start your free 7-day trial today.",
+          "OpenClaw Cloud removes the need to choose between power and simplicity. Get the full OpenClaw feature set — voice, memory, 20+ channels, automations, Skills — in a managed instance that takes 2 minutes to set up. Sign up at openclaw.cloud.",
       },
       {
         type: "h2",
@@ -2807,7 +2807,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "Start your free 7-day trial of OpenClaw Cloud. No credit card needed. Connect your first channel in 2 minutes and experience the full OpenClaw stack — everything that NemoClaw can't do, all in one place.",
+          "Switch to OpenClaw Cloud today. Connect your first channel in 2 minutes and experience the full OpenClaw stack — everything that NemoClaw can't do, all in one place.",
       },
       {
         type: "h2",
@@ -2947,7 +2947,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "If NemoClaw's limitations have been frustrating you, OpenClaw Cloud is the fastest path forward. No setup, no server management — just connect your channels and start talking to your AI. Try it free for 7 days at openclaw.cloud.",
+          "If NemoClaw's limitations have been frustrating you, OpenClaw Cloud is the fastest path forward. No setup, no server management — just connect your channels and start talking to your AI. Sign up at openclaw.cloud.",
       },
       {
         type: "h2",
@@ -3362,7 +3362,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "OpenClaw Cloud includes the full Skills platform. Install web search, calendar access, and a growing library of community skills in one click — no npm, no config files. Sign up free for 7 days and give your AI real-world knowledge.",
+          "OpenClaw Cloud includes the full Skills platform. Install web search, calendar access, and a growing library of community skills in one click — no npm, no config files. Sign up at openclaw.cloud and give your AI real-world knowledge.",
       },
       {
         type: "faq",
