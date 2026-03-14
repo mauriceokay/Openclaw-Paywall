@@ -14,7 +14,7 @@ pnpm workspace monorepo using TypeScript. Hosts the OpenClaw marketing/paywall w
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Build**: esbuild (ESM bundle)
 - **Payments**: Stripe (via stripe + stripe-replit-sync)
 
 ## Structure
@@ -81,7 +81,7 @@ Each subscriber gets their own dedicated cloud OpenClaw instance:
 2. Stripe webhook creates pending user_agents record (no instanceUrl yet)
 3. User clicks "Open OpenClaw" on Dashboard
 4. If `instanceUrl` is set → loads cloud instance via per-user proxy in full-screen iframe
-5. If `instanceUrl` is null → shows "Your instance is being set up" with auto-polling every 10s
+5. If `instanceUrl` is null → shows "Your instance is being set up" with auto-polling every 30s
 6. Infrastructure sets the `instanceUrl` via `POST /api/openclaw/provision` when the cloud instance is ready
 
 ## API Routes
@@ -146,6 +146,36 @@ src/data/
 - `Home.tsx`: badge, hero, features, why section (pains/wins), testimonials headings, final CTA
 - `Blog.tsx`: title, description, featured label, read labels, topics
 - `BlogPost.tsx`: breadcrumb, CTA banner, related posts heading, FAQ heading, callout button
+
+## Railway Deployment
+
+The entire app can be deployed on Railway as a single service + Railway PostgreSQL.
+
+### Config
+- `railway.toml` — build/deploy config at repo root
+- Build: `pnpm run build:railway` (builds frontend → api-server bundle)
+- Start: `node artifacts/api-server/dist/index.mjs`
+- Health: `/health` endpoint
+- DB: Auto-migrates on startup (CREATE TABLE IF NOT EXISTS)
+- Static: api-server serves frontend build from `artifacts/openclaw/dist/public/`
+
+### Required Environment Variables
+- `DATABASE_URL` — Railway PostgreSQL connection string
+- `APP_URL` — Full app URL (e.g. `https://your-app.railway.app`) for Stripe webhooks/redirects
+- `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` — Stripe keys
+- `SESSION_SECRET` — Random 64-char hex for HMAC session cookies
+- `PORT` — Auto-set by Railway
+- `NODE_ENV=production`
+
+See `.env.example` for reference.
+
+### What APP_URL replaces
+Three places previously used `REPLIT_DOMAINS` for URL construction:
+1. Stripe webhook registration in `index.ts`
+2. Checkout return URL in `subscription.ts`
+3. Billing portal return URL in `subscription.ts`
+
+All now use `APP_URL` with fallback to `REPLIT_DOMAINS` then `req.get("host")`.
 
 ## Seeds
 

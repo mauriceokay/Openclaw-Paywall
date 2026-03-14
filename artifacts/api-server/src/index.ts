@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { createServer } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { runMigrations } from "stripe-replit-sync";
-import { db } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import { userAgentsTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { getStripeSync } from "./stripeClient";
@@ -20,6 +20,38 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+async function ensureSchema() {
+  try {
+    console.log("Ensuring database schema...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS user_agents (
+        user_id TEXT PRIMARY KEY,
+        agent_name TEXT NOT NULL,
+        workspace_dir TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        instance_url TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log("Database schema ready");
+  } catch (error) {
+    console.error("Failed to ensure database schema:", error);
+    throw error;
+  }
+}
+
 async function initStripe() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -35,7 +67,8 @@ async function initStripe() {
     const stripeSync = await getStripeSync();
 
     console.log("Setting up managed webhook...");
-    const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
+    const webhookBaseUrl = process.env.APP_URL
+      || `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || "localhost"}`;
     await stripeSync.findOrCreateManagedWebhook(`${webhookBaseUrl}/api/stripe/webhook`);
     console.log("Webhook configured");
 
@@ -49,6 +82,7 @@ async function initStripe() {
   }
 }
 
+await ensureSchema();
 await initStripe();
 
 const server = createServer(app);

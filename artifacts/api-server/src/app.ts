@@ -1,3 +1,5 @@
+import { existsSync } from "fs";
+import path from "path";
 import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -10,6 +12,10 @@ import { WebhookHandlers } from "./webhookHandlers";
 import { getSessionEmail } from "./sessionAuth";
 
 const app: Express = express();
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 
 app.post(
   "/api/stripe/webhook",
@@ -141,5 +147,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+const frontendDist = path.resolve(process.cwd(), "artifacts/openclaw/dist/public");
+
+if (existsSync(frontendDist)) {
+  app.use(express.static(frontendDist, { maxAge: "1h" }));
+
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 export default app;

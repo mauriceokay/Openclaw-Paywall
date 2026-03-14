@@ -112,8 +112,8 @@ router.post("/subscription/checkout", async (req, res) => {
       customerId = customer.id;
     }
 
-    const host = process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
-    const baseUrl = `https://${host}`;
+    const baseUrl = process.env.APP_URL
+      || `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost"}`;
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -143,11 +143,13 @@ router.post("/subscription/portal", async (req, res) => {
     }
 
     const stripe = await getUncachableStripeClient();
-    const host = process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
+    const returnUrl = process.env.APP_URL
+      ? `${process.env.APP_URL}/dashboard`
+      : `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost"}/dashboard`;
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customer.id,
-      return_url: `https://${host}/dashboard`,
+      return_url: returnUrl,
     });
 
     return res.json(CreatePortalSessionResponse.parse({ url: portalSession.url }));
