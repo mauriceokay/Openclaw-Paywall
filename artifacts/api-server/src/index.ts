@@ -61,7 +61,6 @@ async function ensureSchema() {
         gateway_enabled BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
-      ALTER TABLE app.users ADD COLUMN IF NOT EXISTS gateway_enabled BOOLEAN NOT NULL DEFAULT true;
     `);
     console.log("Database schema ready");
   } catch (error) {

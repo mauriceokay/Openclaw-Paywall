@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
-import { setSessionCookie } from "../sessionAuth";
+import { setSessionCookie, getSessionEmail } from "../sessionAuth";
 
 const router: IRouter = Router();
 
@@ -38,13 +38,13 @@ router.post("/session/establish", async (req: Request, res: Response) => {
 });
 
 router.get("/users/me", async (req: Request, res: Response) => {
-  const email = req.query.email as string;
-  if (!email) return res.status(400).json({ error: "email required" });
+  const email = getSessionEmail(req);
+  if (!email) return res.status(401).json({ error: "Authentication required" });
 
   try {
     const result = await db.execute(sql`
       SELECT id, name, email, created_at FROM app.users
-      WHERE email = ${email.trim().toLowerCase()}
+      WHERE email = ${email.toLowerCase()}
       LIMIT 1
     `);
     if (!result.rows[0]) return res.status(404).json({ error: "User not found" });
