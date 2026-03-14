@@ -73,10 +73,10 @@ export function Setup() {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [provider, setProvider] = useState<Provider>(
-    () => (localStorage.getItem("oc_api_provider") as Provider) ?? "openai"
+    () => (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic"
   );
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    const p = (localStorage.getItem("oc_api_provider") as Provider) ?? "openai";
+    const p = (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic";
     const stored = localStorage.getItem("oc_api_model");
     if (stored && (PROVIDER_MODELS[p] as readonly string[]).includes(stored)) return stored;
     return PROVIDER_MODELS[p][0];
