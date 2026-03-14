@@ -105,10 +105,21 @@ router.get("/instance", async (req, res) => {
     return res.status(404).json({ error: "No agent found for this user" });
   }
 
+  const appUrl = process.env.APP_URL || "";
+  const webhookBase = appUrl ? `${appUrl}/api/hook` : null;
+
   return res.json({
     agent: existing[0],
     instanceUrl: existing[0].instanceUrl || null,
     ready: !!existing[0].instanceUrl,
+    webhookUrls: webhookBase
+      ? {
+          telegram: `${webhookBase}/telegram/${sessionEmail}`,
+          line: `${webhookBase}/line/${sessionEmail}`,
+          gchat: `${webhookBase}/gchat/${sessionEmail}`,
+          slack: `${webhookBase}/slack/${sessionEmail}`,
+        }
+      : null,
   });
 });
 
