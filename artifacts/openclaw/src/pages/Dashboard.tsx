@@ -174,8 +174,7 @@ export function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleManageSubscription}
-                disabled={portalMutation.isPending}
+                onClick={() => navigate("/usage")}
                 className="border-white/10 hover:bg-white/5 text-sm"
               >
                 <BarChart2 className="w-3.5 h-3.5 mr-1.5 text-primary" />

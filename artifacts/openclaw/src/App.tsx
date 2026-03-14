@@ -15,6 +15,7 @@ import { SignUp } from "@/pages/SignUp";
 import { OpenClawApp } from "@/pages/OpenClawApp";
 import { Blog } from "@/pages/Blog";
 import { BlogPost } from "@/pages/BlogPost";
+import { Usage } from "@/pages/Usage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ function Router() {
             <Route path="/setup" component={Setup} />
             <Route path="/blog" component={Blog} />
             <Route path="/blog/:slug" component={BlogPost} />
+            <Route path="/usage" component={Usage} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

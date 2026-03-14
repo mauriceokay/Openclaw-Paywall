@@ -159,4 +159,83 @@ router.post("/subscription/portal", async (req, res) => {
   }
 });
 
+router.get("/subscription/usage", async (req, res) => {
+  try {
+    const email = req.query.email as string;
+    if (!email) return res.status(400).json({ error: "email is required" });
+
+    const customer = await storage.getCustomerByEmail(email);
+    if (!customer) return res.status(404).json({ error: "No customer found" });
+
+    const sub = await storage.getSubscriptionByCustomerId(customer.id);
+    if (!sub) return res.status(404).json({ error: "No active subscription" });
+
+    const stripe = await getUncachableStripeClient();
+
+    const periodStart = sub.current_period_end
+      ? new Date((Number(sub.current_period_end) - 30 * 24 * 60 * 60) * 1000).toISOString()
+      : null;
+    const periodEnd = sub.current_period_end
+      ? new Date(Number(sub.current_period_end) * 1000).toISOString()
+      : null;
+
+    let planName: string | null = null;
+    let unitAmount: number | null = null;
+    let currency = "usd";
+    let usageItems: Array<{ metric: string; totalUsage: number; unit: string }> = [];
+
+    try {
+      const fullSub = await stripe.subscriptions.retrieve(sub.id, {
+        expand: ["items.data.price"],
+      });
+
+      const firstItem = fullSub.items.data[0];
+      if (firstItem) {
+        const price = firstItem.price as any;
+        planName = price?.nickname || price?.product?.name || null;
+        unitAmount = price?.unit_amount ?? null;
+        currency = price?.currency ?? "usd";
+
+        if (price?.recurring?.usage_type === "metered") {
+          try {
+            const summaries = await (stripe.subscriptionItems as any).listUsageRecordSummaries(
+              firstItem.id,
+              { limit: 1 }
+            );
+            const summary = summaries.data[0];
+            if (summary) {
+              usageItems.push({
+                metric: "AI Messages",
+                totalUsage: summary.total_usage,
+                unit: "messages",
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+
+    if (planName === null) {
+      try {
+        const firstItem = Array.isArray(sub.items?.data) ? sub.items!.data[0] : null;
+        planName = firstItem?.plan?.nickname || firstItem?.price?.nickname || null;
+      } catch {}
+    }
+
+    return res.json({
+      subscriptionId: sub.id,
+      planName,
+      status: sub.status,
+      periodStart,
+      periodEnd,
+      currency,
+      monthlyAmount: unitAmount ? unitAmount / 100 : null,
+      usageItems,
+    });
+  } catch (err: any) {
+    console.error("Error getting usage:", err);
+    res.status(500).json({ error: "Failed to get usage data" });
+  }
+});
+
 export default router;
