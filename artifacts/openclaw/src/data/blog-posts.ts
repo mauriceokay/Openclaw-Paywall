@@ -2387,6 +2387,1010 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // NEMOCLAW COMPARISON + NEW OPENCLAW POSTS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  {
+    slug: "what-is-nemoclaw",
+    title: "What is NemoClaw? The Self-Hosted AI Gateway Explained",
+    metaTitle: "What is NemoClaw? Self-Hosted AI Gateway Review 2025 | OpenClaw Cloud",
+    metaDescription:
+      "NemoClaw is a self-hosted AI gateway for connecting AI models to messaging platforms. Learn what NemoClaw does, how it compares to OpenClaw, and which option fits your needs in 2025.",
+    publishedAt: "2025-04-05",
+    readingTime: "7 min read",
+    category: "Comparisons",
+    excerpt:
+      "NemoClaw is a self-hosted AI gateway in the same category as OpenClaw. Here's an honest breakdown of what it is, what it does, and how it stacks up against the alternatives.",
+    keywords: [
+      "what is nemoclaw",
+      "nemoclaw",
+      "nemoclaw ai",
+      "nemoclaw review",
+      "nemoclaw self-hosted",
+      "nemoclaw vs openclaw",
+      "self-hosted ai gateway 2025",
+    ],
+    relatedSlugs: ["nemoclaw-vs-openclaw", "moltbot-vs-openclaw", "what-is-openclaw"],
+    content: [
+      {
+        type: "p",
+        content:
+          "If you've been researching self-hosted AI assistants, you've probably come across NemoClaw. It's a relatively new entrant in the self-hosted AI gateway space — the same category as OpenClaw, MoltBot, and a handful of other projects. The core idea is the same across all of them: run your own AI assistant, connect it to your messaging apps, and keep your data off third-party servers.",
+      },
+      {
+        type: "p",
+        content:
+          "This post gives you a clear-eyed look at what NemoClaw actually is — what it can do, where it falls short, and how it compares to the more established OpenClaw project.",
+      },
+      {
+        type: "h2",
+        heading: "What Does NemoClaw Do?",
+        content:
+          "NemoClaw is a self-hosted gateway that connects AI models to messaging platforms. At its core, it aims to do what OpenClaw does: sit on a server, receive messages from platforms like Telegram or Discord, forward them to an AI model, and return the response. The basic flow is the same across all gateways in this category.",
+      },
+      {
+        type: "h2",
+        heading: "NemoClaw vs OpenClaw: Core Differences",
+        content:
+          "The self-hosted AI gateway space has several players, and the differences between them matter significantly for long-term usability. Here's how NemoClaw and OpenClaw compare at the category level:",
+      },
+      {
+        type: "table",
+        headers: ["Dimension", "NemoClaw", "OpenClaw"],
+        rows: [
+          { cells: ["Project maturity", "Newer, smaller community", "Established, active development"] },
+          { cells: ["Platform integrations", "Limited selection", "20+ platforms including WhatsApp, iMessage, Signal"] },
+          { cells: ["Managed cloud option", "None (self-host only)", "OpenClaw Cloud — hosted, managed, from $49/mo"] },
+          { cells: ["AI model support", "Select providers", "Claude, GPT-4o, Gemini, Ollama, and more"] },
+          { cells: ["Persistent memory", "Basic", "Multi-layer memory with workspace context"] },
+          { cells: ["Voice mode", "Not available", "Native iOS, Android, macOS voice support"] },
+          { cells: ["Automations", "Limited", "Cron jobs, webhooks, Gmail Pub/Sub"] },
+          { cells: ["Skills / extensions", "Not available", "Full Skills SDK"] },
+          { cells: ["Documentation", "Sparse", "Comprehensive docs and active community"] },
+          { cells: ["Open source license", "Varies", "MIT — fully open"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Where NemoClaw Struggles",
+        content:
+          "The self-hosted AI gateway space is competitive, and newer projects like NemoClaw face real challenges:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Platform coverage: WhatsApp and iMessage integrations are missing or incomplete — two of the most-used messaging platforms globally",
+          "No managed cloud option: If you can't self-host, NemoClaw doesn't have an answer for you",
+          "Community size: Smaller community means fewer Skills, fewer tutorials, and slower bug fixes",
+          "Voice support: No native voice or talk mode means you can't speak to your assistant",
+          "Memory system: Basic conversation history only — no persistent facts, no workspace context",
+          "Documentation gaps: Newer project means less thorough guides, especially for non-technical setups",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Why Most Users Choose OpenClaw Instead",
+        content:
+          "OpenClaw has been in active development longer, has a larger community, supports more platforms, and — crucially — offers OpenClaw Cloud for users who don't want to manage their own server. For the vast majority of people evaluating self-hosted AI gateways, OpenClaw covers more ground.",
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud gets you everything the self-hosted community has built — 20+ platform integrations, persistent memory, voice mode, automations, and Claude AI — without touching a command line. Live in 2 minutes, from $49/month. Try it free for 7 days.",
+      },
+      {
+        type: "h2",
+        heading: "Should You Try NemoClaw?",
+        content:
+          "If you're already technical and want to experiment with the self-hosted AI ecosystem, NemoClaw is worth a look as an educational project. But for production use — a personal AI you'll rely on every day — the platform coverage gaps, lack of voice support, and absence of a managed cloud option make it harder to recommend over OpenClaw.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Is NemoClaw free?",
+            a: "NemoClaw is open-source and free to self-host. Unlike OpenClaw, it does not offer a managed cloud service.",
+          },
+          {
+            q: "Does NemoClaw support WhatsApp?",
+            a: "WhatsApp integration in NemoClaw is limited or absent. OpenClaw has a mature WhatsApp integration via the Baileys protocol with session persistence and full message type support.",
+          },
+          {
+            q: "Which is easier to set up — NemoClaw or OpenClaw?",
+            a: "Both require self-hosting knowledge. OpenClaw has the additional option of OpenClaw Cloud, which requires zero technical setup.",
+          },
+          {
+            q: "Does NemoClaw have a Discord bot?",
+            a: "NemoClaw has basic Discord support. OpenClaw's Discord integration is more feature-complete — supporting threads, slash commands, inline keyboards, role-based access, and more.",
+          },
+          {
+            q: "What AI models does NemoClaw support?",
+            a: "NemoClaw supports a limited set of AI providers. OpenClaw supports Claude, GPT-4o, Gemini, Mistral, and any model running via Ollama, with multi-model profile switching.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "nemoclaw-vs-openclaw",
+    title: "NemoClaw vs OpenClaw: Which Self-Hosted AI Gateway Wins in 2025?",
+    metaTitle: "NemoClaw vs OpenClaw 2025: Full Comparison | OpenClaw Cloud",
+    metaDescription:
+      "NemoClaw vs OpenClaw: a detailed head-to-head comparison of features, platform support, memory, voice, automations, and cloud options. Which should you use in 2025?",
+    publishedAt: "2025-04-07",
+    readingTime: "10 min read",
+    category: "Comparisons",
+    excerpt:
+      "Two of the top self-hosted AI gateways compared. NemoClaw and OpenClaw both let you run your own AI — but the differences in features, platform support, and cloud options are significant.",
+    keywords: [
+      "nemoclaw vs openclaw",
+      "nemoclaw openclaw comparison",
+      "best self-hosted ai gateway 2025",
+      "nemoclaw alternative",
+      "openclaw vs nemoclaw",
+      "self-hosted ai comparison 2025",
+    ],
+    relatedSlugs: ["what-is-nemoclaw", "moltbot-vs-openclaw", "nemoclaw-alternative"],
+    content: [
+      {
+        type: "p",
+        content:
+          "If you're researching self-hosted AI gateways, the comparison that comes up most often in 2025 is NemoClaw vs OpenClaw. Both projects aim to solve the same problem — connecting AI models to your messaging apps without giving your data to a third-party service. But they make different tradeoffs, and those tradeoffs matter a lot depending on what you actually need.",
+      },
+      {
+        type: "p",
+        content:
+          "This is a detailed, honest comparison. We'll cover platform integrations, memory architecture, voice support, automations, developer extensibility, and the all-important question of whether there's a managed cloud option for non-technical users.",
+      },
+      {
+        type: "h2",
+        heading: "The Short Answer",
+        content:
+          "For most people — especially those who want reliability, broad platform support, or a managed hosting option — OpenClaw is the stronger choice. NemoClaw is a functional project, but it covers less ground and lacks several features that make OpenClaw a complete daily-driver AI assistant.",
+      },
+      {
+        type: "h2",
+        heading: "Platform Integrations",
+        content:
+          "The number and quality of messaging platform integrations is the single most important factor for most users. You want your AI where you already are.",
+      },
+      {
+        type: "table",
+        headers: ["Platform", "NemoClaw", "OpenClaw"],
+        rows: [
+          { cells: ["Telegram", "Yes", "Yes — full-featured with inline mode, topics, channels"] },
+          { cells: ["Discord", "Yes (basic)", "Yes — threads, slash commands, role-based access"] },
+          { cells: ["WhatsApp", "Limited / partial", "Yes — QR pairing, voice notes, images, documents"] },
+          { cells: ["Slack", "No", "Yes — DMs, channel mentions, slash commands"] },
+          { cells: ["iMessage", "No", "Yes — native macOS integration"] },
+          { cells: ["Signal", "No", "Yes — via Signal-cli bridge"] },
+          { cells: ["Email (Gmail)", "No", "Yes — Gmail Pub/Sub trigger automation"] },
+          { cells: ["Custom webhook", "Limited", "Yes — full webhook ingestion system"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "AI Model Support",
+        content:
+          "Both gateways support multiple AI providers, but OpenClaw covers a broader set:",
+      },
+      {
+        type: "table",
+        headers: ["Model / Provider", "NemoClaw", "OpenClaw"],
+        rows: [
+          { cells: ["Claude (Anthropic)", "Yes", "Yes"] },
+          { cells: ["GPT-4o (OpenAI)", "Yes", "Yes"] },
+          { cells: ["Gemini (Google)", "Partial", "Yes"] },
+          { cells: ["Ollama (local models)", "Limited", "Yes — full Ollama API support"] },
+          { cells: ["Mistral", "No", "Yes"] },
+          { cells: ["Multi-model profiles", "No", "Yes — switch models per workspace or command"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Memory and Context",
+        content:
+          "Memory is what separates a useful AI assistant from a chatbot that forgets you every session.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: Basic conversation history per session. No persistent facts between sessions. No workspace context injection.",
+          "OpenClaw: Three-layer memory — conversation window, session memory, and persistent facts. Workspace context injected into every conversation. User-editable memories via CLI or dashboard.",
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "This is one of the starkest differences. With NemoClaw you start fresh every time. With OpenClaw you build up a profile of preferences, context, and history that makes the assistant increasingly useful over time.",
+      },
+      {
+        type: "h2",
+        heading: "Voice Mode",
+        content:
+          "Voice support distinguishes a true personal assistant from a text-only chatbot.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: No native voice or talk mode.",
+          "OpenClaw: Full voice support — STT (Whisper, local or cloud), TTS (ElevenLabs, OpenAI, Edge TTS, macOS), native iOS/Android/macOS companion apps, voice note transcription in WhatsApp and Telegram.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Automations",
+        content:
+          "The ability to schedule and trigger AI workflows without manual interaction is a major productivity multiplier.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: No built-in automation system.",
+          "OpenClaw: Full automation platform — cron jobs (scheduled prompts), webhooks (trigger AI from external services), Gmail Pub/Sub (react to emails), and channel posting automations.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Skills and Extensibility",
+        content:
+          "The ability to extend your AI assistant with new capabilities without modifying the core project.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: No Skills platform. Extending requires forking the project.",
+          "OpenClaw: Full Skills SDK. Install community-built skills or write your own. Skills can add web search, calendar access, code execution, and more — without touching the core.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Managed Cloud Option",
+        content:
+          "Self-hosting is powerful but not for everyone. A managed cloud option makes these tools accessible to non-technical users.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: No managed cloud. Self-host only.",
+          "OpenClaw Cloud: Fully managed hosting — your own isolated instance, Claude AI included, 20+ channels, voice, automations, and memory — live in 2 minutes. From $49/month.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Community and Documentation",
+        content:
+          "For self-hosted software, community size directly affects how quickly you get help when something goes wrong.",
+      },
+      {
+        type: "ul",
+        items: [
+          "NemoClaw: Smaller community, limited documentation, fewer tutorials",
+          "OpenClaw: Larger community, comprehensive documentation, active GitHub, community Skills library",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud removes the need to choose between power and simplicity. Get the full OpenClaw feature set — voice, memory, 20+ channels, automations, Skills — in a managed instance that takes 2 minutes to set up. Start your free 7-day trial today.",
+      },
+      {
+        type: "h2",
+        heading: "Final Verdict",
+        content:
+          "NemoClaw is a functional self-hosted AI gateway for users who only need basic Telegram or Discord integration and are comfortable with the limitations. OpenClaw is the complete solution — more platforms, better memory, voice support, automations, extensible Skills, and a managed cloud option that makes it accessible to everyone.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Is NemoClaw better than OpenClaw in any area?",
+            a: "NemoClaw is a lightweight option for users who only need basic Telegram or Discord integration and have no interest in voice, automations, or advanced memory. Its smaller codebase may also appeal to developers who want to study or fork the project.",
+          },
+          {
+            q: "Can I migrate from NemoClaw to OpenClaw?",
+            a: "Yes. OpenClaw's onboarding wizard handles fresh setup in under an hour. OpenClaw Cloud migration can be done in minutes. Your conversation history from NemoClaw isn't directly portable, but your channels and AI model config can be re-created quickly.",
+          },
+          {
+            q: "Do NemoClaw and OpenClaw use the same Discord bot token format?",
+            a: "Yes — both use standard Discord bot tokens from the Discord Developer Portal. The same token works with either project.",
+          },
+          {
+            q: "Is there a NemoClaw cloud service?",
+            a: "No. NemoClaw is self-host only. If you want a managed AI gateway service, OpenClaw Cloud is currently the leading option in this category.",
+          },
+          {
+            q: "Which is better for a team — NemoClaw or OpenClaw?",
+            a: "OpenClaw, clearly. The Team plan on OpenClaw Cloud supports multiple users with isolated memory, shared channel access, and collaboration features. NemoClaw has no multi-user support.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "nemoclaw-alternative",
+    title: "Best NemoClaw Alternative in 2025: Why Users Switch to OpenClaw",
+    metaTitle: "Best NemoClaw Alternative 2025: Switch to OpenClaw | OpenClaw Cloud",
+    metaDescription:
+      "Looking for a NemoClaw alternative? Discover why thousands of users choose OpenClaw — more platforms, better memory, voice mode, automations, and a managed cloud option.",
+    publishedAt: "2025-04-09",
+    readingTime: "7 min read",
+    category: "Comparisons",
+    excerpt:
+      "NemoClaw works — but if you've hit its limits, OpenClaw is where most users land next. More integrations, real memory, voice support, automations, and no-setup cloud hosting.",
+    keywords: [
+      "nemoclaw alternative",
+      "nemoclaw replacement",
+      "switch from nemoclaw",
+      "best nemoclaw alternative 2025",
+      "openclaw vs nemoclaw",
+      "nemoclaw openclaw",
+    ],
+    relatedSlugs: ["nemoclaw-vs-openclaw", "what-is-nemoclaw", "what-is-openclaw"],
+    content: [
+      {
+        type: "p",
+        content:
+          "NemoClaw gets people started with self-hosted AI. But as users grow their setup — wanting WhatsApp integration, voice conversations, scheduled automations, or simply a version that doesn't require them to manage a Linux server — NemoClaw starts to show its gaps. This page is for users who've outgrown NemoClaw and want to know what comes next.",
+      },
+      {
+        type: "h2",
+        heading: "Why People Look for a NemoClaw Alternative",
+        content:
+          "Based on common community feedback, these are the limitations that push users to look for alternatives:",
+      },
+      {
+        type: "ul",
+        items: [
+          "No WhatsApp support: WhatsApp is the world's most-used messaging app — NemoClaw doesn't support it",
+          "No memory between sessions: Every conversation starts from scratch; the AI forgets everything",
+          "No voice mode: Can't send voice notes or receive spoken responses",
+          "No managed cloud: You're stuck self-hosting even if you'd rather not maintain a server",
+          "No automations: Can't schedule daily briefings, webhook triggers, or Gmail notifications",
+          "No Skills system: Adding new capabilities requires modifying the core codebase",
+          "Limited documentation: Troubleshooting takes much longer without comprehensive guides",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "OpenClaw: The Leading NemoClaw Alternative",
+        content:
+          "OpenClaw is the most feature-complete open-source AI gateway available today. It was built to be the production-ready, everything-included personal AI stack — and it's the platform most users migrate to when NemoClaw's limitations become blockers.",
+      },
+      {
+        type: "h2",
+        heading: "What OpenClaw Fixes",
+        content:
+          "Every limitation listed above has a direct answer in OpenClaw:",
+      },
+      {
+        type: "table",
+        headers: ["NemoClaw Limitation", "How OpenClaw Solves It"],
+        rows: [
+          { cells: ["No WhatsApp", "Full WhatsApp integration via QR pairing — text, voice notes, images, documents"] },
+          { cells: ["No memory", "Three-layer memory: session, persistent facts, and workspace context injection"] },
+          { cells: ["No voice mode", "Native voice: Whisper STT, ElevenLabs/Edge TTS, iOS/Android/macOS apps"] },
+          { cells: ["No managed cloud", "OpenClaw Cloud — fully managed, live in 2 minutes, from $49/month"] },
+          { cells: ["No automations", "Cron jobs, webhooks, Gmail Pub/Sub, scheduled AI tasks"] },
+          { cells: ["No Skills", "Full Skills SDK — install community skills or write your own"] },
+          { cells: ["Poor docs", "Comprehensive documentation, active community, this blog"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "How to Switch From NemoClaw to OpenClaw",
+        content:
+          "Migrating to OpenClaw is straightforward. Most users complete the switch in an afternoon:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Choose your deployment: Self-hosted (free) or OpenClaw Cloud ($49/month, zero setup)",
+          "If self-hosting: Install OpenClaw on your existing server — it runs alongside or replaces NemoClaw",
+          "Run the OpenClaw onboarding wizard: openclaw onboard",
+          "Re-connect your channels (Telegram, Discord, etc.) — takes about 5 minutes per channel",
+          "Add your AI API key (or use the included Claude on OpenClaw Cloud)",
+          "Set up your workspace context and initial persistent memory facts",
+          "Optional: Set up voice mode, automations, and any Skills you want",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "OpenClaw Cloud: Skip the Migration Complexity",
+        content:
+          "If the self-hosting aspect of NemoClaw was already a pain point, OpenClaw Cloud is the obvious path forward. You get everything OpenClaw offers — 20+ channels, Claude AI, memory, voice, automations — in a managed instance that's live in under 2 minutes.",
+      },
+      {
+        type: "callout",
+        content:
+          "Start your free 7-day trial of OpenClaw Cloud. No credit card needed. Connect your first channel in 2 minutes and experience the full OpenClaw stack — everything that NemoClaw can't do, all in one place.",
+      },
+      {
+        type: "h2",
+        heading: "Other NemoClaw Alternatives Worth Knowing",
+        content:
+          "OpenClaw is the top recommendation, but for completeness, here are other projects in the space:",
+      },
+      {
+        type: "ul",
+        items: [
+          "MoltBot: Another self-hosted gateway with a different architecture. More limited platform support than OpenClaw. No cloud option.",
+          "ClawdBot: An OpenClaw-based bot configuration popular in the Discord community. Built on OpenClaw.",
+          "n8n + AI node: A no-code automation platform that can approximate some AI gateway functionality. Much more complex to configure for this use case.",
+        ],
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I run OpenClaw on the same server as NemoClaw during migration?",
+            a: "Yes. OpenClaw and NemoClaw use different ports and can run simultaneously. This lets you migrate channels one at a time rather than switching everything at once.",
+          },
+          {
+            q: "Will I lose my NemoClaw conversation history when I switch?",
+            a: "Conversation history from NemoClaw is not directly importable into OpenClaw. However, you can define persistent memory facts in OpenClaw to preserve important context about yourself and your preferences.",
+          },
+          {
+            q: "Is OpenClaw harder to set up than NemoClaw?",
+            a: "OpenClaw's CLI wizard is designed to be as beginner-friendly as possible. For users who found NemoClaw's setup difficult, OpenClaw Cloud eliminates setup entirely.",
+          },
+          {
+            q: "Why is OpenClaw more popular than NemoClaw?",
+            a: "OpenClaw has been in development longer, has a larger contributor community, more platform integrations, a feature-complete skill system, and the only managed cloud option in this category.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "nemoclaw-review",
+    title: "NemoClaw Review 2025: Features, Limitations, and Honest Verdict",
+    metaTitle: "NemoClaw Review 2025: Is It Worth It? | OpenClaw Cloud",
+    metaDescription:
+      "An honest NemoClaw review for 2025. What NemoClaw does well, where it falls short, and why most serious users end up choosing OpenClaw as their self-hosted AI gateway.",
+    publishedAt: "2025-04-11",
+    readingTime: "6 min read",
+    category: "Comparisons",
+    excerpt:
+      "NemoClaw promises a self-hosted AI assistant — but does it deliver? An honest 2025 review covering features, setup difficulty, platform support, and who it's actually for.",
+    keywords: [
+      "nemoclaw review",
+      "nemoclaw 2025",
+      "is nemoclaw good",
+      "nemoclaw pros cons",
+      "nemoclaw honest review",
+      "nemoclaw setup",
+    ],
+    relatedSlugs: ["nemoclaw-vs-openclaw", "nemoclaw-alternative", "what-is-nemoclaw"],
+    content: [
+      {
+        type: "p",
+        content:
+          "NemoClaw has been gaining attention in the self-hosted AI community. The pitch is familiar: run your own AI gateway, connect it to your messaging apps, own your data. It's a good idea — but the execution matters. This is an honest look at where NemoClaw delivers and where it comes up short.",
+      },
+      {
+        type: "h2",
+        heading: "What NemoClaw Gets Right",
+        content:
+          "To be fair, NemoClaw does some things well:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Lightweight footprint: NemoClaw's codebase is smaller and easier to read than more feature-complete alternatives",
+          "Basic Telegram and Discord support: For users who only need these two platforms, it works",
+          "Open source: Fully open, forkable, and modifiable",
+          "Low resource usage: Runs on very modest hardware — even a small VPS handles it fine",
+          "Simple config: Fewer features means fewer things to configure",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Where NemoClaw Falls Short",
+        content:
+          "The gaps become apparent quickly once you try to use NemoClaw as your primary personal AI assistant:",
+      },
+      {
+        type: "ul",
+        items: [
+          "No WhatsApp: The world's most popular messaging app isn't supported — a major omission",
+          "No persistent memory: Every conversation starts fresh. The AI has no knowledge of past interactions.",
+          "No voice: No speech-to-text input, no text-to-speech output",
+          "No automations: You can't schedule AI tasks or trigger them via webhooks",
+          "No extensibility: No plugin or skills system — adding capabilities requires modifying source code",
+          "No managed cloud: If you want to try it without a server, you simply can't",
+          "Limited documentation: Troubleshooting is harder without comprehensive guides",
+          "Smaller community: Fewer GitHub stars, fewer community answers, slower issue resolution",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Who Is NemoClaw For?",
+        content:
+          "NemoClaw is best suited for a narrow audience:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Developers who want to study a minimal AI gateway codebase",
+          "Users who only need basic Telegram or Discord integration — nothing more",
+          "Experimenters who want to build their own gateway by forking a small starting point",
+          "Users who are comfortable troubleshooting without documentation",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Who Should NOT Use NemoClaw",
+      },
+      {
+        type: "ul",
+        items: [
+          "Anyone who uses WhatsApp, iMessage, Signal, or Slack",
+          "Anyone who wants their AI to remember them across sessions",
+          "Anyone who wants voice input or spoken responses",
+          "Anyone who wants to automate AI tasks without manual triggering",
+          "Anyone who wants a managed cloud option instead of self-hosting",
+          "Teams — there's no multi-user support",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "The Better Option: OpenClaw",
+        content:
+          "For everyone outside the narrow NemoClaw sweet spot, OpenClaw is the answer. It's been in active development longer, has a much larger community, covers all 20+ major messaging platforms, and includes features NemoClaw hasn't built: persistent memory, voice mode, automations, the Skills SDK, and OpenClaw Cloud for users who don't want to self-host.",
+      },
+      {
+        type: "callout",
+        content:
+          "If NemoClaw's limitations have been frustrating you, OpenClaw Cloud is the fastest path forward. No setup, no server management — just connect your channels and start talking to your AI. Try it free for 7 days at openclaw.cloud.",
+      },
+      {
+        type: "h2",
+        heading: "NemoClaw Review: Final Score",
+        content:
+          "NemoClaw is a fine starting point for developers, but a poor daily-driver for anyone who wants a real personal AI assistant. Missing WhatsApp, no memory, no voice, no automations — these aren't minor feature gaps, they're the core of what makes an AI assistant actually useful day to day.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Is NemoClaw actively maintained?",
+            a: "NemoClaw has a smaller contributor base than OpenClaw. Development pace and issue response times are slower as a result.",
+          },
+          {
+            q: "How long does NemoClaw take to set up?",
+            a: "A basic NemoClaw setup on a Linux VPS takes 1–3 hours. OpenClaw self-hosted takes a similar amount of time but covers far more ground. OpenClaw Cloud takes 2 minutes.",
+          },
+          {
+            q: "Is NemoClaw free?",
+            a: "Yes, NemoClaw is open-source and free to self-host. There's no paid tier or managed hosting option.",
+          },
+          {
+            q: "What does NemoClaw do that OpenClaw can't?",
+            a: "Honestly, not much for typical users. NemoClaw's slightly smaller codebase may appeal to developers wanting a minimal starting point for a custom build. For end-user functionality, OpenClaw covers everything NemoClaw does and much more.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-imessage-setup",
+    title: "OpenClaw + iMessage: Add AI to Apple Messages on Mac (2025 Guide)",
+    metaTitle: "OpenClaw iMessage Integration Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Connect OpenClaw to iMessage on macOS and get an AI assistant right inside Apple Messages. Step-by-step setup guide for the OpenClaw iMessage integration.",
+    publishedAt: "2025-04-13",
+    readingTime: "6 min read",
+    category: "Guides",
+    excerpt:
+      "Use Apple Messages to chat with your OpenClaw AI assistant on Mac. This guide covers the iMessage bridge setup, Apple ID pairing, and tips for getting the best experience.",
+    keywords: [
+      "openclaw imessage",
+      "imessage ai assistant",
+      "ai in apple messages",
+      "openclaw mac",
+      "imessage bot mac",
+      "apple messages ai 2025",
+    ],
+    relatedSlugs: ["openclaw-integrations", "openclaw-voice-mode", "openclaw-whatsapp-guide"],
+    content: [
+      {
+        type: "p",
+        content:
+          "If you're on a Mac and you use iMessage regularly, connecting OpenClaw to Apple Messages means your AI assistant lives inside the app you already have open all day. It's one of the smoothest integrations in OpenClaw's lineup — no third-party app, no QR code, just your existing Apple account paired to your AI.",
+      },
+      {
+        type: "h2",
+        heading: "Requirements",
+        content:
+          "The OpenClaw iMessage integration has specific requirements because of how Apple Messages works:",
+      },
+      {
+        type: "ul",
+        items: [
+          "A Mac running macOS Ventura (13) or later",
+          "The Mac must be always-on (or a Mac mini / server-class machine) — iMessage requires the Mac to be awake and logged in",
+          "An Apple ID with iMessage enabled",
+          "OpenClaw installed on the same Mac, or on a Mac that has access to the iMessage account",
+          "The openclawd daemon running on that Mac",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "How the iMessage Integration Works",
+        content:
+          "Unlike Telegram or Discord (which use official bot APIs), iMessage doesn't have a public bot API. OpenClaw uses the BlueBubbles or jMessages bridge protocol to interact with Apple Messages through AppleScript and the macOS Messages app. This means the integration runs on the same Mac where your Messages app is open.",
+      },
+      {
+        type: "h2",
+        heading: "Step-by-Step Setup",
+      },
+      {
+        type: "ol",
+        items: [
+          "Install OpenClaw on your Mac: npm install -g openclaw",
+          "Run the onboarding wizard: openclaw onboard",
+          "When selecting channels, choose 'iMessage'",
+          "OpenClaw will prompt you to authorize AppleScript access in System Preferences → Privacy & Security → Automation",
+          "Grant OpenClaw permission to control the Messages app",
+          "Test the connection: openclaw channel test imessage",
+          "Send a message to your own Apple ID from another device — OpenClaw will respond",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Using OpenClaw via iMessage",
+        content:
+          "Once connected, any iMessage you send to your own Apple ID on another device (iPhone, iPad, another Mac) is received by OpenClaw on your server Mac and processed by your AI:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Text messages: Send a message to yourself and your AI replies in the same conversation",
+          "Tapbacks and reactions are ignored — only text content is processed",
+          "Voice memos sent via iMessage are transcribed and processed if voice mode is enabled",
+          "Group chats: Add your Apple ID to a group chat; OpenClaw responds when its name is mentioned",
+          "Attachments: Images and PDFs sent to yourself can be processed if a vision-capable model is configured",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Limitations of the iMessage Integration",
+        content:
+          "Because iMessage has no official bot API, this integration has real constraints:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Mac must stay awake: If your Mac sleeps or restarts, OpenClaw goes offline until it wakes up",
+          "One Apple ID per Mac: You can't run multiple iMessage accounts on the same integration",
+          "AppleScript dependency: macOS updates can occasionally break AppleScript integrations",
+          "Not available for iPhone: The integration runs on Mac only — it doesn't work directly from an iPhone",
+          "Not available on OpenClaw Cloud: Because it requires local Mac access, iMessage is a self-hosted-only channel",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "For mobile-first users, OpenClaw's WhatsApp and Telegram integrations offer a better experience than iMessage and work on both iPhone and Android. OpenClaw Cloud includes both as built-in channels — sign up and connect in 2 minutes.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I use OpenClaw iMessage on iPhone?",
+            a: "Not directly. The iMessage integration requires a Mac running the Messages app with OpenClaw and AppleScript access. iPhone users should use the WhatsApp or Telegram integration instead.",
+          },
+          {
+            q: "Does iMessage integration work with iCloud sync?",
+            a: "Yes. Because OpenClaw monitors the Messages app on your Mac, it sees all iMessages that sync to that Mac via iCloud, including conversations from your iPhone.",
+          },
+          {
+            q: "Is the iMessage integration available on OpenClaw Cloud?",
+            a: "No — iMessage requires local Mac access, which makes it incompatible with cloud hosting. For a managed cloud experience with mobile messaging, use OpenClaw Cloud with WhatsApp or Telegram instead.",
+          },
+          {
+            q: "Will Apple break this integration in a future macOS update?",
+            a: "Apple has historically maintained AppleScript access for productivity tools. While it's possible for future macOS updates to affect this, the OpenClaw team actively maintains the integration with each major macOS release.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-raspberry-pi",
+    title: "How to Run OpenClaw on a Raspberry Pi (2025 Setup Guide)",
+    metaTitle: "OpenClaw on Raspberry Pi 2025: Full Setup Guide | OpenClaw Cloud",
+    metaDescription:
+      "Run OpenClaw and openclawd on a Raspberry Pi 4 or Pi 5. Step-by-step guide for installing Node.js, configuring the daemon, and running your AI gateway on ARM hardware.",
+    publishedAt: "2025-04-15",
+    readingTime: "8 min read",
+    category: "Technical",
+    excerpt:
+      "A Raspberry Pi is enough to run OpenClaw 24/7 at very low power. This guide shows you exactly how to install, configure, and keep OpenClaw running reliably on Pi hardware.",
+    keywords: [
+      "openclaw raspberry pi",
+      "openclaw pi",
+      "self-hosted ai raspberry pi",
+      "openclaw arm",
+      "openclawd raspberry pi",
+      "ai assistant raspberry pi 2025",
+    ],
+    relatedSlugs: ["what-is-openclawd", "openclaw-ollama", "setup-openclaw-beginners"],
+    content: [
+      {
+        type: "p",
+        content:
+          "A Raspberry Pi consumes about 5 watts of power and costs $35–80. It's enough to run OpenClaw 24/7 as a dedicated home AI gateway for the cost of a few cups of coffee per year in electricity. The Pi handles the OpenClaw gateway, routing, and memory perfectly well — AI model calls go to the cloud API (or to Ollama on a beefier Pi 5), so the Pi only needs to handle the logic, not the inference.",
+      },
+      {
+        type: "h2",
+        heading: "Supported Pi Models",
+        content:
+          "OpenClaw runs on any 64-bit Raspberry Pi:",
+      },
+      {
+        type: "table",
+        headers: ["Model", "RAM", "Recommended Use", "Ollama Support"],
+        rows: [
+          { cells: ["Pi 4 (2GB)", "2 GB", "Gateway only (cloud AI APIs)", "Not recommended"] },
+          { cells: ["Pi 4 (4GB)", "4 GB", "Gateway + small local models", "Llama 3.2 3B (slow)"] },
+          { cells: ["Pi 4 (8GB)", "8 GB", "Gateway + local models", "Llama 3.2 3B / Phi-3 Mini"] },
+          { cells: ["Pi 5 (4GB)", "4 GB", "Gateway + local models", "Phi-3 Mini (usable)"] },
+          { cells: ["Pi 5 (8GB)", "8 GB", "Best Pi experience", "Llama 3.2 3B / Mistral (slow)"] },
+          { cells: ["Pi 500", "8 GB", "Desktop + gateway", "Llama 3.2 3B"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 1: Prepare Your Raspberry Pi",
+        content:
+          "Start with a fresh Raspberry Pi OS (64-bit, Bookworm or later) installed via Raspberry Pi Imager:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Download Raspberry Pi Imager from raspberrypi.com/software",
+          "Flash 'Raspberry Pi OS Lite (64-bit)' to a microSD card (16 GB minimum, 32 GB recommended)",
+          "In Imager's 'Advanced Options', set your hostname, enable SSH, and configure WiFi credentials",
+          "Boot the Pi and SSH in: ssh pi@your-pi-hostname.local",
+          "Update the system: sudo apt update && sudo apt upgrade -y",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 2: Install Node.js",
+        content:
+          "OpenClaw requires Node.js 18 or later. The Raspberry Pi OS repo often has older versions — use NodeSource for the latest:",
+      },
+      {
+        type: "ul",
+        items: [
+          "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
+          "sudo apt install -y nodejs",
+          "Verify: node --version (should show v20.x or later)",
+          "Verify npm: npm --version",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 3: Install OpenClaw",
+      },
+      {
+        type: "ul",
+        items: [
+          "npm install -g openclaw",
+          "Verify installation: openclaw --version",
+          "Run the onboarding wizard: openclaw onboard",
+          "Follow the wizard to configure your AI model (enter your Anthropic/OpenAI API key) and add your first channel (Telegram is recommended for Pi — no QR code needed)",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 4: Run Openclawd as a Systemd Service",
+        content:
+          "To keep OpenClaw running after reboots, set it up as a systemd service:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw service install",
+          "This creates and enables a systemd unit file automatically",
+          "Start the service: sudo systemctl start openclawd",
+          "Verify it's running: sudo systemctl status openclawd",
+          "Check it starts on boot: sudo systemctl is-enabled openclawd (should show 'enabled')",
+          "View logs: journalctl -u openclawd -f",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Performance Tips for Pi",
+        content:
+          "The Pi is capable but not powerful. These tweaks help OpenClaw run smoothly:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Use a fast microSD card (Class 10 A2 rated) or a USB SSD for better I/O performance",
+          "Set a static IP or use mDNS (pi.local) to avoid connection issues",
+          "Use a quality power supply — the official Pi power supply is strongly recommended",
+          "Disable the desktop GUI (use Lite OS) to free RAM for OpenClaw",
+          "If using Ollama, move the model storage to a USB SSD — microSD is too slow for model loading",
+          "Consider adding a heatsink or fan — the Pi 5 especially benefits from active cooling under load",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "Running OpenClaw on a Pi is great for tinkerers — but it requires setup time, hardware, and ongoing maintenance. OpenClaw Cloud gives you always-on hosting with zero hardware to manage, starting at $49/month. For a personal AI you can rely on, it's often the faster path.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I run Ollama on a Raspberry Pi with OpenClaw?",
+            a: "Yes, on Pi 4 8GB or Pi 5. Use small quantized models like Llama 3.2 3B (Q4) or Phi-3 Mini. Responses will be slow (30–90 seconds per reply) but fully local and private.",
+          },
+          {
+            q: "Does OpenClaw work on a Pi Zero?",
+            a: "No. Pi Zero 2W has only 512 MB RAM — not enough to run OpenClaw reliably. Pi 4 2GB is the minimum practical hardware.",
+          },
+          {
+            q: "How much power does OpenClaw use on a Pi?",
+            a: "In idle/low-use mode, a Pi 4 running OpenClaw draws about 3–5 watts. Under load (processing a message), peak draw reaches 6–8 watts. Annual electricity cost is approximately $2–5 at typical rates.",
+          },
+          {
+            q: "Can I access my Pi's OpenClaw from outside my home network?",
+            a: "Yes, via a reverse proxy (Nginx + Cloudflare Tunnel is the recommended setup). OpenClaw can also be configured to work entirely through Telegram or Discord, which don't require inbound connections.",
+          },
+          {
+            q: "What happens to my OpenClaw if the Pi restarts?",
+            a: "If you've set up openclawd as a systemd service (as covered in Step 4), it automatically starts on reboot. Your channels reconnect and your AI is back online within 30–60 seconds.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-skills-guide",
+    title: "OpenClaw Skills: How to Extend Your AI Assistant With New Powers",
+    metaTitle: "OpenClaw Skills Guide 2025: Extend Your AI | OpenClaw Cloud",
+    metaDescription:
+      "Learn how OpenClaw Skills work — install community skills for web search, calendar access, code execution, and more, or build your own custom skill from scratch.",
+    publishedAt: "2025-04-17",
+    readingTime: "8 min read",
+    category: "Technical",
+    excerpt:
+      "OpenClaw Skills let you add new capabilities to your AI without modifying the core project. From web search to shell execution — here's how the Skills system works and how to use it.",
+    keywords: [
+      "openclaw skills",
+      "openclaw extensions",
+      "openclaw plugins",
+      "openclaw skill sdk",
+      "extend openclaw",
+      "openclaw web search skill",
+      "openclaw calendar skill",
+    ],
+    relatedSlugs: ["what-is-openclaw", "openclaw-automations", "openclaw-memory-guide"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Out of the box, OpenClaw gives your AI model access to your conversations and memory. Skills extend it further — giving your AI the ability to fetch live data from the web, access your calendar, run shell commands, query databases, check the weather, or do anything else you can write code to do. And unlike other AI tool systems, OpenClaw Skills are modular: install only what you need, write your own, and share them with the community.",
+      },
+      {
+        type: "h2",
+        heading: "How OpenClaw Skills Work",
+        content:
+          "A Skill is a small Node.js module that OpenClaw can call when your AI decides it needs additional information or capabilities. When you send a message like 'What's the weather in Berlin?', OpenClaw checks whether a weather skill is installed. If it is, the skill fetches live weather data and provides it to the AI model as context — so the AI can give you an accurate, real-time answer.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Skills are invoked automatically based on your message content",
+          "Skills can be invoked explicitly with a /skill command",
+          "Each skill has a name, description, and input/output schema",
+          "The AI model decides which skills to use based on the task",
+          "Skills can be chained — one skill's output feeds into another",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Installing Community Skills",
+        content:
+          "The OpenClaw Skills Registry hosts community-maintained skills you can install with a single command:",
+      },
+      {
+        type: "ul",
+        items: [
+          "openclaw skill install web-search — Google/Bing/DuckDuckGo search from your AI",
+          "openclaw skill install weather — Real-time weather for any location",
+          "openclaw skill install calendar-read — Read your Google Calendar events",
+          "openclaw skill install shell-exec — Run shell commands (use with caution)",
+          "openclaw skill install url-fetch — Fetch and summarize any URL",
+          "openclaw skill install stock-price — Live stock and crypto prices",
+          "openclaw skill install gmail-read — Read and summarize emails from Gmail",
+          "openclaw skill install image-gen — Generate images via DALL·E or Stable Diffusion",
+          "openclaw skill install reminder — Set reminders and get notified via your connected channels",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Using Skills in Conversation",
+        content:
+          "Once installed, skills activate automatically when relevant:",
+      },
+      {
+        type: "ul",
+        items: [
+          "'What's the weather tomorrow in Tokyo?' → triggers weather skill",
+          "'Search for the latest news about OpenAI' → triggers web-search skill",
+          "'What do I have on my calendar Thursday?' → triggers calendar-read skill",
+          "'Fetch this URL and summarize it: [url]' → triggers url-fetch skill",
+          "You can also invoke directly: /skill web-search query='your search term'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Building Your Own Skill",
+        content:
+          "The OpenClaw Skills SDK makes it straightforward to write custom skills. A minimal skill is a single JavaScript file with a defined schema:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Define a name, description, and input parameters (so the AI knows when and how to use it)",
+          "Write the execute() function — this runs when the skill is triggered",
+          "Return a string result that the AI incorporates into its response",
+          "Publish to the Skills Registry with: openclaw skill publish",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Skills on OpenClaw Cloud",
+        content:
+          "On OpenClaw Cloud, you can install any Skill from the registry directly from your dashboard — no CLI required. Go to Dashboard → Skills → Browse Registry, click Install, and the skill is active immediately. Community skills are sandboxed and reviewed for security before being listed in the registry.",
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes the full Skills platform. Install web search, calendar access, and a growing library of community skills in one click — no npm, no config files. Sign up free for 7 days and give your AI real-world knowledge.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Are OpenClaw Skills safe to install?",
+            a: "Community skills in the official registry are reviewed by the OpenClaw team. Skills you install from outside the registry (e.g., npm directly) should be treated like any third-party code — review before installing.",
+          },
+          {
+            q: "Can Skills access my personal data?",
+            a: "Skills have explicit permission scopes. A weather skill has no access to your messages. A calendar skill requests read access to your Google Calendar. You approve permissions at install time.",
+          },
+          {
+            q: "Does NemoClaw have a Skills system?",
+            a: "No. NemoClaw has no equivalent to OpenClaw's Skills platform. Adding new capabilities to NemoClaw requires forking and modifying the source code.",
+          },
+          {
+            q: "Can I use Skills with local Ollama models?",
+            a: "Yes. Skills work with any configured AI model, including local Ollama models. Tool/function calling support in the model improves skill accuracy.",
+          },
+          {
+            q: "How many skills can I install?",
+            a: "There's no hard limit. Practically, 5–10 active skills cover most use cases. Too many skills can slow down the AI's decision-making about which tool to use.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
