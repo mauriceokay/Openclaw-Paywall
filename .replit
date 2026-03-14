@@ -49,12 +49,13 @@ args = "cd /home/runner/workspace/openclaw-app && bash start-gateway.sh"
 name = "Mission Control: Backend"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd /home/runner/workspace/mission-control/backend && uvicorn app.main:app --host 0.0.0.0 --port 8001"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/workspace/mission-control/backend && LOCAL_AUTH_TOKEN=$MISSION_CONTROL_TOKEN uvicorn app.main:app --host 0.0.0.0 --port 8001"
+waitForPort = 8001
 
 [[workflows.workflow]]
 name = "Mission Control: Frontend"
@@ -81,4 +82,3 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-MISSION_CONTROL_TOKEN = "6d97282bad353daa29c83755432a9c0fb147b470ea0b520fa02e3fd6597d23de"
