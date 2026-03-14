@@ -75,8 +75,8 @@ export function Usage() {
     queryKey: ["usage", user?.email],
     queryFn: async () => {
       const provider = localStorage.getItem("oc_api_provider") ?? "anthropic";
-      const url = `${BASE_URL}/api/subscription/usage?email=${encodeURIComponent(user!.email)}&provider=${encodeURIComponent(provider)}`;
-      const res = await fetch(url);
+      const url = `${BASE_URL}/api/subscription/usage?provider=${encodeURIComponent(provider)}`;
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },

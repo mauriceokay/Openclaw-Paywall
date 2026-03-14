@@ -28,12 +28,24 @@ router.post("/users/register", async (req: Request, res: Response) => {
 
 // Called by the main app to establish/refresh the session cookie so that
 // Mission Control's proxy auth can identify the user server-side.
+// Validates the email exists in app.users before issuing a cookie.
 router.post("/session/establish", async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email?.trim()) {
     return res.status(400).json({ error: "email required" });
   }
-  setSessionCookie(res, email.trim().toLowerCase());
+  const normalised = email.trim().toLowerCase();
+  try {
+    const result = await db.execute(sql`
+      SELECT id FROM app.users WHERE email = ${normalised} LIMIT 1
+    `);
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to verify user" });
+  }
+  setSessionCookie(res, normalised);
   return res.status(200).json({ ok: true });
 });
 

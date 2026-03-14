@@ -31,10 +31,7 @@ export function ManageSubscription() {
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
-      const url = user?.email
-        ? `${BASE_URL}/api/subscription/status?email=${encodeURIComponent(user.email)}`
-        : `${BASE_URL}/api/subscription/status`;
-      const res = await fetch(url);
+      const res = await fetch(`${BASE_URL}/api/subscription/status`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch status");
       return res.json();
     },

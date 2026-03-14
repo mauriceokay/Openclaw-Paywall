@@ -57,10 +57,7 @@ export function Dashboard() {
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
-      const url = user?.email
-        ? `${BASE_URL}/api/subscription/status?email=${encodeURIComponent(user.email)}`
-        : `${BASE_URL}/api/subscription/status`;
-      const res = await fetch(url);
+      const res = await fetch(`${BASE_URL}/api/subscription/status`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch status");
       return res.json();
     },
@@ -72,8 +69,7 @@ export function Dashboard() {
   const { data: gatewayData, isLoading: gatewayLoading } = useQuery<{ enabled: boolean }>({
     queryKey: ["gateway-status", user?.email],
     queryFn: async () => {
-      const url = `${BASE_URL}/api/gateway-control?email=${encodeURIComponent(user!.email)}`;
-      const res = await fetch(url);
+      const res = await fetch(`${BASE_URL}/api/gateway-control`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch gateway status");
       return res.json();
     },
@@ -87,7 +83,8 @@ export function Dashboard() {
       const res = await fetch(`${BASE_URL}/api/gateway-control`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user!.email, enabled }),
+        credentials: "include",
+        body: JSON.stringify({ enabled }),
       });
       if (!res.ok) throw new Error("Failed to toggle gateway");
       return res.json() as Promise<{ enabled: boolean }>;
