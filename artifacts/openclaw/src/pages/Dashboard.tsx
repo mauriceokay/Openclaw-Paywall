@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { useCreatePortalSession, type SubscriptionStatus, type CreatePortalSessionMutationError } from "@workspace/api-client-react";
+import { type SubscriptionStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { SEOHead } from "@/components/SEOHead";
@@ -54,32 +54,12 @@ export function Dashboard() {
     enabled: true,
   });
 
-  const portalMutation = useCreatePortalSession();
-  const [portalError, setPortalError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider>(
     () => (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic"
   );
   const [selectedModel, setSelectedModel] = useState<string>(
     () => getValidModel((localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic")
   );
-
-  const handleManageSubscription = () => {
-    setPortalError(null);
-    portalMutation.mutate(
-      { data: { email: user?.email ?? "" } },
-      {
-        onSuccess: (data) => {
-          window.open(data.url, "_blank", "noopener,noreferrer");
-        },
-        onError: (err: CreatePortalSessionMutationError) => {
-          const apiMessage = err?.data?.error ?? null;
-          setPortalError(
-            apiMessage || d.portalError
-          );
-        },
-      }
-    );
-  };
 
   if (isLoading) {
     return (
@@ -162,13 +142,10 @@ export function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleManageSubscription}
-                disabled={portalMutation.isPending}
+                onClick={() => navigate("/subscription")}
                 className="border-white/10 hover:bg-white/5 text-sm"
               >
-                {portalMutation.isPending
-                  ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  : <Settings className="w-3.5 h-3.5 mr-1.5" />}
+                <Settings className="w-3.5 h-3.5 mr-1.5" />
                 {d.manageSubscription}
               </Button>
               <Button
@@ -181,11 +158,6 @@ export function Dashboard() {
                 See Usage
               </Button>
             </div>
-            {(portalMutation.isError || portalError) && (
-              <p className="text-sm text-destructive max-w-xs text-right">
-                {portalError || d.portalError}
-              </p>
-            )}
           </div>
         </div>
 
