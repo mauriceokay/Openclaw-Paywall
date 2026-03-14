@@ -1587,6 +1587,806 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+
+  {
+    slug: "openclaw-telegram-setup",
+    title: "How to Set Up OpenClaw on Telegram: Your Personal AI Bot (2025)",
+    metaTitle: "OpenClaw Telegram Bot Setup Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Connect OpenClaw to Telegram in minutes. Step-by-step guide: create a Telegram bot with BotFather, configure OpenClaw, and start chatting with your AI in any Telegram chat.",
+    publishedAt: "2025-03-25",
+    readingTime: "7 min read",
+    category: "Guides",
+    excerpt:
+      "Telegram is one of the best platforms for a personal AI assistant — fast, private, and packed with bot features. Here's how to connect OpenClaw to Telegram in under 10 minutes.",
+    keywords: [
+      "openclaw telegram",
+      "telegram ai bot",
+      "telegram ai assistant",
+      "openclaw telegram setup",
+      "personal ai bot telegram",
+      "self-hosted telegram bot",
+    ],
+    relatedSlugs: ["openclaw-discord-setup", "openclaw-whatsapp-guide", "openclaw-integrations"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Telegram is arguably the best platform for a personal AI bot. It has a mature Bot API, rich formatting support (Markdown, HTML), inline keyboard buttons, file sharing, and — unlike WhatsApp — it doesn't restrict automated interactions in the same way. OpenClaw's Telegram integration is the most feature-complete of all its channel adapters.",
+      },
+      {
+        type: "h2",
+        heading: "Step 1: Create a Telegram Bot with BotFather",
+        content:
+          "Every Telegram bot starts with BotFather — Telegram's official bot management bot. Here's how to create yours:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Open Telegram and search for @BotFather (verified with a blue checkmark)",
+          "Send /newbot to start the bot creation wizard",
+          "Enter a display name for your bot (e.g. 'My AI Assistant')",
+          "Enter a username for your bot — must end in 'bot' (e.g. 'myai_bot')",
+          "BotFather will reply with your bot token — a long string like 123456789:ABC-DEF...",
+          "Copy the token — you'll need it in the next step",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Optional: Configure Your Bot's Profile",
+        content:
+          "While you're in BotFather, you can also set a profile picture (/setuserpic), description (/setdescription), and commands list (/setcommands) for your bot. These make it easier to use and easier to find.",
+      },
+      {
+        type: "h2",
+        heading: "Step 2: Connect Your Telegram Bot to OpenClaw",
+        content:
+          "With your bot token, connect it to OpenClaw. On OpenClaw Cloud, go to Dashboard → Channels → Telegram, paste the token, and click Connect. For self-hosted OpenClaw:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw channel add telegram",
+          "When prompted, paste your bot token",
+          "Set your access policy: allow all users, allowlist only, or deny all (private mode)",
+          "Choose your preferred response format: plain text, Markdown, or HTML",
+          "OpenClaw verifies the token and confirms the connection",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 3: Start Chatting",
+        content:
+          "Open your bot in Telegram and send /start. Your OpenClaw assistant will reply. You can now:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Send any text message — your AI responds in the same chat",
+          "Send a voice note — OpenClaw transcribes it and responds",
+          "Send a file or document — ask questions about its contents",
+          "Send an image — ask the AI to describe or analyze it (vision-capable model required)",
+          "Use /clear to reset conversation history and start fresh",
+          "Use /status to check the current AI model and connection status",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Telegram-Specific Features in OpenClaw",
+        content:
+          "Telegram's Bot API gives OpenClaw several capabilities not available on other platforms:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Inline keyboard buttons: OpenClaw can present reply options as tappable buttons",
+          "Pinned messages: Important AI responses can be auto-pinned in a chat",
+          "Bot commands: /ask, /clear, /memory, /model, and custom commands you define",
+          "Inline mode: Type @yourbotname query in any chat to query your AI without opening the bot chat",
+          "Group mode: Add the bot to a Telegram group and mention @yourbotname to ask it questions",
+          "Channel posting: Use OpenClaw to automatically post AI-generated content to a Telegram channel",
+          "Topic threads: In Telegram groups with Topics enabled, OpenClaw can operate per-topic",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Privacy Settings for Your Telegram Bot",
+        content:
+          "By default, any Telegram user who finds your bot can message it. For a private personal assistant, you'll want to lock it down:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Allowlist mode: In OpenClaw config, set allowed_users to your Telegram user ID only",
+          "Group privacy: Set your bot to only respond when mentioned (@botname) rather than all messages",
+          "Run /mybotid in a Telegram chat with @userinfobot to get your numeric Telegram user ID",
+          "On OpenClaw Cloud, you can set access to 'Private (you only)' in the Telegram channel settings",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud makes Telegram setup instant. Paste your BotFather token in the dashboard, set your access policy, and your AI assistant is live. All Telegram features — voice, files, inline buttons, group mode — work out of the box.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I add my OpenClaw bot to multiple Telegram groups?",
+            a: "Yes. Add your bot to as many groups as you want. Use allowlist or group-specific settings to control where it responds.",
+          },
+          {
+            q: "Does OpenClaw support Telegram inline mode?",
+            a: "Yes. Enable inline mode via BotFather (/setinline) and OpenClaw will respond to @yourbotname queries in any Telegram chat.",
+          },
+          {
+            q: "Can OpenClaw send messages proactively on Telegram?",
+            a: "Yes, via automations. You can configure OpenClaw to send scheduled messages, summaries, or reminders to your Telegram chat at set times.",
+          },
+          {
+            q: "Is Telegram safer than WhatsApp for an AI bot?",
+            a: "From an automation/ToS perspective, Telegram's official Bot API is designed exactly for bots — it's fully sanctioned, with no risk of account bans for normal use. WhatsApp uses the Web protocol which carries more risk.",
+          },
+          {
+            q: "What Telegram file types can OpenClaw process?",
+            a: "OpenClaw can receive and process text documents, PDFs, images (JPEG, PNG, WebP), voice notes, and audio files via Telegram. File size limits follow Telegram's standard bot limits.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-ollama",
+    title: "OpenClaw with Ollama: Run a 100% Local, Private AI Assistant",
+    metaTitle: "OpenClaw + Ollama: Fully Local AI Assistant Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Run OpenClaw with Ollama for a completely private, offline AI assistant. No API keys, no cloud, no data leaving your machine. Full setup guide for Llama 3, Mistral, and more.",
+    publishedAt: "2025-03-27",
+    readingTime: "8 min read",
+    category: "Technical",
+    excerpt:
+      "Combine OpenClaw with Ollama and you get a fully local AI assistant — no API fees, no cloud dependencies, and zero data leaving your machine. Here's how to set it up.",
+    keywords: [
+      "openclaw ollama",
+      "local ai assistant",
+      "ollama integration",
+      "self-hosted ai ollama",
+      "run ai locally 2025",
+      "llama 3 openclaw",
+      "private ai no cloud",
+    ],
+    relatedSlugs: ["what-is-openclaw", "self-hosted-ai-2025", "openclaw-memory-guide"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Most people run OpenClaw with a cloud AI model — Claude, GPT-4o, or Gemini. But for those who want maximum privacy, zero API costs, or simply the ability to work offline, OpenClaw supports a fully local AI stack via Ollama. With this setup, every component — the gateway, the model, the memory — runs on your own hardware.",
+      },
+      {
+        type: "h2",
+        heading: "What is Ollama?",
+        content:
+          "Ollama is an open-source tool that makes it easy to run large language models locally. It handles model downloading, GPU acceleration, and provides an OpenAI-compatible API endpoint that other software (like OpenClaw) can connect to. Supported models include Llama 3, Mistral, Phi-3, Gemma 2, Qwen, DeepSeek, and dozens more.",
+      },
+      {
+        type: "h2",
+        heading: "Hardware Requirements",
+        content:
+          "Local AI models are more demanding than running the OpenClaw gateway itself. Here's what you need:",
+      },
+      {
+        type: "table",
+        headers: ["Model", "Size", "Min RAM", "GPU Recommended"],
+        rows: [
+          { cells: ["Llama 3.2 3B", "~2 GB", "8 GB RAM", "Optional (runs on CPU)"] },
+          { cells: ["Llama 3.1 8B", "~5 GB", "16 GB RAM", "GTX 1060 or better"] },
+          { cells: ["Mistral 7B", "~5 GB", "16 GB RAM", "GTX 1060 or better"] },
+          { cells: ["Llama 3.1 70B", "~40 GB", "64 GB RAM", "RTX 3090 / A100"] },
+          { cells: ["Phi-3 Mini 3.8B", "~2 GB", "8 GB RAM", "Optional (fast on CPU)"] },
+          { cells: ["Gemma 2 9B", "~6 GB", "16 GB RAM", "RTX 3070 or better"] },
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "For casual personal use, Llama 3.2 3B or Phi-3 Mini run acceptably on a modern laptop with 8–16 GB RAM — no GPU needed. For faster responses and better quality, a mid-range GPU makes a significant difference.",
+      },
+      {
+        type: "h2",
+        heading: "Step 1: Install Ollama",
+        content:
+          "Ollama is available for macOS, Linux, and Windows. Installation is a single command on macOS and Linux:",
+      },
+      {
+        type: "ul",
+        items: [
+          "macOS / Linux: curl -fsSL https://ollama.com/install.sh | sh",
+          "Windows: Download the installer from ollama.com",
+          "After installation, run: ollama serve (starts the local API server on port 11434)",
+          "Pull a model: ollama pull llama3.1 (or any model from the Ollama library)",
+          "Test it: ollama run llama3.1 and type a message to confirm it works",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 2: Configure OpenClaw to Use Ollama",
+        content:
+          "OpenClaw connects to Ollama via its OpenAI-compatible API endpoint. In your OpenClaw configuration:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw model set ollama",
+          "When prompted, enter the Ollama base URL: http://localhost:11434",
+          "Select the model you've pulled (e.g. llama3.1, mistral, phi3)",
+          "No API key is needed — leave it blank or enter any placeholder",
+          "Run: openclawd restart to apply the new model configuration",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Manual Configuration (openclaw.config.yaml)",
+        content:
+          "You can also configure Ollama directly in your config file:",
+      },
+      {
+        type: "ul",
+        items: [
+          "model.provider: ollama",
+          "model.baseUrl: http://localhost:11434",
+          "model.name: llama3.1 (or your preferred model)",
+          "model.apiKey: (leave empty)",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Performance Tips for OpenClaw + Ollama",
+        content:
+          "Local models are slower than cloud APIs, especially without a GPU. Here are ways to get the best experience:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Use a quantized model (e.g. llama3.1:8b-instruct-q4_0) — smaller file, faster on CPU, minor quality reduction",
+          "Increase Ollama's context window: OLLAMA_NUM_CTX=8192 for longer conversations",
+          "Enable GPU layers: Ollama auto-detects your GPU; set OLLAMA_NUM_GPU=-1 to use all available VRAM",
+          "Use a fast model for quick queries (Phi-3 Mini) and a capable model for complex tasks (Llama 3.1 8B)",
+          "Keep Ollama's server running in the background to avoid cold-start delays",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Why Go Fully Local?",
+        content:
+          "The OpenClaw + Ollama stack offers benefits that no cloud AI product can match:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Zero API costs: No per-token billing — run as many queries as you want, for free",
+          "Total privacy: Your conversations, files, and queries never leave your machine",
+          "Offline operation: Works with no internet connection whatsoever",
+          "No rate limits: No throttling, no daily caps, no waiting",
+          "GDPR / HIPAA friendliness: Perfect for sensitive data — healthcare, legal, financial",
+          "Full model control: Fine-tune, modify, or replace the model as you choose",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "Running OpenClaw with Ollama requires a capable local machine. If you want the privacy benefits of local AI without managing your own hardware, OpenClaw Cloud uses isolated server instances where your data never touches shared infrastructure.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I switch between Ollama and Claude without reconfiguring everything?",
+            a: "Yes. OpenClaw supports multiple model profiles. You can switch the active model with a single command (openclaw model use <profile>) without changing your channel or workspace config.",
+          },
+          {
+            q: "Does OpenClaw's memory system work with Ollama models?",
+            a: "Yes. OpenClaw's memory system operates independently of the AI model. Persistent facts, workspace context, and conversation history all work the same way whether you're using Claude, GPT-4o, or a local Ollama model.",
+          },
+          {
+            q: "Is Ollama available on Raspberry Pi?",
+            a: "Yes. Ollama runs on ARM64 Linux, which includes Raspberry Pi 4 and 5. Performance is limited — expect slow responses with larger models. Phi-3 Mini and Llama 3.2 3B are the most practical choices for Pi hardware.",
+          },
+          {
+            q: "What is the quality difference between Llama 3 and Claude?",
+            a: "Claude 3.5 Sonnet significantly outperforms Llama 3.1 8B on most benchmarks — especially for complex reasoning, writing, and code. Llama 3.1 70B is competitive but requires much heavier hardware. For simple queries, the local model may be sufficient.",
+          },
+          {
+            q: "Can I run voice mode with Ollama?",
+            a: "Yes. Whisper (for speech-to-text) and TTS providers run independently from the main AI model. You can use local Whisper + a local Ollama model + Edge TTS for a fully offline voice assistant.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-slack-setup",
+    title: "OpenClaw on Slack: Add an AI Assistant to Your Workspace",
+    metaTitle: "OpenClaw Slack Integration Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Connect OpenClaw to Slack and add a private AI assistant to your workspace. Step-by-step guide for creating a Slack app, configuring bot scopes, and going live in minutes.",
+    publishedAt: "2025-03-29",
+    readingTime: "7 min read",
+    category: "Guides",
+    excerpt:
+      "Add an AI assistant to your Slack workspace using OpenClaw. Works for personal workspaces and teams — respond to @mentions, answer DMs, and keep your conversations private.",
+    keywords: [
+      "openclaw slack",
+      "slack ai bot",
+      "slack ai assistant 2025",
+      "self-hosted slack bot",
+      "openclaw slack integration",
+      "add ai to slack",
+    ],
+    relatedSlugs: ["openclaw-discord-setup", "openclaw-integrations", "openclaw-vs-chatgpt"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Slack is where work happens for millions of teams. Having an AI assistant in Slack means you can ask questions, get summaries, and draft content without ever leaving your workflow. OpenClaw's Slack integration turns your personal AI into a Slack bot — available in DMs and channels, responding to @mentions, keeping your data on your own infrastructure.",
+      },
+      {
+        type: "h2",
+        heading: "Step 1: Create a Slack App",
+        content:
+          "To connect OpenClaw to Slack, you first need to create a Slack app and generate the required credentials:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Go to api.slack.com/apps and sign in with your Slack account",
+          "Click 'Create New App' → 'From scratch'",
+          "Name your app (e.g. 'OpenClaw AI') and select the workspace you want to install it in",
+          "Click 'Create App'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 2: Configure Bot Permissions (Scopes)",
+        content:
+          "In your new Slack app settings, navigate to 'OAuth & Permissions' and add the following Bot Token Scopes:",
+      },
+      {
+        type: "ul",
+        items: [
+          "app_mentions:read — to detect when users @mention your bot",
+          "channels:history — to read messages in public channels where the bot is added",
+          "chat:write — to send messages",
+          "im:history — to read direct messages",
+          "im:read — to receive DM events",
+          "im:write — to open DM conversations",
+          "users:read — to look up user information (for access control)",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 3: Enable Event Subscriptions",
+        content:
+          "OpenClaw receives Slack messages via Event Subscriptions (webhook callbacks). To set this up:",
+      },
+      {
+        type: "ol",
+        items: [
+          "In your app settings, go to 'Event Subscriptions' and toggle it on",
+          "Under 'Request URL', enter your OpenClaw gateway's Slack webhook URL: https://your-server.com/webhooks/slack or (on OpenClaw Cloud) the URL shown in your Dashboard → Channels → Slack",
+          "Under 'Subscribe to bot events', add: message.im (direct messages) and app_mention (channel mentions)",
+          "Click 'Save Changes'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 4: Install the App and Get Your Tokens",
+        content:
+          "Navigate to 'OAuth & Permissions' and click 'Install to Workspace'. Authorize the app. Copy the Bot User OAuth Token (starts with xoxb-) — this is your OpenClaw bot token. You'll also need the Signing Secret from 'Basic Information'.",
+      },
+      {
+        type: "h2",
+        heading: "Step 5: Connect to OpenClaw",
+        content:
+          "With your tokens, connect to OpenClaw. On OpenClaw Cloud, go to Dashboard → Channels → Slack and paste both the Bot Token and Signing Secret. For self-hosted:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw channel add slack",
+          "Paste your Bot User OAuth Token (xoxb-...)",
+          "Paste your Signing Secret",
+          "Choose your access policy: DMs only, channel mentions, or both",
+          "OpenClaw verifies the credentials and activates the channel",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Using OpenClaw in Slack",
+        content:
+          "Once connected, your Slack AI assistant is available in two modes:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Direct Messages: Find your bot in the Apps section of Slack sidebar and send it a DM",
+          "Channel mentions: In any channel the bot is a member of, type @YourBotName followed by your question",
+          "Slash commands: OpenClaw can register /ask as a Slack slash command for clean interaction",
+          "Threaded replies: Configure OpenClaw to reply in threads to keep channels organized",
+          "File sharing: Share files in DMs with the bot to ask questions about their contents",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Access Control for Team Workspaces",
+        content:
+          "If you're adding OpenClaw to a shared Slack workspace, you'll want to control who can use it:",
+      },
+      {
+        type: "ul",
+        items: [
+          "User allowlist: Restrict access to specific Slack user IDs in your OpenClaw config",
+          "Channel allowlist: Only respond in specific channels",
+          "User role-based access: Allow all workspace members or specific user groups",
+          "Per-user memory isolation: Each user gets their own conversation context and memory",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud supports Slack as a native channel. Paste your xoxb token and Signing Secret in the dashboard and your workspace AI assistant is live instantly.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can my whole team use the OpenClaw Slack bot?",
+            a: "Yes. Multiple team members can use the same OpenClaw bot simultaneously. Each user has their own isolated conversation history and memory.",
+          },
+          {
+            q: "Does OpenClaw work with Slack free workspaces?",
+            a: "Yes. The Slack Bot API is available on all Slack plans including the free tier. Slack's message history limits on the free tier affect what context OpenClaw can retrieve from channel history.",
+          },
+          {
+            q: "Can OpenClaw post to Slack channels proactively?",
+            a: "Yes, via OpenClaw automations. You can configure scheduled AI summaries, digest posts, or event-triggered messages to any Slack channel.",
+          },
+          {
+            q: "Is the Slack integration secure?",
+            a: "Yes. OpenClaw verifies all incoming Slack events using the Signing Secret, preventing spoofed requests. Your bot token is stored encrypted in your OpenClaw config.",
+          },
+          {
+            q: "What's the difference between OpenClaw on Slack and Slack's native AI features?",
+            a: "Slack's built-in AI uses OpenAI and processes data on Slack/OpenAI servers. OpenClaw lets you use Claude, local models, or any AI you choose, with your conversations staying on your own infrastructure.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-pricing",
+    title: "OpenClaw Pricing: Cloud vs Self-Hosted Cost Breakdown (2025)",
+    metaTitle: "OpenClaw Pricing Guide 2025: Cloud vs Self-Hosted | OpenClaw Cloud",
+    metaDescription:
+      "Full breakdown of OpenClaw pricing in 2025. Compare the free self-hosted option vs OpenClaw Cloud plans. Includes hidden costs, AI API fees, and total cost of ownership.",
+    publishedAt: "2025-03-31",
+    readingTime: "8 min read",
+    category: "Guides",
+    excerpt:
+      "OpenClaw is free to self-host, but there are real costs involved. This guide breaks down the true cost of self-hosting vs OpenClaw Cloud — server fees, AI API costs, setup time, and what you actually get.",
+    keywords: [
+      "openclaw pricing",
+      "openclaw cost",
+      "openclaw cloud price",
+      "self-hosted ai cost",
+      "openclaw vs paid ai",
+      "openclaw plans 2025",
+    ],
+    relatedSlugs: ["what-is-openclaw", "openclaw-vs-chatgpt", "self-hosted-ai-2025"],
+    content: [
+      {
+        type: "p",
+        content:
+          "OpenClaw is open-source and free to self-host. But 'free software' has real costs: server time, AI API fees, setup complexity, and ongoing maintenance. OpenClaw Cloud removes the infrastructure work at a fixed monthly price. This guide breaks down both options honestly so you can choose the right one.",
+      },
+      {
+        type: "h2",
+        heading: "Option 1: Self-Hosted OpenClaw (Free Software)",
+        content:
+          "The OpenClaw software itself is free — MIT licensed, no activation key, no feature gates. What you pay for separately:",
+      },
+      {
+        type: "table",
+        headers: ["Cost Item", "Typical Cost", "Notes"],
+        rows: [
+          { cells: ["OpenClaw software", "$0", "Free, open-source, MIT license"] },
+          { cells: ["VPS / Server", "$5–20/month", "DigitalOcean, Hetzner, Linode — 1 GB RAM is sufficient"] },
+          { cells: ["AI API — Claude (Anthropic)", "$0.003–0.015 per 1K tokens", "Pay-per-use, billed by Anthropic directly"] },
+          { cells: ["AI API — GPT-4o (OpenAI)", "$0.005 per 1K tokens input", "Pay-per-use, billed by OpenAI directly"] },
+          { cells: ["AI API — Gemini Flash (Google)", "~$0.0001 per 1K tokens", "Very cheap for light use"] },
+          { cells: ["Ollama (local models)", "$0", "Runs on your machine — no API fees"] },
+          { cells: ["Domain (optional)", "~$12/year", "For a clean gateway URL"] },
+          { cells: ["SSL cert", "$0", "Free via Let's Encrypt"] },
+          { cells: ["Setup time", "4–8 hours", "One-time — not a recurring cost, but real"] },
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Real-World Self-Hosted Cost Example",
+        content:
+          "A typical power user sending 1,000 messages/month to Claude 3.5 Haiku (the most economical Claude model) at an average of 500 tokens per exchange:",
+      },
+      {
+        type: "ul",
+        items: [
+          "VPS (Hetzner CX11): €4.15/month (~$4.50)",
+          "AI API (Claude Haiku, 500K tokens/month): ~$0.40/month",
+          "Total: ~$5/month ongoing — very cheap for heavy users",
+          "Caveat: setup requires technical skill; outages require your own troubleshooting",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Option 2: OpenClaw Cloud",
+        content:
+          "OpenClaw Cloud hosts your entire OpenClaw stack for you. You get a dedicated, isolated instance with everything pre-configured.",
+      },
+      {
+        type: "table",
+        headers: ["Plan", "Price", "What's included"],
+        rows: [
+          { cells: ["Starter", "$49/month", "1 OpenClaw instance, Claude AI included, 5 channels, 10K messages/month, 1 GB memory"] },
+          { cells: ["Pro", "$99/month", "1 OpenClaw instance, Claude AI included, unlimited channels, 50K messages/month, 10 GB memory, priority support"] },
+          { cells: ["Team", "$199/month", "3 OpenClaw instances, Claude AI included, unlimited everything, team collaboration features, SLA uptime guarantee"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "What OpenClaw Cloud Includes That Self-Hosting Doesn't",
+        content:
+          "The price difference buys you more than just a managed server:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Zero setup: Live in 2 minutes, no CLI, no SSH, no config files",
+          "Automatic updates: OpenClaw and openclawd update automatically",
+          "Uptime monitoring and auto-restart: Your bot stays online even during infrastructure issues",
+          "Included AI credits: Claude AI included — no separate Anthropic account needed",
+          "Automated backups: Your config, memory, and conversation history backed up daily",
+          "Priority support: Fast response time for issues",
+          "BYOK option: Bring Your Own API Key for Anthropic/OpenAI if you prefer",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Which Option Is Right for You?",
+        content:
+          "The honest comparison:",
+      },
+      {
+        type: "table",
+        headers: ["", "Self-Hosted", "OpenClaw Cloud"],
+        rows: [
+          { cells: ["Monthly cost", "$5–25 (server + API)", "$49–199 (all-inclusive)"] },
+          { cells: ["Technical skill needed", "Medium-high", "None"] },
+          { cells: ["Setup time", "4–8 hours", "2 minutes"] },
+          { cells: ["Uptime", "Your responsibility", "Managed, monitored"] },
+          { cells: ["Updates", "Your responsibility", "Automatic"] },
+          { cells: ["Data location", "Your server", "Isolated cloud instance"] },
+          { cells: ["Support", "Community only", "Priority support (Pro/Team)"] },
+          { cells: ["Best for", "Developers, tinkerers, budget-conscious", "Professionals, teams, non-technical users"] },
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "Try OpenClaw Cloud free for 7 days — no credit card required. Connect your first channel in under 2 minutes and see what the full OpenClaw experience feels like without any setup.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I migrate from self-hosted to OpenClaw Cloud?",
+            a: "Yes. Your config, channels, and memory can be exported from self-hosted and imported into OpenClaw Cloud. Contact support for a guided migration.",
+          },
+          {
+            q: "Does OpenClaw Cloud include unlimited AI usage?",
+            a: "OpenClaw Cloud includes Claude AI with a monthly message allowance (10K on Starter, 50K on Pro). Heavy users or those with specific model needs can bring their own API key (BYOK) for unlimited usage billed at API rates.",
+          },
+          {
+            q: "Are there per-seat charges for the Team plan?",
+            a: "No. Team plan pricing is per-workspace, not per user. Up to 10 team members can share access at no additional cost.",
+          },
+          {
+            q: "Can I cancel OpenClaw Cloud anytime?",
+            a: "Yes. OpenClaw Cloud is month-to-month with no lock-in. You can export all your data and cancel at any time.",
+          },
+          {
+            q: "Is there a free tier for OpenClaw Cloud?",
+            a: "OpenClaw Cloud does not have a permanent free tier, but offers a 7-day free trial. The self-hosted version is always free for technical users.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-automations",
+    title: "OpenClaw Automations: Cron Jobs, Webhooks, and Scheduled AI Tasks",
+    metaTitle: "OpenClaw Automations Guide: Cron, Webhooks, Scheduled Tasks | OpenClaw Cloud",
+    metaDescription:
+      "Use OpenClaw to automate your AI workflows. Schedule daily summaries, trigger AI on webhooks, receive Gmail notifications, and build hands-free AI routines.",
+    publishedAt: "2025-04-02",
+    readingTime: "9 min read",
+    category: "Technical",
+    excerpt:
+      "OpenClaw isn't just a chatbot — it's a programmable AI automation platform. Learn how to schedule AI tasks, trigger workflows via webhooks, and build routines that run without you.",
+    keywords: [
+      "openclaw automations",
+      "openclaw cron jobs",
+      "openclaw webhooks",
+      "ai automation self-hosted",
+      "scheduled ai tasks",
+      "openclaw gmail",
+      "openclaw scheduled messages",
+    ],
+    relatedSlugs: ["what-is-openclawd", "openclaw-skills-guide", "openclaw-integrations"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Most AI assistants are reactive — they wait for you to ask them something. OpenClaw can also be proactive. With its automation system, you can schedule AI tasks to run at set times, trigger AI workflows from external events via webhooks, and build hands-free routines that work for you in the background.",
+      },
+      {
+        type: "h2",
+        heading: "The Three Automation Primitives in OpenClaw",
+      },
+      {
+        type: "ul",
+        items: [
+          "Cron jobs: Schedule a prompt or task to run at a specific time or interval (hourly, daily, weekly, etc.)",
+          "Webhooks: Trigger an AI workflow when an external service sends an HTTP request to your OpenClaw gateway",
+          "Gmail Pub/Sub: Watch your inbox and trigger AI workflows when specific emails arrive",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Cron Jobs: Schedule Recurring AI Tasks",
+        content:
+          "OpenClaw's cron system lets you schedule any prompt to run automatically and deliver the response to any of your connected channels (WhatsApp, Telegram, Slack, etc.).",
+      },
+      {
+        type: "h3",
+        heading: "Example: Daily Morning Briefing",
+        content:
+          "Send yourself a daily summary every morning at 8am on Telegram:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Prompt: 'Give me a brief morning summary: today's date, 3 things I should focus on, and one insightful thought to start the day'",
+          "Schedule: 0 8 * * * (8:00 AM every day, standard cron syntax)",
+          "Channel: telegram:@yourname",
+          "OpenClaw runs the prompt at 8am and sends the response to your Telegram DM",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Example: Weekly Digest",
+      },
+      {
+        type: "ul",
+        items: [
+          "Prompt: 'Summarize the key events from the past week in [your industry] and suggest 2 things I should know about'",
+          "Schedule: 0 9 * * MON (9:00 AM every Monday)",
+          "Channel: slack:#general",
+          "The AI posts a weekly digest to your Slack channel automatically",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Setting Up Cron Jobs via CLI",
+        content:
+          "Use the OpenClaw CLI or config file to define your cron jobs:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw cron add",
+          "Provide the cron schedule, prompt text, and target channel",
+          "List all cron jobs: openclaw cron list",
+          "Disable a job: openclaw cron disable <id>",
+          "On OpenClaw Cloud, manage cron jobs in Dashboard → Automations → Cron",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Webhooks: Trigger AI From External Events",
+        content:
+          "OpenClaw exposes a webhook endpoint that any external service can call to trigger an AI workflow. This opens up powerful integrations:",
+      },
+      {
+        type: "ul",
+        items: [
+          "GitHub webhook → OpenClaw analyzes the commit diff and posts a summary to your Slack",
+          "Stripe webhook → OpenClaw sends you a Telegram message when a new subscription is created",
+          "Typeform submission → OpenClaw processes the form data and drafts a follow-up email draft",
+          "Zapier / Make.com → Any no-code automation can trigger your AI via OpenClaw's webhook URL",
+          "Custom API → Your own backend can call OpenClaw to generate AI responses on demand",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "Setting Up a Webhook",
+        content:
+          "Each webhook in OpenClaw has a unique URL, an optional secret for verification, and a template prompt that receives the webhook payload:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw webhook add",
+          "OpenClaw generates a unique webhook URL (e.g. https://your-server.com/hooks/abc123)",
+          "Set a prompt template with {{payload}} as a placeholder for the incoming data",
+          "Specify the output channel (where the AI response should be delivered)",
+          "Paste the webhook URL into GitHub, Stripe, Zapier, or any other service",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Gmail Pub/Sub: AI That Reads Your Email",
+        content:
+          "OpenClaw supports Gmail Pub/Sub — a Google Cloud feature that pushes notifications to your OpenClaw gateway when new emails arrive. With this integration you can:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Auto-summarize incoming emails and send the summary to Telegram",
+          "Filter and route emails: 'If an email from a client arrives, summarize it and ask me how to reply'",
+          "Draft replies: 'When an email arrives matching this filter, draft a polite reply and show it to me for approval'",
+          "Alert on keywords: 'If any email contains the word URGENT, send me a WhatsApp notification immediately'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Combining Automations with Skills",
+        content:
+          "Automations become much more powerful when combined with OpenClaw Skills. A cron job can invoke a skill that fetches live data (weather, RSS feeds, your calendar) and includes it in the prompt — so your morning briefing actually knows what's happening today, not just what was in your training data.",
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes the full automations platform — cron jobs, webhooks, and Gmail Pub/Sub — managed through a visual dashboard. No config files, no crontab, no server setup.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "How many cron jobs can I create?",
+            a: "Self-hosted OpenClaw has no limit on cron jobs. OpenClaw Cloud limits depend on your plan: 5 on Starter, 25 on Pro, unlimited on Team.",
+          },
+          {
+            q: "Can cron jobs access my personal memory and context?",
+            a: "Yes. Scheduled prompts run with your full workspace context and persistent memory injected, just like a manual conversation.",
+          },
+          {
+            q: "How do I prevent webhook abuse?",
+            a: "Each OpenClaw webhook supports HMAC signature verification. Set a shared secret when creating the webhook, and only signed requests from known services will be processed.",
+          },
+          {
+            q: "Can I pause automations without deleting them?",
+            a: "Yes. Both cron jobs and webhooks can be disabled and re-enabled at any time without losing their configuration.",
+          },
+          {
+            q: "Can webhook responses be sent to multiple channels?",
+            a: "Yes. You can configure a webhook to deliver its AI-generated response to multiple channels simultaneously — e.g., Slack and Telegram at the same time.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {

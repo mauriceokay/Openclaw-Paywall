@@ -307,4 +307,99 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-memory-guide" />
   </url>
 
+  <!-- Blog: OpenClaw Telegram Setup -->
+  <url>
+    <loc>https://openclaw.cloud/blog/openclaw-telegram-setup</loc>
+    <lastmod>2025-03-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+  </url>
+
+  <!-- Blog: OpenClaw + Ollama -->
+  <url>
+    <loc>https://openclaw.cloud/blog/openclaw-ollama</loc>
+    <lastmod>2025-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-ollama" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-ollama" />
+  </url>
+
+  <!-- Blog: OpenClaw Slack Setup -->
+  <url>
+    <loc>https://openclaw.cloud/blog/openclaw-slack-setup</loc>
+    <lastmod>2025-03-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-slack-setup" />
+  </url>
+
+  <!-- Blog: OpenClaw Pricing -->
+  <url>
+    <loc>https://openclaw.cloud/blog/openclaw-pricing</loc>
+    <lastmod>2025-03-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-pricing" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-pricing" />
+  </url>
+
+  <!-- Blog: OpenClaw Automations -->
+  <url>
+    <loc>https://openclaw.cloud/blog/openclaw-automations</loc>
+    <lastmod>2025-04-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-automations" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-automations" />
+  </url>
+
 </urlset>
