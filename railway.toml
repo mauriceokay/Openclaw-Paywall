@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install -g pnpm && pnpm install --frozen-lockfile && pnpm run build:railway"
+buildCommand = "pnpm install --frozen-lockfile && pnpm run build:railway"
 
 [deploy]
 startCommand = "node artifacts/api-server/dist/index.mjs"
