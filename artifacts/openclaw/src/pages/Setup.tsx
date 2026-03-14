@@ -72,8 +72,15 @@ export function Setup() {
   const [selectedMode, setSelectedMode] = useState<Mode>(null);
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useState<Provider>("openai");
-  const [selectedModel, setSelectedModel] = useState<string>(PROVIDER_MODELS.openai[0]);
+  const [provider, setProvider] = useState<Provider>(
+    () => (localStorage.getItem("oc_api_provider") as Provider) ?? "openai"
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    const p = (localStorage.getItem("oc_api_provider") as Provider) ?? "openai";
+    const stored = localStorage.getItem("oc_api_model");
+    if (stored && (PROVIDER_MODELS[p] as readonly string[]).includes(stored)) return stored;
+    return PROVIDER_MODELS[p][0];
+  });
   const [saved, setSaved] = useState(false);
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [platformInputs, setPlatformInputs] = useState<Record<string, Record<string, string>>>({});
@@ -469,7 +476,10 @@ export function Setup() {
                               type="button"
                               onClick={() => {
                                 setProvider(p);
-                                const newModel = PROVIDER_MODELS[p][0];
+                                const stored = localStorage.getItem("oc_api_model");
+                                const newModel = stored && (PROVIDER_MODELS[p] as readonly string[]).includes(stored)
+                                  ? stored
+                                  : PROVIDER_MODELS[p][0];
                                 setSelectedModel(newModel);
                               }}
                               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all capitalize ${

@@ -263,7 +263,10 @@ export function Dashboard() {
                     onClick={() => {
                       setSelectedProvider(p);
                       localStorage.setItem("oc_api_provider", p);
-                      const newModel = PROVIDER_MODELS[p][0];
+                      const stored = localStorage.getItem("oc_api_model");
+                      const newModel = stored && (PROVIDER_MODELS[p] as readonly string[]).includes(stored)
+                        ? stored
+                        : PROVIDER_MODELS[p][0];
                       setSelectedModel(newModel);
                       localStorage.setItem("oc_api_model", newModel);
                     }}
