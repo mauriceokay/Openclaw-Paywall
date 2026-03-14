@@ -45,6 +45,16 @@ async function ensureSchema() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app.users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        gateway_enabled BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      ALTER TABLE app.users ADD COLUMN IF NOT EXISTS gateway_enabled BOOLEAN NOT NULL DEFAULT true;
+    `);
     console.log("Database schema ready");
   } catch (error) {
     console.error("Failed to ensure database schema:", error);

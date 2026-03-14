@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   Loader2,
@@ -10,10 +10,11 @@ import {
   Activity,
   Zap,
   BarChart2,
+  Power,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubscriptionStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -53,6 +54,49 @@ export function Dashboard() {
     },
     enabled: true,
   });
+
+  const queryClient = useQueryClient();
+
+  const { data: gatewayData, isLoading: gatewayLoading } = useQuery<{ enabled: boolean }>({
+    queryKey: ["gateway-status", user?.email],
+    queryFn: async () => {
+      const url = `${BASE_URL}/api/gateway/control?email=${encodeURIComponent(user!.email)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch gateway status");
+      return res.json();
+    },
+    enabled: !!user?.email,
+    retry: false,
+  });
+
+  const [toggling, setToggling] = useState(false);
+  const toggleMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await fetch(`${BASE_URL}/api/gateway/control`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user!.email, enabled }),
+      });
+      if (!res.ok) throw new Error("Failed to toggle gateway");
+      return res.json() as Promise<{ enabled: boolean }>;
+    },
+    onMutate: async (enabled) => {
+      setToggling(true);
+      await queryClient.cancelQueries({ queryKey: ["gateway-status", user?.email] });
+      const prev = queryClient.getQueryData<{ enabled: boolean }>(["gateway-status", user?.email]);
+      queryClient.setQueryData(["gateway-status", user?.email], { enabled });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["gateway-status", user?.email], ctx.prev);
+    },
+    onSettled: () => {
+      setToggling(false);
+      queryClient.invalidateQueries({ queryKey: ["gateway-status", user?.email] });
+    },
+  });
+
+  const gatewayEnabled = gatewayData?.enabled ?? true;
 
   const [selectedProvider, setSelectedProvider] = useState<Provider>(
     () => (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic"
@@ -133,8 +177,16 @@ export function Dashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 md:mb-10">
           <div>
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-1 md:mb-2">{d.title}</h1>
-            <p className="text-muted-foreground">
-              {d.welcomeBack}{user?.name ? `, ${user.name}` : ""}. {d.gatewayOnline}
+            <p className="text-muted-foreground flex items-center gap-2">
+              {d.welcomeBack}{user?.name ? `, ${user.name}` : ""}.{" "}
+              <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                gatewayEnabled
+                  ? "bg-green-500/15 text-green-400"
+                  : "bg-white/5 text-muted-foreground"
+              }`}>
+                <Power className="w-3 h-3" />
+                {gatewayEnabled ? d.gatewayOnline : "Gateway off"}
+              </span>
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -213,16 +265,52 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+          <Card className={`border backdrop-blur-lg transition-colors duration-300 ${
+            gatewayEnabled
+              ? "bg-card/40 border-white/5"
+              : "bg-card/20 border-white/5 opacity-80"
+          }`}>
             <CardHeader className="pb-2">
               <CardDescription>{d.gatewayStatus}</CardDescription>
               <CardTitle className="text-2xl flex items-center gap-2">
-                <Activity className="w-6 h-6 text-green-500" />
-                {d.gatewayOnlineLabel}
+                <AnimatePresence mode="wait" initial={false}>
+                  {gatewayEnabled ? (
+                    <motion.div key="on" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }} transition={{ duration: 0.15 }}>
+                      <Activity className="w-6 h-6 text-green-500" />
+                    </motion.div>
+                  ) : (
+                    <motion.div key="off" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }} transition={{ duration: 0.15 }}>
+                      <Activity className="w-6 h-6 text-muted-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <span className={gatewayEnabled ? "text-foreground" : "text-muted-foreground"}>
+                  {gatewayLoading ? "…" : gatewayEnabled ? d.gatewayOnlineLabel : "Offline"}
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">{d.listeningOn}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {gatewayEnabled ? d.listeningOn : "All channels paused"}
+                </div>
+                <button
+                  onClick={() => !toggling && toggleMutation.mutate(!gatewayEnabled)}
+                  disabled={toggling || gatewayLoading}
+                  aria-label={gatewayEnabled ? "Turn gateway off" : "Turn gateway on"}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:cursor-not-allowed ${
+                    gatewayEnabled ? "bg-green-500" : "bg-white/15"
+                  }`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+                    gatewayEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}>
+                    {toggling && (
+                      <Loader2 className="w-3 h-3 absolute top-1 left-1 animate-spin text-gray-400" />
+                    )}
+                  </span>
+                </button>
+              </div>
             </CardContent>
           </Card>
 
