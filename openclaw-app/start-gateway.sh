@@ -9,9 +9,18 @@ DOMAIN=$(echo "$REPLIT_DOMAINS" | cut -d, -f1)
 export ANTHROPIC_API_KEY="${AI_INTEGRATIONS_ANTHROPIC_API_KEY}"
 export ANTHROPIC_BASE_URL="${AI_INTEGRATIONS_ANTHROPIC_BASE_URL}"
 
+# Ensure config directory and file exist (cold-start resilience)
+mkdir -p "$(dirname "$CONFIG")"
+if [ ! -f "$CONFIG" ]; then
+  echo '{"gateway":{"auth":{"mode":"none"},"trustedProxies":["127.0.0.1","::1"],"controlUi":{}}}' > "$CONFIG"
+  echo "[start-gateway] Created default config at $CONFIG"
+fi
+
 node << JSEOF
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('${CONFIG}', 'utf8'));
+
+if (!config.gateway) config.gateway = {};
 
 // No auth required - proxy is the security layer
 config.gateway.auth = { mode: 'none' };
