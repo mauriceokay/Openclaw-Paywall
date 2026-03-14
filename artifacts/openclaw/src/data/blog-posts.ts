@@ -895,6 +895,698 @@ export const blogPosts: BlogPost[] = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // NEW POSTS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  {
+    slug: "openclaw-discord-setup",
+    title: "How to Set Up OpenClaw as a Discord Bot (Full 2025 Guide)",
+    metaTitle: "OpenClaw Discord Bot Setup Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Step-by-step guide to connecting OpenClaw to Discord. Create a Discord bot, configure OpenClaw, and start chatting with your personal AI in any server or DM.",
+    publishedAt: "2025-03-15",
+    readingTime: "8 min read",
+    category: "Guides",
+    excerpt:
+      "Connect your OpenClaw AI assistant to Discord in under 10 minutes. This guide covers bot creation, token setup, permissions, and advanced group chat configuration.",
+    keywords: [
+      "openclaw discord",
+      "openclaw discord bot",
+      "discord ai bot",
+      "clawdbot discord",
+      "discord ai assistant 2025",
+      "self-hosted discord bot",
+    ],
+    relatedSlugs: ["what-is-openclaw", "openclaw-integrations", "openclaw-vs-chatgpt"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Discord is one of the most popular platforms for OpenClaw integrations. Whether you want a personal AI assistant in your DMs, a bot that helps your server members, or a private workspace where your team can chat with Claude — OpenClaw's Discord integration covers all of it. This guide walks you through every step.",
+      },
+      {
+        type: "h2",
+        heading: "Step 1: Create a Discord Application and Bot Token",
+        content:
+          "Before you can connect OpenClaw to Discord, you need a Discord bot token. Here's how to get one:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Go to https://discord.com/developers/applications and sign in with your Discord account",
+          "Click 'New Application', give it a name (e.g. 'My OpenClaw Bot'), and click Create",
+          "In the left sidebar, click 'Bot', then click 'Add Bot' and confirm",
+          "Under 'Token', click 'Reset Token' and copy the token — you'll need this in OpenClaw",
+          "Scroll down to 'Privileged Gateway Intents' and enable 'Message Content Intent'",
+          "Click 'Save Changes'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 2: Invite the Bot to Your Server",
+        content:
+          "Your bot needs to be added to a Discord server before OpenClaw can receive messages from it.",
+      },
+      {
+        type: "ol",
+        items: [
+          "In the Discord Developer Portal, click 'OAuth2' in the sidebar, then 'URL Generator'",
+          "Under 'Scopes', check 'bot' and 'applications.commands'",
+          "Under 'Bot Permissions', check: Send Messages, Read Message History, Add Reactions, Embed Links, Attach Files",
+          "Copy the generated URL at the bottom and open it in your browser",
+          "Select your server and click 'Authorize'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Step 3: Configure OpenClaw with Your Discord Token",
+        content:
+          "Now that you have your bot token and the bot is in your server, add it to OpenClaw. If you're using OpenClaw Cloud, go to your Dashboard → Channels → Discord and paste the token. If you're self-hosting, use the CLI wizard:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Run: openclaw channel add discord",
+          "When prompted, paste your Discord bot token",
+          "Select which type of access to enable: DMs only, servers only, or both",
+          "Choose your DM policy: allow all users, allowlist only, or deny all",
+          "The wizard will verify the token and connect automatically",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "OpenClaw Cloud: Even Simpler",
+        content:
+          "On OpenClaw Cloud, you skip the CLI entirely. Open your Dashboard, click 'Channels', select Discord, paste your bot token, and hit Connect. Your assistant is live in under 30 seconds.",
+      },
+      {
+        type: "h2",
+        heading: "Step 4: Talking to Your OpenClaw Discord Bot",
+        content:
+          "Once connected, you can interact with your bot in two ways:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Direct Message: Send a DM to your bot. It will respond privately, just like a chat.",
+          "Server channel: In a server channel, mention the bot (@YourBotName) followed by your message. OpenClaw responds in the same channel.",
+          "Thread mode: OpenClaw can be configured to respond in threaded replies to keep server channels clean.",
+          "Slash commands: OpenClaw supports /ask, /clear, /status, and custom slash commands you define in your config.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Advanced Discord Configuration",
+        content:
+          "OpenClaw's Discord integration supports fine-grained control over how and where your bot responds:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Channel allowlist: Restrict which channels the bot is active in",
+          "Role-based access: Only users with specific roles can use the bot",
+          "Group DM support: The bot can participate in Discord group DMs",
+          "Auto-reactions: React to messages with an emoji to confirm receipt before responding",
+          "Response delay: Add a configurable typing indicator delay to seem more natural",
+          "Max message length: Split long responses into multiple messages automatically",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes Discord as a built-in channel. Sign up, paste your bot token in the dashboard, and your Discord AI assistant is live instantly — no CLI, no server management required.",
+      },
+      {
+        type: "h2",
+        heading: "Frequently Asked Questions: OpenClaw Discord",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I use OpenClaw in multiple Discord servers?",
+            a: "Yes. You can invite your Discord bot to as many servers as you want. OpenClaw will respond in all of them. Each server can have separate channel allowlists if needed.",
+          },
+          {
+            q: "What is ClawdBot?",
+            a: "ClawdBot is the informal name the community uses for an OpenClaw-powered Discord bot. It's not a separate product — it's just what OpenClaw looks like when it's connected to Discord.",
+          },
+          {
+            q: "Does OpenClaw remember conversations in Discord?",
+            a: "Yes. OpenClaw maintains conversation context per user. In DMs, it remembers your conversation history. In server channels, context is tracked per user and per channel.",
+          },
+          {
+            q: "Can other people use my Discord bot?",
+            a: "Yes, if you invite the bot to a server, other server members can interact with it (subject to your DM and channel policy settings). On OpenClaw Cloud, only you control the AI config.",
+          },
+          {
+            q: "What AI model does the Discord bot use?",
+            a: "Your OpenClaw Discord bot uses whatever AI model you configure — Claude, GPT-4o, Gemini, or any Ollama-compatible local model.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-vs-chatgpt",
+    title: "OpenClaw vs ChatGPT: Which AI Assistant Should You Use in 2025?",
+    metaTitle: "OpenClaw vs ChatGPT 2025: Full Comparison | OpenClaw Cloud",
+    metaDescription:
+      "Comparing OpenClaw and ChatGPT in 2025. Privacy, platform integrations, model flexibility, pricing, and self-hosting. Which AI assistant fits your needs?",
+    publishedAt: "2025-03-17",
+    readingTime: "10 min read",
+    category: "Comparisons",
+    excerpt:
+      "OpenClaw and ChatGPT both let you talk to AI — but they are fundamentally different products. This side-by-side comparison covers privacy, integrations, pricing, and who each one is for.",
+    keywords: [
+      "openclaw vs chatgpt",
+      "chatgpt alternative",
+      "self-hosted ai vs chatgpt",
+      "openclaw chatgpt comparison",
+      "private ai assistant",
+      "open source chatgpt alternative 2025",
+    ],
+    relatedSlugs: ["what-is-openclaw", "moltbot-vs-openclaw", "self-hosted-ai-2025"],
+    content: [
+      {
+        type: "p",
+        content:
+          "ChatGPT needs no introduction. It's the most widely used AI assistant in the world. OpenClaw is a very different product — open-source, self-hosted, platform-agnostic. So why would anyone choose OpenClaw over ChatGPT? The answer comes down to a few core priorities: privacy, platform freedom, and control.",
+      },
+      {
+        type: "h2",
+        heading: "The Fundamental Difference",
+        content:
+          "ChatGPT is a product. OpenClaw is infrastructure. ChatGPT is a single destination you go to on OpenAI's servers. OpenClaw is software you run on your own server that connects your favorite messaging apps to whatever AI model you choose.",
+      },
+      {
+        type: "table",
+        headers: ["Feature", "OpenClaw", "ChatGPT"],
+        rows: [
+          { cells: ["Hosting", "Self-hosted or OpenClaw Cloud", "OpenAI servers only"] },
+          { cells: ["AI Models", "Claude, GPT-4o, Gemini, Ollama, more", "GPT-4o (OpenAI only)"] },
+          { cells: ["Platforms", "WhatsApp, Telegram, Discord, Slack, iMessage, Signal…", "ChatGPT app, web, API"] },
+          { cells: ["Privacy", "Conversations stay on your server", "Processed by OpenAI"] },
+          { cells: ["Memory", "Persistent, customizable per user", "Limited (ChatGPT Plus only)"] },
+          { cells: ["Voice", "Native iOS, Android, macOS apps", "ChatGPT Voice mode (Plus)"] },
+          { cells: ["Custom skills", "Full Skills SDK", "Custom GPTs (Plus only)"] },
+          { cells: ["Data export", "Full, any time", "Limited"] },
+          { cells: ["Open source", "Yes (MIT)", "No"] },
+          { cells: ["Free tier", "Yes (self-hosted)", "$0 plan with limits"] },
+          { cells: ["Cloud pricing", "From $49/month", "From $20/month (Plus)"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Privacy: The Biggest Reason to Choose OpenClaw",
+        content:
+          "When you send a message to ChatGPT, that message is processed on OpenAI's servers. OpenAI's privacy policy allows them to use your conversations to improve their models (unless you opt out). If you're discussing business plans, health issues, legal matters, or anything sensitive, this matters.",
+      },
+      {
+        type: "p",
+        content:
+          "With OpenClaw running on your own server, your messages never leave your infrastructure. The only third-party data transfer is the AI model call — and if you use a local model via Ollama, even that stays on-device. For professionals and businesses with data compliance requirements (HIPAA, GDPR, SOC 2), this is non-negotiable.",
+      },
+      {
+        type: "h2",
+        heading: "Platform Flexibility: Talk to AI Wherever You Already Are",
+        content:
+          "ChatGPT lives in the ChatGPT app or on chat.openai.com. OpenClaw lives inside your existing communication stack. If you use WhatsApp to talk to clients, you can talk to your AI on WhatsApp. If your team lives in Discord, your AI assistant is in Discord. You don't need to switch apps.",
+      },
+      {
+        type: "ul",
+        items: [
+          "WhatsApp: Text or voice messages to your AI, works on iOS and Android",
+          "Telegram: Full bot integration with inline commands and inline keyboard support",
+          "Discord: Server bot or DM assistant with slash command support",
+          "Slack: Workspace assistant with channel and DM support",
+          "iMessage: Native Apple Messages integration for Mac users",
+          "Signal: Privacy-first messaging with Signal-cli bridge",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "AI Model Freedom: Not Locked to OpenAI",
+        content:
+          "ChatGPT uses GPT-4o. That's it. If you think Claude (Anthropic) gives better answers for your use case, or if you want to run Mistral locally for complete privacy, ChatGPT can't help you. OpenClaw can.",
+      },
+      {
+        type: "p",
+        content:
+          "OpenClaw supports Claude 3.5, GPT-4o, Google Gemini, Mistral, Llama 3, and any model running via Ollama. You can switch models any time or run different models for different tasks — use a fast model for quick answers and a powerful model for deep research.",
+      },
+      {
+        type: "h2",
+        heading: "When Should You Choose ChatGPT Instead?",
+        content:
+          "OpenClaw isn't for everyone. ChatGPT is the better choice if:",
+      },
+      {
+        type: "ul",
+        items: [
+          "You don't want to manage any infrastructure, even through a cloud service",
+          "You primarily use the web browser or the official ChatGPT mobile app",
+          "You want access to DALL·E image generation or GPT-4o Vision natively",
+          "Your workflow is centered around OpenAI's Custom GPTs ecosystem",
+          "You need the latest GPT features the moment they're released",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "When Should You Choose OpenClaw?",
+      },
+      {
+        type: "ul",
+        items: [
+          "You want AI in WhatsApp, Telegram, Discord, or Slack — not a separate app",
+          "Privacy is important: you don't want conversations processed by OpenAI",
+          "You want to use Claude, Gemini, or local models — not just GPT",
+          "You need persistent, structured memory across conversations",
+          "You want a programmable assistant with custom skills and automations",
+          "You're a developer, tech-savvy professional, or run a small team",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud gives you the full OpenClaw experience — Claude AI, all 20+ platform integrations, persistent memory, and custom skills — without any server management. Try it from $49/month.",
+      },
+      {
+        type: "h2",
+        heading: "Frequently Asked Questions",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Is OpenClaw better than ChatGPT?",
+            a: "It depends on your priorities. OpenClaw is better for privacy, platform flexibility, and model choice. ChatGPT is better for simplicity and access to OpenAI-exclusive features like DALL·E.",
+          },
+          {
+            q: "Can OpenClaw use ChatGPT (GPT-4o)?",
+            a: "Yes. OpenClaw supports GPT-4o and GPT-4 via the OpenAI API. You supply your own API key, and OpenClaw will route your messages through OpenAI's model.",
+          },
+          {
+            q: "Is OpenClaw free like ChatGPT's free tier?",
+            a: "The self-hosted version of OpenClaw is completely free. OpenClaw Cloud starts at $49/month, which is higher than ChatGPT Plus ($20/month) but includes your own isolated server instance.",
+          },
+          {
+            q: "Does OpenClaw have image generation like ChatGPT?",
+            a: "Not natively built-in, but you can add image generation via the Skills platform — e.g., a skill that calls the DALL·E or Stable Diffusion API.",
+          },
+          {
+            q: "Does OpenClaw work on mobile?",
+            a: "Yes. OpenClaw works on mobile through WhatsApp, Telegram, and Discord mobile apps. You don't need a dedicated OpenClaw app — it lives in the apps you already use.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-whatsapp-guide",
+    title: "How to Connect OpenClaw to WhatsApp: AI in Your Chats (2025)",
+    metaTitle: "OpenClaw WhatsApp Integration Guide 2025 | OpenClaw Cloud",
+    metaDescription:
+      "Connect your OpenClaw AI assistant to WhatsApp. Step-by-step guide for WhatsApp Web pairing, group chat setup, and running your own private WhatsApp AI bot.",
+    publishedAt: "2025-03-19",
+    readingTime: "7 min read",
+    category: "Guides",
+    excerpt:
+      "OpenClaw's WhatsApp integration lets you chat with your AI directly in WhatsApp — text, voice, images, and documents. Here's how to set it up from scratch.",
+    keywords: [
+      "openclaw whatsapp",
+      "whatsapp ai bot",
+      "whatsapp ai assistant",
+      "openclaw whatsapp setup",
+      "self-hosted whatsapp ai",
+      "whatsapp chatbot 2025",
+    ],
+    relatedSlugs: ["what-is-openclaw", "openclaw-discord-setup", "openclaw-integrations"],
+    content: [
+      {
+        type: "p",
+        content:
+          "WhatsApp has over 2 billion users. It's how most people communicate with friends, family, and colleagues — especially outside the US. Connecting OpenClaw to WhatsApp means your AI assistant lives exactly where your conversations already happen. No switching apps, no browser tabs. Just type (or voice-message) your AI as you would a contact.",
+      },
+      {
+        type: "h2",
+        heading: "How OpenClaw Connects to WhatsApp",
+        content:
+          "OpenClaw uses the WhatsApp Web protocol (via Baileys — the same approach as many popular WhatsApp integrations) to connect your WhatsApp account to the OpenClaw gateway. This means no business API approval process and no per-message fees. You connect your personal WhatsApp account the same way you'd connect WhatsApp Web on a computer — by scanning a QR code.",
+      },
+      {
+        type: "h2",
+        heading: "Step-by-Step: Connecting WhatsApp to OpenClaw",
+      },
+      {
+        type: "ol",
+        items: [
+          "In the OpenClaw CLI wizard, run: openclaw channel add whatsapp",
+          "A QR code will appear in your terminal (or in the OpenClaw Cloud dashboard)",
+          "Open WhatsApp on your phone → tap the three-dot menu → Linked Devices → Link a Device",
+          "Scan the QR code with your phone's camera",
+          "OpenClaw will confirm the connection and start listening for messages",
+          "Send yourself a WhatsApp message from another number (or from WhatsApp Web) to test",
+        ],
+      },
+      {
+        type: "h3",
+        heading: "On OpenClaw Cloud",
+        content:
+          "In your OpenClaw Cloud dashboard, go to Channels → WhatsApp → Connect. A QR code appears on screen. Scan it with your WhatsApp app and the connection is live. No CLI required.",
+      },
+      {
+        type: "h2",
+        heading: "What You Can Do With OpenClaw on WhatsApp",
+        content:
+          "Once connected, your OpenClaw assistant responds to messages you send to yourself (your own number) or in a dedicated WhatsApp group. Here's what it handles:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Text messages: Ask questions, get summaries, continue long conversations with full context",
+          "Voice notes: Send a voice message, OpenClaw transcribes it and responds in text (or voice)",
+          "Images: Send a photo and ask OpenClaw to describe or analyze it (requires a vision-capable model)",
+          "Documents: Send a PDF and ask questions about its content",
+          "Group chats: Add OpenClaw to a WhatsApp group; it responds when mentioned with @",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Privacy and Session Persistence",
+        content:
+          "Your WhatsApp connection session is stored securely on your server (or OpenClaw Cloud). Once paired, OpenClaw maintains the session indefinitely — you don't need to re-scan the QR code after every restart. Sessions are encrypted and stored locally.",
+      },
+      {
+        type: "p",
+        content:
+          "Because OpenClaw uses the WhatsApp Web protocol, your messages are end-to-end encrypted in transit on WhatsApp's network. When they arrive at OpenClaw, they're processed on your server — not a third-party service. The AI model call (e.g. to Anthropic for Claude) is the only external request.",
+      },
+      {
+        type: "h2",
+        heading: "Limitations of the WhatsApp Integration",
+        content:
+          "It's important to understand a few constraints:",
+      },
+      {
+        type: "ul",
+        items: [
+          "One WhatsApp account per OpenClaw instance: Each account can only be linked to one device session",
+          "WhatsApp's terms of service technically restrict automated messaging — use at your own discretion",
+          "If WhatsApp detects unusual activity (very high message volume), your account may be temporarily flagged",
+          "The WhatsApp Business API (for large-scale use) requires approval and costs money — OpenClaw uses the consumer protocol",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes WhatsApp as a built-in channel. QR code pairing, session persistence, and automatic reconnection are all handled for you. Sign up and connect WhatsApp in 2 minutes.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I use a dedicated phone number just for OpenClaw on WhatsApp?",
+            a: "Yes, and this is actually recommended. Get a second SIM or a WhatsApp Business account on a secondary number and link that to OpenClaw, keeping your personal account separate.",
+          },
+          {
+            q: "Will my WhatsApp contacts see that I'm using a bot?",
+            a: "No. From the perspective of anyone messaging the WhatsApp number, it looks like a normal WhatsApp account. There's no bot indicator.",
+          },
+          {
+            q: "Does OpenClaw work with WhatsApp Business?",
+            a: "Yes, OpenClaw works with both personal WhatsApp accounts and WhatsApp Business accounts using the same QR pairing flow.",
+          },
+          {
+            q: "What happens if OpenClaw goes offline?",
+            a: "Messages sent while OpenClaw is offline are queued and delivered when the connection is restored (standard WhatsApp behavior). OpenClaw will process and respond to them when it reconnects.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-voice-mode",
+    title: "OpenClaw Voice Mode: Talk to Your AI Assistant Out Loud",
+    metaTitle: "OpenClaw Voice Mode Guide: Talk to AI by Voice | OpenClaw Cloud",
+    metaDescription:
+      "OpenClaw Voice Mode lets you speak to your AI assistant and hear responses out loud. Learn how to enable talk mode on iOS, Android, and macOS in 2025.",
+    publishedAt: "2025-03-21",
+    readingTime: "6 min read",
+    category: "Guides",
+    excerpt:
+      "OpenClaw supports native voice input and text-to-speech responses on iOS, Android, and macOS. This guide shows you how to enable Talk Mode and get the most out of voice conversations.",
+    keywords: [
+      "openclaw voice mode",
+      "openclaw talk mode",
+      "voice ai assistant",
+      "ai voice chat",
+      "openclaw ios",
+      "openclaw android",
+      "speak to ai assistant",
+    ],
+    relatedSlugs: ["what-is-openclaw", "openclaw-whatsapp-guide", "openclaw-discord-setup"],
+    content: [
+      {
+        type: "p",
+        content:
+          "Typing is fast — but sometimes you just want to talk. OpenClaw's Voice Mode (also called Talk Mode) lets you send voice messages to your AI assistant and receive spoken responses. It works across iOS, Android, and macOS, and integrates natively with WhatsApp and Telegram voice messages.",
+      },
+      {
+        type: "h2",
+        heading: "How OpenClaw Voice Mode Works",
+        content:
+          "OpenClaw voice conversations work in two directions: speech-to-text (STT) for your input, and text-to-speech (TTS) for the AI's response. When you send a voice note on WhatsApp or Telegram, OpenClaw automatically transcribes it, sends the text to your AI model, and can optionally respond with a generated voice message.",
+      },
+      {
+        type: "h2",
+        heading: "Voice Mode via WhatsApp and Telegram",
+        content:
+          "The easiest way to use voice with OpenClaw is through WhatsApp or Telegram voice notes:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Hold the microphone button in WhatsApp or Telegram to record a voice message",
+          "Send it to your OpenClaw bot number (or the @bot in a Telegram chat)",
+          "OpenClaw transcribes your voice using Whisper (OpenAI's speech model) or a local STT engine",
+          "The text is sent to your AI model (Claude, GPT-4o, etc.)",
+          "OpenClaw can respond in text, or generate a voice note reply using TTS",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Native Talk Mode on iOS and macOS",
+        content:
+          "OpenClaw has a native Talk Mode feature for Apple devices. When enabled, you can use Siri Shortcuts or the OpenClaw companion app to speak directly to your assistant and receive spoken answers — without opening WhatsApp or Telegram at all.",
+      },
+      {
+        type: "ul",
+        items: [
+          "iOS: Install the OpenClaw companion shortcut via Shortcuts app. Tap to speak, results are read aloud.",
+          "macOS: Use the OpenClaw menu bar app — press a keyboard shortcut, speak, and the response is read by macOS TTS.",
+          "Apple Watch: Trigger a voice query from your wrist and get a brief spoken response.",
+          "Android: Use the Tasker integration or the OpenClaw for Android companion app for a similar experience.",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Configuring TTS and STT Providers",
+        content:
+          "OpenClaw supports multiple speech engines, letting you choose the best one for your setup:",
+      },
+      {
+        type: "table",
+        headers: ["Provider", "Type", "Quality", "Privacy"],
+        rows: [
+          { cells: ["OpenAI Whisper", "STT", "Excellent", "Cloud — data sent to OpenAI"] },
+          { cells: ["Whisper Local (Ollama)", "STT", "Very good", "On-device — fully private"] },
+          { cells: ["ElevenLabs", "TTS", "Human-quality", "Cloud — requires API key"] },
+          { cells: ["OpenAI TTS", "TTS", "Very good", "Cloud — requires API key"] },
+          { cells: ["macOS built-in TTS", "TTS", "Good", "Fully on-device"] },
+          { cells: ["Edge TTS (free)", "TTS", "Good", "Microsoft cloud, free"] },
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Voice Mode Privacy Considerations",
+        content:
+          "Voice input introduces an extra privacy consideration: your voice recordings may be processed by a cloud STT provider. For maximum privacy, use Whisper Local (via Ollama) for transcription and macOS or Edge TTS for responses — all audio processing stays on your device.",
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes voice mode out of the box. Send voice notes via WhatsApp or Telegram and get AI responses instantly — no configuration needed. ElevenLabs TTS can be enabled in your Cloud dashboard settings.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "Can I use voice mode with any AI model?",
+            a: "Yes. Voice mode handles speech-to-text separately from the AI model. Once transcribed, your voice message is sent to whichever model you've configured — Claude, GPT-4o, local models, or anything else.",
+          },
+          {
+            q: "How accurate is the voice transcription?",
+            a: "OpenAI Whisper (the default transcription engine) is highly accurate — among the best available. Accuracy depends on microphone quality and ambient noise. It handles multiple languages and accents well.",
+          },
+          {
+            q: "Can OpenClaw call me back with voice responses?",
+            a: "Not as a phone call. OpenClaw sends voice notes (audio files) as responses in WhatsApp or Telegram, which your phone plays when you open the message.",
+          },
+          {
+            q: "Does voice mode work for non-English languages?",
+            a: "Yes. Whisper supports 99 languages for transcription. TTS support depends on your chosen provider — ElevenLabs and Edge TTS both support many languages.",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "openclaw-memory-guide",
+    title: "OpenClaw Memory: How Your AI Assistant Remembers You",
+    metaTitle: "OpenClaw Memory System Guide: AI That Remembers | OpenClaw Cloud",
+    metaDescription:
+      "Learn how OpenClaw's memory system works — conversation history, persistent facts, workspace context, and how to give your AI a long-term memory of who you are.",
+    publishedAt: "2025-03-23",
+    readingTime: "7 min read",
+    category: "Technical",
+    excerpt:
+      "OpenClaw's memory system goes far beyond conversation history. Persistent facts, workspace context, and user profiles let your AI assistant build a genuine understanding of who you are over time.",
+    keywords: [
+      "openclaw memory",
+      "ai with memory",
+      "persistent ai assistant",
+      "ai that remembers",
+      "openclaw context",
+      "long-term ai memory",
+      "ai personal memory 2025",
+    ],
+    relatedSlugs: ["what-is-openclaw", "what-is-openclawd", "self-hosted-ai-2025"],
+    content: [
+      {
+        type: "p",
+        content:
+          "One of the most common frustrations with AI assistants is that they forget everything the moment you start a new conversation. Every session starts from scratch: you have to re-explain who you are, what you're working on, and what context matters. OpenClaw solves this with a layered memory system that persists across conversations, across platforms, and across devices.",
+      },
+      {
+        type: "h2",
+        heading: "The Three Layers of OpenClaw Memory",
+        content:
+          "OpenClaw organizes memory into three distinct layers, each serving a different purpose:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Conversation Memory: The recent context window — the last N messages in your current conversation. This is what most AI assistants provide as their only form of memory.",
+          "Session Memory: Context that persists across multiple conversations within the same channel. Closing and reopening Telegram, for example, doesn't wipe your session.",
+          "Persistent Memory (Facts): Long-term facts about you that are injected into every conversation as a system prompt. 'You are a software engineer in Berlin. You prefer concise answers. You are working on a SaaS product called XYZ.'",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Persistent Memory: Teaching Your AI About You",
+        content:
+          "Persistent memory is what makes OpenClaw feel like an assistant that actually knows you. You can define facts in your workspace config, or tell OpenClaw to remember things conversationally:",
+      },
+      {
+        type: "ul",
+        items: [
+          'Type "Remember that I prefer responses in bullet points" — OpenClaw saves this as a persistent fact',
+          'Type "Forget that I\'m a Python developer, I switched to TypeScript" — OpenClaw updates its memory',
+          'Type "What do you know about me?" — OpenClaw lists all stored facts about you',
+          "Define structured facts in your openclaw.config.yaml for more control",
+          "Facts are stored per-workspace — you can have different memory profiles for different use cases",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "Workspace Context",
+        content:
+          "Beyond personal facts, OpenClaw supports workspace context — a block of text that's injected into every conversation as additional system context. This is where you define your AI's persona, the project you're working on, and any standing instructions.",
+      },
+      {
+        type: "p",
+        content:
+          "A workspace context might look like: 'We are working on a B2B SaaS product that helps restaurants manage inventory. The tech stack is Next.js, Supabase, and Stripe. I'm the solo founder and need concise, actionable advice. Always suggest the simplest possible solution first.' Every conversation starts with this context injected silently — your AI assistant is always in the right headspace.",
+      },
+      {
+        type: "h2",
+        heading: "Memory Across Platforms",
+        content:
+          "Because OpenClaw is a central gateway, your memory is shared across all your connected platforms. The conversation you had with your AI in Telegram yesterday is part of the context when you start chatting on Discord today. This is fundamentally different from using different AI apps on different devices — the memory lives in OpenClaw, not in the client app.",
+      },
+      {
+        type: "h2",
+        heading: "Memory Privacy and Control",
+        content:
+          "Your memory data is stored on your server (or OpenClaw Cloud's isolated instance). You have full access to it:",
+      },
+      {
+        type: "ul",
+        items: [
+          "View all stored memories: openclaw memory list",
+          "Delete a specific memory: openclaw memory delete <id>",
+          "Clear all memories: openclaw memory clear",
+          "Export memories as JSON: openclaw memory export",
+          "On OpenClaw Cloud: manage memories in the Dashboard → Memory section",
+        ],
+      },
+      {
+        type: "h2",
+        heading: "How OpenClaw Memory Compares to ChatGPT Memory",
+        content:
+          "ChatGPT Plus introduced a memory feature in 2024 that stores facts about you across conversations. OpenClaw's memory system is more powerful in several ways:",
+      },
+      {
+        type: "table",
+        headers: ["Feature", "OpenClaw Memory", "ChatGPT Memory"],
+        rows: [
+          { cells: ["Storage location", "Your server / OpenClaw Cloud", "OpenAI servers"] },
+          { cells: ["Transparency", "Full — you see all stored facts", "Partial — some auto-generated memories aren't shown"] },
+          { cells: ["Control", "Full — add, edit, delete any memory", "Limited editing"] },
+          { cells: ["Cross-platform", "Yes — shared across all channels", "No — ChatGPT only"] },
+          { cells: ["Workspace context", "Yes — custom system prompts per workspace", "No"] },
+          { cells: ["Memory privacy", "On your infrastructure", "On OpenAI infrastructure"] },
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "OpenClaw Cloud includes persistent memory with full read/write access via your dashboard. Your AI remembers your preferences, projects, and context — across WhatsApp, Telegram, Discord, and every other channel you connect.",
+      },
+      {
+        type: "faq",
+        faqs: [
+          {
+            q: "How much can OpenClaw remember?",
+            a: "There's no hard limit on persistent facts. In practice, the memory injected into each conversation is bounded by the model's context window. OpenClaw intelligently summarizes and prioritizes memories to fit within the context limit.",
+          },
+          {
+            q: "Can I have different memories for different topics?",
+            a: "Yes. You can create multiple workspaces in OpenClaw, each with its own memory context. Use one workspace for work, another for personal use, another for a specific project.",
+          },
+          {
+            q: "Is memory shared between users?",
+            a: "No. Memory is per-user. If you give other people access to your OpenClaw instance, each user has their own isolated memory profile.",
+          },
+          {
+            q: "Does memory get used automatically?",
+            a: "Yes. Persistent facts and workspace context are injected into every new conversation automatically. You don't need to manually remind the AI of anything you've already told it.",
+          },
+          {
+            q: "Can I back up my OpenClaw memories?",
+            a: "Yes. Use 'openclaw memory export' to export all memories as a JSON file. On OpenClaw Cloud, you can download your memory backup from the dashboard at any time.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
