@@ -6,6 +6,8 @@ import zhTW from "./locales/zh-TW";
 import ja from "./locales/ja";
 import ar from "./locales/ar";
 import pl from "./locales/pl";
+import ko from "./locales/ko";
+import ms from "./locales/ms";
 
 export const translations = {
   en,
@@ -16,6 +18,8 @@ export const translations = {
   ja,
   ar,
   pl,
+  ko,
+  ms,
 } as const;
 
 export type LocaleCode = keyof typeof translations;
@@ -28,6 +32,8 @@ export const SUPPORTED_LANGUAGES: { code: LocaleCode; label: string; flag: strin
   { code: "zh-CN", label: "中文（简体）", flag: "🇨🇳" },
   { code: "zh-TW", label: "中文（繁體）", flag: "🇹🇼" },
   { code: "ja", label: "日本語", flag: "🇯🇵" },
+  { code: "ko", label: "한국어", flag: "🇰🇷" },
+  { code: "ms", label: "Bahasa Melayu", flag: "🇸🇬" },
   { code: "ar", label: "العربية", flag: "🇸🇦", dir: "rtl" },
   { code: "pl", label: "Polski", flag: "🇵🇱" },
 ];
@@ -44,6 +50,8 @@ export function detectLocale(): LocaleCode {
   if (lang.startsWith("zh-TW") || lang.startsWith("zh-HK") || lang.startsWith("zh-MO")) return "zh-TW";
   if (lang.startsWith("zh")) return "zh-CN";
   if (lang.startsWith("ja")) return "ja";
+  if (lang.startsWith("ko")) return "ko";
+  if (lang.startsWith("ms")) return "ms";
   if (lang.startsWith("de")) return "de";
   if (lang.startsWith("fr")) return "fr";
   if (lang.startsWith("ar")) return "ar";

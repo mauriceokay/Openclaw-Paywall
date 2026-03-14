@@ -13,6 +13,8 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/" />
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/" />
     <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/" />
     <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/" />
     <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/" />
@@ -28,6 +30,8 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/pricing" />
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/pricing" />
     <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/pricing" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/pricing" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/pricing" />
     <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/pricing" />
     <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/pricing" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/pricing" />
@@ -43,6 +47,8 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog" />
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog" />
     <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog" />
     <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog" />
     <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog" />

@@ -12,6 +12,8 @@ const OG_LOCALE: Record<LocaleCode, string> = {
   "zh-CN": "zh_CN",
   "zh-TW": "zh_TW",
   ja:    "ja_JP",
+  ko:    "ko_KR",
+  ms:    "ms_SG",
   ar:    "ar_SA",
   pl:    "pl_PL",
 };
@@ -23,11 +25,13 @@ const HREFLANG: Record<LocaleCode, string> = {
   "zh-CN": "zh-Hans",
   "zh-TW": "zh-Hant",
   ja:    "ja",
+  ko:    "ko",
+  ms:    "ms",
   ar:    "ar",
   pl:    "pl",
 };
 
-const ALL_LOCALES: LocaleCode[] = ["en", "de", "fr", "zh-CN", "zh-TW", "ja", "ar", "pl"];
+const ALL_LOCALES: LocaleCode[] = ["en", "de", "fr", "zh-CN", "zh-TW", "ja", "ko", "ms", "ar", "pl"];
 
 interface SEOHeadProps {
   title: string;

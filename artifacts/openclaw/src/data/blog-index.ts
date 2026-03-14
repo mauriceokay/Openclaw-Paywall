@@ -6,6 +6,8 @@ import { zhTWBlogs } from "./blog-translations/zh-TW";
 import { jaBlogs } from "./blog-translations/ja";
 import { arBlogs } from "./blog-translations/ar";
 import { plBlogs } from "./blog-translations/pl";
+import { koBlogs } from "./blog-translations/ko";
+import { msBlogs } from "./blog-translations/ms";
 import type { LocaleCode } from "@/i18n";
 
 const localeMap: Partial<Record<LocaleCode, BlogPost[]>> = {
@@ -16,6 +18,8 @@ const localeMap: Partial<Record<LocaleCode, BlogPost[]>> = {
   ja: jaBlogs,
   ar: arBlogs,
   pl: plBlogs,
+  ko: koBlogs,
+  ms: msBlogs,
 };
 
 export function getBlogPostsForLocale(locale: LocaleCode): BlogPost[] {
