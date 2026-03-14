@@ -123,7 +123,10 @@ export function Pricing() {
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center max-w-5xl mx-auto"
           >
             {productsData?.products
-              ?.filter((p) => p.name.toLowerCase().startsWith("openclaw"))
+              ?.filter((p) => {
+                const n = p.name.toLowerCase();
+                return n.startsWith("openclaw") && !n.includes("hosting");
+              })
               .sort((a, b) => {
                 const order = ["free", "pro", "team"];
                 const ai = order.findIndex((k) => a.name.toLowerCase().includes(k));
@@ -133,8 +136,13 @@ export function Pricing() {
               .map((product) => {
                 const price = product.prices.find((p) => p.interval === "month") ?? product.prices[0] ?? null;
                 const formattedPrice = price?.unitAmount ? (price.unitAmount / 100).toFixed(2) : "0.00";
+                const isFree = product.name.toLowerCase().includes("free") || !price?.unitAmount;
                 const isPremium = product.name.toLowerCase().includes("pro");
-                const isLoading = checkoutLoading && selectedPriceId === price?.id;
+                const isLoadingCard = checkoutLoading && selectedPriceId === price?.id;
+
+                const features = isFree
+                  ? ["15 AI messages / day", "3 Channel Integrations", "Basic Automations", "Community Support"]
+                  : ["All 20+ Channel Integrations", "Unlimited Voice/Talk Usage", "Advanced Automations (Cron/Webhooks)", "Priority Model Routing"];
 
                 return (
                   <motion.div key={product.id} variants={item} className="h-full">
@@ -158,7 +166,7 @@ export function Pricing() {
                           <span className="text-muted-foreground">/{price?.interval || "month"}</span>
                         </div>
                         <ul className="space-y-4">
-                          {["All 20+ Channel Integrations", "Unlimited Voice/Talk Usage", "Advanced Automations (Cron/Webhooks)", "Priority Model Routing"].map((feature, i) => (
+                          {features.map((feature, i) => (
                             <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
                               <Check className="w-5 h-5 text-primary shrink-0" />
                               <span>{feature}</span>
@@ -173,7 +181,7 @@ export function Pricing() {
                           disabled={checkoutLoading}
                           className={`w-full py-6 rounded-xl text-md font-semibold transition-all ${isPremium ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25" : "bg-white/10 hover:bg-white/20 text-white"}`}
                         >
-                          {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                          {isLoadingCard ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                           {price ? `Subscribe to ${product.name}` : "Get Started Free"}
                         </Button>
                       </CardFooter>
