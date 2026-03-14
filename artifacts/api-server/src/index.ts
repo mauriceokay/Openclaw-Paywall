@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { createServer } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { runMigrations } from "stripe-replit-sync";
@@ -63,16 +64,31 @@ server.on("upgrade", async (req, socket, head) => {
     (wsProxy as any).upgrade(req, socket, head);
   } else if (req.url?.startsWith("/api/instance-proxy")) {
     try {
-      const urlObj = new URL(req.url, "http://localhost");
-      let userId = urlObj.searchParams.get("userId");
+      const cookieHeader = req.headers.cookie || "";
+      const sessionMatch = cookieHeader.match(/(?:^|;\s*)__oc_session=([^;]+)/);
+      const sessionToken = sessionMatch ? decodeURIComponent(sessionMatch[1]) : null;
 
-      if (!userId) {
-        const cookieHeader = req.headers.cookie || "";
-        const match = cookieHeader.match(/(?:^|;\s*)__oc_proxy_user=([^;]+)/);
-        userId = match ? decodeURIComponent(match[1]) : null;
+      let sessionEmail: string | null = null;
+      if (sessionToken) {
+        const SESSION_SECRET = process.env.SESSION_SECRET || "";
+        const parts = sessionToken.split("|");
+        if (parts.length === 3) {
+          const [email, expiresAtStr, providedSig] = parts;
+          const payload = `${email}|${expiresAtStr}`;
+          const hmac = crypto.createHmac("sha256", SESSION_SECRET);
+          hmac.update(payload);
+          const expectedSig = hmac.digest("hex");
+          try {
+            if (crypto.timingSafeEqual(Buffer.from(providedSig, "hex"), Buffer.from(expectedSig, "hex"))) {
+              if (Date.now() <= parseInt(expiresAtStr, 10)) {
+                sessionEmail = email;
+              }
+            }
+          } catch {}
+        }
       }
 
-      if (!userId) {
+      if (!sessionEmail) {
         socket.destroy();
         return;
       }
@@ -80,7 +96,7 @@ server.on("upgrade", async (req, socket, head) => {
       const rows = await db
         .select()
         .from(userAgentsTable)
-        .where(eq(userAgentsTable.userId, userId))
+        .where(eq(userAgentsTable.userId, sessionEmail))
         .limit(1);
 
       if (rows.length === 0 || !rows[0].instanceUrl) {

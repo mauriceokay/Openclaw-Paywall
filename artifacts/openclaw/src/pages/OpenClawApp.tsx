@@ -39,6 +39,7 @@ export function OpenClawApp() {
     fetch(`${BASE_URL}/api/openclaw/provision`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ userId: user.email, email: user.email }),
     })
       .then((res) => {
@@ -63,7 +64,7 @@ export function OpenClawApp() {
 
   const checkInstanceReady = () => {
     if (!user?.email) return;
-    fetch(`${BASE_URL}/api/openclaw/instance?userId=${encodeURIComponent(user.email)}`)
+    fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.instanceUrl) {
@@ -171,12 +172,11 @@ export function OpenClawApp() {
   }
 
   if (provisionState === "ready" && instanceUrl) {
-    const proxySrc = `${BASE_URL}/api/instance-proxy/?userId=${encodeURIComponent(user?.email || "")}`;
     return (
       <div className="fixed inset-0 z-50 bg-background">
         <iframe
           key={iframeKey}
-          src={proxySrc}
+          src={`${BASE_URL}/api/instance-proxy/`}
           className="w-full h-full border-0"
           title="OpenClaw"
           allow="clipboard-read; clipboard-write; microphone"

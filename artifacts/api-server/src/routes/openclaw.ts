@@ -3,6 +3,8 @@ import { db } from "@workspace/db";
 import { userAgentsTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { isValidInstanceUrl } from "../instanceUrlValidator";
+import { setSessionCookie, getSessionEmail } from "../sessionAuth";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -17,6 +19,16 @@ router.post("/provision", async (req, res) => {
     return res.status(400).json({ error: "userId or email is required" });
   }
 
+  const customer = await storage.getCustomerByEmail(id);
+  if (!customer) {
+    return res.status(403).json({ error: "No active customer found for this email" });
+  }
+
+  const sub = await storage.getSubscriptionByCustomerId((customer as any).id);
+  if (!sub) {
+    return res.status(403).json({ error: "Active subscription required" });
+  }
+
   if (instanceUrl && !isValidInstanceUrl(instanceUrl)) {
     return res.status(400).json({ error: "Invalid instanceUrl: must be a valid HTTPS URL on an allowed domain" });
   }
@@ -29,6 +41,8 @@ router.post("/provision", async (req, res) => {
       .limit(1);
 
     if (existing.length > 0) {
+      setSessionCookie(res, id);
+
       if (instanceUrl && existing[0].instanceUrl !== instanceUrl) {
         const [updated] = await db
           .update(userAgentsTable)
@@ -52,6 +66,7 @@ router.post("/provision", async (req, res) => {
       })
       .returning();
 
+    setSessionCookie(res, id);
     console.log(`[openclaw] provisioned agent ${agentName} for user ${id}`);
     return res.json({ agent, provisioned: true });
   } catch (err: any) {
@@ -61,16 +76,15 @@ router.post("/provision", async (req, res) => {
 });
 
 router.get("/instance", async (req, res) => {
-  const { userId, email } = req.query as { userId?: string; email?: string };
-  const id = userId || email;
-  if (!id) {
-    return res.status(400).json({ error: "userId or email is required" });
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
   }
 
   const existing = await db
     .select()
     .from(userAgentsTable)
-    .where(eq(userAgentsTable.userId, id))
+    .where(eq(userAgentsTable.userId, sessionEmail))
     .limit(1);
 
   if (existing.length === 0) {

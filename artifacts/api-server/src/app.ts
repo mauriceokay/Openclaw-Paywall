@@ -7,8 +7,7 @@ import { userAgentsTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import router from "./routes";
 import { WebhookHandlers } from "./webhookHandlers";
-
-const PROXY_USER_COOKIE = "__oc_proxy_user";
+import { getSessionEmail } from "./sessionAuth";
 
 const app: Express = express();
 
@@ -86,21 +85,17 @@ function stripIframeHeaders(res: express.Response) {
 app.use(cookieParser());
 
 app.use("/api/instance-proxy", async (req, res, next) => {
-  let userId = req.query.userId as string | undefined;
+  const sessionEmail = getSessionEmail(req);
 
-  if (!userId) {
-    userId = req.cookies?.[PROXY_USER_COOKIE] as string | undefined;
-  }
-
-  if (!userId) {
-    return res.status(401).json({ error: "Not authenticated for instance proxy" });
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
   }
 
   try {
     const rows = await db
       .select()
       .from(userAgentsTable)
-      .where(eq(userAgentsTable.userId, userId))
+      .where(eq(userAgentsTable.userId, sessionEmail))
       .limit(1);
 
     if (rows.length === 0 || !rows[0].instanceUrl) {
@@ -108,16 +103,6 @@ app.use("/api/instance-proxy", async (req, res, next) => {
     }
 
     const targetUrl = rows[0].instanceUrl;
-
-    if (req.query.userId) {
-      res.cookie(PROXY_USER_COOKIE, userId, {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        path: "/api/instance-proxy",
-      });
-    }
 
     const proxy = createProxyMiddleware<express.Request, express.Response>({
       target: targetUrl,
