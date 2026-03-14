@@ -114,20 +114,20 @@ export function Home() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative hidden lg:block"
+              className="relative"
             >
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-3xl blur-2xl opacity-20 animate-pulse" />
-              <div className="relative glass-panel rounded-3xl p-8 h-[500px] flex flex-col justify-between border-white/10 animate-float">
-                <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-destructive" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
+              <div className="relative glass-panel rounded-2xl lg:rounded-3xl p-4 md:p-6 lg:p-8 lg:h-[500px] flex flex-col border-white/10 animate-float">
+                <div className="flex items-center gap-3 mb-4 lg:mb-6 border-b border-white/10 pb-3 lg:pb-4">
+                  <div className="flex gap-1.5 lg:gap-2">
+                    <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-destructive" />
+                    <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-yellow-500" />
+                    <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-green-500" />
                   </div>
-                  <div className="text-xs font-mono text-muted-foreground flex-1 text-center pr-8">openclaw-gateway</div>
+                  <div className="text-xs font-mono text-muted-foreground flex-1 text-center pr-6 lg:pr-8">openclaw-gateway</div>
                 </div>
 
-                <div className="flex-1 font-mono text-sm space-y-2">
+                <div className="flex-1 font-mono text-xs md:text-sm space-y-1.5 lg:space-y-2">
                   {(t.home.terminalHero as readonly string[]).map((line, i) => (
                     <p key={i} className={HERO_STYLES[i]}>{line}</p>
                   ))}
