@@ -64,9 +64,9 @@ export function Home() {
       canonicalPath="/"
       keywords="openclaw, personal ai assistant, self-hosted ai, whatsapp ai, telegram ai, discord ai"
     />
-    <div className="min-h-screen pt-20 flex flex-col">
+    <div className="min-h-screen pt-16 md:pt-20 flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full py-32 overflow-hidden flex-1 flex items-center">
+      <section className="relative w-full pt-8 pb-16 md:py-32 overflow-hidden flex-1 flex items-start md:items-center">
         <div className="absolute inset-0 z-0">
           <img
             src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
@@ -76,13 +76,13 @@ export function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4 md:gap-6"
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium w-fit">
                 <span className="relative flex h-2 w-2">
@@ -92,16 +92,16 @@ export function Home() {
                 {t.home.badge}
               </div>
 
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display leading-[1.1]">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display leading-[1.1]">
                 {t.home.heroTitle}<br />
                 <span className="text-gradient-primary">{t.home.heroHighlight}</span>
               </h1>
 
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
+              <p className="text-base md:text-xl text-muted-foreground leading-relaxed max-w-lg">
                 {t.home.heroDesc}
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 md:pt-4">
                 <Link href="/signup" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full text-lg h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_0_30px_rgba(255,81,47,0.3)] hover:shadow-[0_0_40px_rgba(255,81,47,0.5)] transition-all">
                     {t.home.heroCta}
