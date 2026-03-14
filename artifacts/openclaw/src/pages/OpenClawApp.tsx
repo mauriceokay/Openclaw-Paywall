@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Loader2, AlertTriangle, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,23 @@ const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 type ProvisionState = "idle" | "provisioning" | "ready" | "pending" | "error";
 
+function useRelativeTime(date: Date | null) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!date) return;
+    const id = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(id);
+  }, [date]);
+
+  if (!date) return null;
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m ago`;
+}
+
 export function OpenClawApp() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -17,6 +34,11 @@ export function OpenClawApp() {
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const [instanceUrl, setInstanceUrl] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
+  const [isChecking, setIsChecking] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [checkMessage, setCheckMessage] = useState<string | null>(null);
+
+  const relativeTime = useRelativeTime(lastChecked);
 
   const { data: status, isLoading: statusLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
@@ -65,24 +87,37 @@ export function OpenClawApp() {
       });
   }, [status?.hasActiveSubscription, user?.email, provisionState]);
 
-  const checkInstanceReady = () => {
-    if (!user?.email) return;
+  const checkInstanceReady = useCallback(() => {
+    if (!user?.email || isChecking) return;
+    setIsChecking(true);
+    setCheckMessage(null);
+
     fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.instanceUrl) {
           setInstanceUrl(data.instanceUrl);
           setProvisionState("ready");
+        } else {
+          setCheckMessage("Still being set up — we'll keep checking automatically");
+          setTimeout(() => setCheckMessage(null), 4000);
         }
       })
-      .catch(() => {});
-  };
+      .catch(() => {
+        setCheckMessage("Could not reach the server — try again shortly");
+        setTimeout(() => setCheckMessage(null), 4000);
+      })
+      .finally(() => {
+        setIsChecking(false);
+        setLastChecked(new Date());
+      });
+  }, [user?.email, isChecking]);
 
   useEffect(() => {
     if (provisionState !== "pending") return;
-    const interval = setInterval(checkInstanceReady, 10000);
+    const interval = setInterval(checkInstanceReady, 30000);
     return () => clearInterval(interval);
-  }, [provisionState, user?.email]);
+  }, [provisionState, checkInstanceReady]);
 
   if (statusLoading || provisionState === "provisioning") {
     return (
@@ -163,12 +198,27 @@ export function OpenClawApp() {
           </p>
           <Button
             onClick={checkInstanceReady}
+            disabled={isChecking}
             variant="outline"
             className="gap-2"
           >
-            <RefreshCw className="w-4 h-4" />
-            Check Now
+            {isChecking ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            {isChecking ? "Checking…" : "Check Now"}
           </Button>
+          {checkMessage && (
+            <p className="text-sm text-muted-foreground mt-3 animate-in fade-in duration-300">
+              {checkMessage}
+            </p>
+          )}
+          {relativeTime && !checkMessage && (
+            <p className="text-xs text-muted-foreground/60 mt-3">
+              Last checked: {relativeTime}
+            </p>
+          )}
         </div>
       </div>
     );
