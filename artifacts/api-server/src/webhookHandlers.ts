@@ -60,11 +60,12 @@ export class WebhookHandlers {
 
     try {
       const stripe = await getUncachableStripeClient();
-      const event = stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET || "",
-      );
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!webhookSecret) {
+        console.warn("[webhook] STRIPE_WEBHOOK_SECRET not set — skipping signature verification");
+        return;
+      }
+      const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 
       if (
         event.type === "customer.subscription.created" ||

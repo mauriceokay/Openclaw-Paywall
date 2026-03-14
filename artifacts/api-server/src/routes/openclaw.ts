@@ -112,16 +112,15 @@ router.get("/instance", async (req, res) => {
 });
 
 router.get("/agent", async (req, res) => {
-  const { userId, email } = req.query as { userId?: string; email?: string };
-  const id = userId || email;
-  if (!id) {
-    return res.status(400).json({ error: "userId or email is required" });
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
   }
 
   const existing = await db
     .select()
     .from(userAgentsTable)
-    .where(eq(userAgentsTable.userId, id))
+    .where(eq(userAgentsTable.userId, sessionEmail))
     .limit(1);
 
   if (existing.length === 0) {
@@ -129,17 +128,6 @@ router.get("/agent", async (req, res) => {
   }
 
   return res.json({ agent: existing[0] });
-});
-
-router.get("/agents", async (_req, res) => {
-  try {
-    const agents = await db.select().from(userAgentsTable);
-    return res.json(agents);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Failed to list agents";
-    console.error("[openclaw] list agents error:", message);
-    return res.status(500).json({ error: message });
-  }
 });
 
 export default router;
