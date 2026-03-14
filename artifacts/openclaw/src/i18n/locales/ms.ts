@@ -137,7 +137,7 @@ const ms = {
     step2Desc: "Pilih cara OpenClaw mendapatkan model AI. Anda boleh mengubah ini bila-bila masa dari papan pemuka anda.",
     byokTitle: "Bawa Kunci Anda Sendiri",
     byokDesc: "Sambungkan kunci API OpenAI, Anthropic atau Gemini anda. Bayar penyedia secara terus pada kadar mereka — tiada markup.",
-    byokFeatures: ["Kawalan penuh ke atas pilihan model", "Bayar penyedia pada kos", "Tiada markup penggunaan"],
+    byokFeatures: ["Kawalan penuh ke atas pilihan model", "Bayar penyedia pada kos"],
     paygTitle: "Bayar Mengikut Penggunaan",
     paygDesc: "Kami menguruskan segalanya. Gunakan OpenClaw serta-merta — penggunaan berukur dibilkan secara automatik ke langganan anda.",
     paygFeatures: ["Tiada konfigurasi", "Berfungsi serta-merta", "Penggunaan dijejak di papan pemuka"],

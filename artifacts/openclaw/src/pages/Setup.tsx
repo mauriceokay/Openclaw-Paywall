@@ -424,13 +424,20 @@ export function Setup() {
                   )}
                 </button>
 
+                <div className="relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-flex items-center gap-1.5 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-green-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse inline-block" />
+                      Recommended
+                    </span>
+                  </div>
                 <button
                   type="button"
                   onClick={() => setSelectedMode("payg")}
-                  className={`text-left rounded-2xl border transition-all duration-200 p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 focus:outline-none ${
+                  className={`w-full text-left rounded-2xl border transition-all duration-200 p-6 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/10 focus:outline-none ${
                     selectedMode === "payg"
-                      ? "border-primary ring-2 ring-primary bg-primary/5"
-                      : "border-white/10 bg-card/40 backdrop-blur-xl"
+                      ? "border-green-500 ring-2 ring-green-500 bg-green-500/5"
+                      : "border-green-500/30 bg-card/40 backdrop-blur-xl"
                   }`}
                 >
                   <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4">
@@ -447,11 +454,12 @@ export function Setup() {
                     ))}
                   </ul>
                   {selectedMode === "payg" && (
-                    <div className="mt-4 pt-4 border-t border-white/10 text-xs text-primary font-semibold flex items-center gap-1">
+                    <div className="mt-4 pt-4 border-t border-white/10 text-xs text-green-400 font-semibold flex items-center gap-1">
                       {s.selected} <ChevronRight className="w-3 h-3" />
                     </div>
                   )}
                 </button>
+                </div>
               </motion.div>
 
               {selectedMode === "byok" && (

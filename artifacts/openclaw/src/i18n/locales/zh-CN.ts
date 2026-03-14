@@ -137,7 +137,7 @@ const zhCN = {
     step2Desc: "选择 OpenClaw 获取 AI 模型的方式。您可以随时在控制台中更改。",
     byokTitle: "使用自己的密钥",
     byokDesc: "连接您现有的 OpenAI、Anthropic 或 Gemini API 密钥。直接按提供商费率付费，无加价。",
-    byokFeatures: ["完全控制模型选择", "按成本付费给提供商", "无使用加价"],
+    byokFeatures: ["完全控制模型选择", "按成本付费给提供商"],
     paygTitle: "按量付费",
     paygDesc: "我们处理一切。立即使用 OpenClaw — 计量使用量自动计入您的订阅。",
     paygFeatures: ["零配置", "立即可用", "用量在控制台中追踪"],

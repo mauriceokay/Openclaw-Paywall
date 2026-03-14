@@ -137,7 +137,7 @@ const fr = {
     step2Desc: "Choisissez comment OpenClaw accède aux modèles IA. Vous pouvez modifier cela à tout moment depuis votre tableau de bord.",
     byokTitle: "Apportez votre propre clé",
     byokDesc: "Connectez votre clé API OpenAI, Anthropic ou Gemini. Payez les fournisseurs directement à leurs tarifs — sans majoration.",
-    byokFeatures: ["Contrôle total sur le choix du modèle", "Payez les fournisseurs au coût réel", "Aucune majoration d'utilisation"],
+    byokFeatures: ["Contrôle total sur le choix du modèle", "Payez les fournisseurs au coût réel"],
     paygTitle: "Paiement à l'usage",
     paygDesc: "Nous gérons tout. Utilisez OpenClaw instantanément — l'utilisation est facturée automatiquement sur votre abonnement.",
     paygFeatures: ["Zéro configuration", "Fonctionne immédiatement", "Utilisation suivie sur le tableau de bord"],

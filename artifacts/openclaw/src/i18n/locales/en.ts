@@ -137,7 +137,7 @@ const en = {
     step2Desc: "Choose how OpenClaw sources its AI models. You can change this any time from your dashboard.",
     byokTitle: "Bring Your Own Key",
     byokDesc: "Connect your existing OpenAI, Anthropic, or Gemini API key. Pay providers directly at their rates — no markup.",
-    byokFeatures: ["Full control over model choice", "Pay providers at cost", "No usage markup"],
+    byokFeatures: ["Full control over model choice", "Pay providers at cost"],
     paygTitle: "Pay As You Go",
     paygDesc: "We handle everything. Use OpenClaw instantly — metered usage is billed to your subscription automatically.",
     paygFeatures: ["Zero configuration", "Works immediately", "Usage tracked on dashboard"],

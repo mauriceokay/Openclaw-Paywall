@@ -137,7 +137,7 @@ const de = {
     step2Desc: "Wähle, wie OpenClaw seine KI-Modelle bezieht. Du kannst dies jederzeit in deinem Dashboard ändern.",
     byokTitle: "Eigenen Schlüssel mitbringen",
     byokDesc: "Verbinde deinen bestehenden OpenAI-, Anthropic- oder Gemini-API-Schlüssel. Zahle Anbieter direkt zu ihren Preisen — kein Aufschlag.",
-    byokFeatures: ["Volle Kontrolle über die Modellwahl", "Zahle Anbieter zum Selbstkostenpreis", "Kein Nutzungsaufschlag"],
+    byokFeatures: ["Volle Kontrolle über die Modellwahl", "Zahle Anbieter zum Selbstkostenpreis"],
     paygTitle: "Pay As You Go",
     paygDesc: "Wir kümmern uns um alles. Nutze OpenClaw sofort — die Nutzung wird automatisch deinem Abonnement berechnet.",
     paygFeatures: ["Keine Konfiguration", "Funktioniert sofort", "Nutzung im Dashboard verfolgt"],

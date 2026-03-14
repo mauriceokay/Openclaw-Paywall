@@ -137,7 +137,7 @@ const ko = {
     step2Desc: "OpenClaw가 AI 모델을 가져오는 방법을 선택하세요. 대시보드에서 언제든지 변경할 수 있습니다.",
     byokTitle: "본인 API 키 사용",
     byokDesc: "기존 OpenAI, Anthropic 또는 Gemini API 키를 연결하세요. 공급자에게 직접 요금을 지불합니다 — 추가 마진 없음.",
-    byokFeatures: ["모델 선택에 대한 완전한 제어", "원가로 공급자에게 지불", "사용량 추가 요금 없음"],
+    byokFeatures: ["모델 선택에 대한 완전한 제어", "원가로 공급자에게 지불"],
     paygTitle: "사용한 만큼 지불",
     paygDesc: "모든 것을 처리해 드립니다. 즉시 OpenClaw를 사용하세요 — 계량 사용량이 구독에 자동으로 청구됩니다.",
     paygFeatures: ["설정 불필요", "즉시 사용 가능", "대시보드에서 사용량 추적"],
