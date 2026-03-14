@@ -10,6 +10,7 @@
     "build:railway": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/openclaw run build && pnpm --filter @workspace/api-server run build"
   },
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "devDependencies": {
     "prettier": "^3.8.1",
     "typescript": "~5.9.2"
