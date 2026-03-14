@@ -115,7 +115,7 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-2 border-t border-white/5 mt-2 flex flex-col gap-2">
-              <div className="px-2">
+              <div className="px-4">
                 <LanguageSwitcher />
               </div>
               {user ? (

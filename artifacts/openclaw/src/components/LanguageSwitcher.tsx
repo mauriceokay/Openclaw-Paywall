@@ -6,6 +6,7 @@ export default function LanguageSwitcher() {
   const { locale, setLocale } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [openLeft, setOpenLeft] = useState(false);
 
   const current = SUPPORTED_LANGUAGES.find((l) => l.code === locale) ?? SUPPORTED_LANGUAGES[0];
 
@@ -19,10 +20,18 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  function handleToggle() {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setOpenLeft(rect.left < 200);
+    }
+    setOpen((v) => !v);
+  }
+
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         style={{
           display: "flex",
           alignItems: "center",
@@ -53,11 +62,12 @@ export default function LanguageSwitcher() {
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",
-            right: 0,
+            ...(openLeft ? { left: 0 } : { right: 0 }),
             background: "#1a1a2e",
             border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: "12px",
             minWidth: "180px",
+            maxWidth: "calc(100vw - 24px)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             zIndex: 1000,
             overflow: "hidden",
