@@ -77,6 +77,19 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
 
 app.use("/api/gateway", gatewayHttpProxy);
 
+// Inject verified user identity for proxy auth mode.
+// Strip any client-supplied X-OC-User-* headers first to prevent forgery,
+// then re-inject based on the validated session cookie.
+app.use("/mc-api", cookieParser(), (req, _res, next) => {
+  delete req.headers["x-oc-user-email"];
+  delete req.headers["x-oc-user-name"];
+  const sessionEmail = getSessionEmail(req);
+  if (sessionEmail) {
+    req.headers["x-oc-user-email"] = sessionEmail;
+  }
+  next();
+});
+
 const mcBackendProxy = createProxyMiddleware<express.Request, express.Response>({
   target: "http://127.0.0.1:8001",
   changeOrigin: true,

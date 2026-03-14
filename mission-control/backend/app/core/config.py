@@ -108,6 +108,8 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "LOCAL_AUTH_TOKEN must be at least 50 characters and non-placeholder when AUTH_MODE=local.",
                 )
+        # AuthMode.PROXY requires no additional secrets — identity is forwarded
+        # via the X-OC-User-Email header injected by the trusted API server proxy.
 
         base_url = self.base_url.strip()
         if not base_url:

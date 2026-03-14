@@ -9,6 +9,30 @@ import { useAuth } from "@/context/AuthContext";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
+// Base rate per AI message in USD before provider multiplier
+const BASE_RATE_PER_MESSAGE = 0.01;
+
+// Anthropic models get a 0.5x fee; all other providers get 1.5x
+const PROVIDER_MULTIPLIERS: Record<string, number> = {
+  anthropic: 0.5,
+  openai: 1.5,
+  gemini: 1.5,
+};
+
+function getProviderMultiplier(): number {
+  const provider = localStorage.getItem("oc_api_provider") ?? "anthropic";
+  return PROVIDER_MULTIPLIERS[provider] ?? 1.5;
+}
+
+function getProviderLabel(): string {
+  const provider = localStorage.getItem("oc_api_provider") ?? "anthropic";
+  return provider.charAt(0).toUpperCase() + provider.slice(1);
+}
+
+function isAnthropicProvider(): boolean {
+  return (localStorage.getItem("oc_api_provider") ?? "anthropic") === "anthropic";
+}
+
 interface UsageData {
   subscriptionId: string;
   planName: string | null;
@@ -50,7 +74,8 @@ export function Usage() {
   const { data, isLoading, error } = useQuery<UsageData>({
     queryKey: ["usage", user?.email],
     queryFn: async () => {
-      const url = `${BASE_URL}/api/subscription/usage?email=${encodeURIComponent(user!.email)}`;
+      const provider = localStorage.getItem("oc_api_provider") ?? "anthropic";
+      const url = `${BASE_URL}/api/subscription/usage?email=${encodeURIComponent(user!.email)}&provider=${encodeURIComponent(provider)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(await res.text());
       return res.json();
@@ -101,7 +126,13 @@ export function Usage() {
           </Card>
         )}
 
-        {data && (
+        {data && (() => {
+          const multiplier = getProviderMultiplier();
+          const providerLabel = getProviderLabel();
+          const isAnthropicUser = isAnthropicProvider();
+          const ratePerMessage = BASE_RATE_PER_MESSAGE * multiplier;
+
+          return (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,6 +186,24 @@ export function Usage() {
               </Card>
             </div>
 
+            {/* Provider fee badge */}
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${
+              isAnthropicUser
+                ? "bg-blue-500/10 border-blue-500/20 text-blue-300"
+                : "bg-amber-500/10 border-amber-500/20 text-amber-300"
+            }`}>
+              <Zap className="w-4 h-4 shrink-0" />
+              <span>
+                <span className="font-semibold">{providerLabel} pricing:</span>{" "}
+                {isAnthropicUser
+                  ? "0.5× fee — Anthropic models get a 50% discount on PAYG rates."
+                  : "1.5× fee — Non-Anthropic models carry a 50% surcharge on PAYG rates."}
+              </span>
+              <span className="ml-auto font-mono font-bold shrink-0">
+                ${ratePerMessage.toFixed(4)}/msg
+              </span>
+            </div>
+
             {/* Metered usage */}
             {data.usageItems.length > 0 ? (
               <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
@@ -165,10 +214,18 @@ export function Usage() {
                   <CardTitle>This billing period</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {data.usageItems.map((item, i) => (
+                  {data.usageItems.map((item, i) => {
+                    const estimatedCost = item.totalUsage * ratePerMessage;
+                    return (
                     <div key={i}>
                       <div className="flex justify-between items-end mb-2">
-                        <span className="text-sm font-medium">{item.metric}</span>
+                        <div>
+                          <span className="text-sm font-medium">{item.metric}</span>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Est. cost: <span className="text-foreground font-semibold">${estimatedCost.toFixed(4)}</span>
+                            <span className="ml-1 opacity-60">({multiplier}× rate)</span>
+                          </p>
+                        </div>
                         <span className="text-2xl font-bold text-primary tabular-nums">
                           {item.totalUsage.toLocaleString()}
                           <span className="text-sm font-normal text-muted-foreground ml-1">{item.unit}</span>
@@ -183,7 +240,8 @@ export function Usage() {
                         />
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
             ) : (
@@ -217,7 +275,8 @@ export function Usage() {
               </Link>
             </div>
           </motion.div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
