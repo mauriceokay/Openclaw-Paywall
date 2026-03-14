@@ -2,6 +2,7 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { useEffect, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 import { isLikelyValidClerkPublishableKey } from "@/auth/clerkKey";
 import {
@@ -9,9 +10,26 @@ import {
   getLocalAuthToken,
   isLocalAuthMode,
 } from "@/auth/localAuth";
+import { isProxyAuthMode, getProxyUser } from "@/auth/proxyAuth";
 import { LocalAuthLogin } from "@/components/organisms/LocalAuthLogin";
 
+function ProxyAuthGuard({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const user = getProxyUser();
+
+  useEffect(() => {
+    if (!user) {
+      // No main-app session found — redirect back to the main app sign-up
+      router.replace("/signup");
+    }
+  }, [user, router]);
+
+  if (!user) return null;
+  return <>{children}</>;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const proxyMode = isProxyAuthMode();
   const localMode = isLocalAuthMode();
 
   useEffect(() => {
@@ -19,6 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearLocalAuthToken();
     }
   }, [localMode]);
+
+  if (proxyMode) {
+    return <ProxyAuthGuard>{children}</ProxyAuthGuard>;
+  }
 
   if (localMode) {
     if (!getLocalAuthToken()) {

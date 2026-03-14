@@ -49,6 +49,7 @@ SESSION_DEP = Depends(get_session)
 LOCAL_AUTH_USER_ID = "local-auth-user"
 LOCAL_AUTH_EMAIL = "admin@home.local"
 LOCAL_AUTH_NAME = "Local User"
+PROXY_AUTH_ID_PREFIX = "proxy-"
 
 
 class ClerkTokenPayload(BaseModel):
@@ -427,6 +428,49 @@ async def _get_or_create_local_user(session: AsyncSession) -> User:
     return user
 
 
+async def _get_or_create_proxy_user(session: AsyncSession, *, email: str, name: str) -> User:
+    proxy_user_id = f"{PROXY_AUTH_ID_PREFIX}{email}"
+    defaults: dict[str, object] = {"email": email, "name": name}
+    user, _created = await crud.get_or_create(
+        session,
+        User,
+        clerk_user_id=proxy_user_id,
+        defaults=defaults,
+    )
+    changed = False
+    if user.email != email:
+        user.email = email
+        changed = True
+    if name and not user.name:
+        user.name = name
+        changed = True
+    if changed:
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+
+    from app.services.organizations import ensure_member_for_user
+
+    await ensure_member_for_user(session, user)
+    return user
+
+
+async def _resolve_proxy_auth_context(
+    *,
+    request: Request,
+    session: AsyncSession,
+    required: bool,
+) -> AuthContext | None:
+    email = request.headers.get("X-OC-User-Email", "").strip().lower()
+    name = request.headers.get("X-OC-User-Name", "").strip()
+    if not email:
+        if required:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        return None
+    user = await _get_or_create_proxy_user(session, email=email, name=name or email)
+    return AuthContext(actor_type="user", user=user)
+
+
 async def _resolve_local_auth_context(
     *,
     request: Request,
@@ -458,6 +502,16 @@ async def get_auth_context(
     session: AsyncSession = SESSION_DEP,
 ) -> AuthContext:
     """Resolve required authenticated user context for the configured auth mode."""
+    if settings.auth_mode == AuthMode.PROXY:
+        proxy_auth = await _resolve_proxy_auth_context(
+            request=request,
+            session=session,
+            required=True,
+        )
+        if proxy_auth is None:  # pragma: no cover
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        return proxy_auth
+
     if settings.auth_mode == AuthMode.LOCAL:
         local_auth = await _resolve_local_auth_context(
             request=request,
@@ -502,6 +556,12 @@ async def get_auth_context_optional(
     """Resolve user context if available, otherwise return `None`."""
     if request.headers.get("X-Agent-Token"):
         return None
+    if settings.auth_mode == AuthMode.PROXY:
+        return await _resolve_proxy_auth_context(
+            request=request,
+            session=session,
+            required=False,
+        )
     if settings.auth_mode == AuthMode.LOCAL:
         return await _resolve_local_auth_context(
             request=request,

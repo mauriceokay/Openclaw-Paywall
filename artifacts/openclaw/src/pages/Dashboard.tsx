@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -42,6 +42,17 @@ export function Dashboard() {
   const { t, locale } = useLanguage();
   const d = t.dashboard;
   const [, navigate] = useLocation();
+
+  // Establish a server-side session cookie so Mission Control can identify the user.
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch(`${BASE_URL}/api/session/establish`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email }),
+      credentials: "include",
+    }).catch(() => {/* best-effort */});
+  }, [user?.email]);
 
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],

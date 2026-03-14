@@ -12,6 +12,9 @@ import { GlobalLoader } from "@/components/ui/global-loader";
 export const metadata: Metadata = {
   title: "OpenClaw Mission Control",
   description: "A calm command center for every task.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 const bodyFont = IBM_Plex_Sans({

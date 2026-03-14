@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
+import { setSessionCookie } from "../sessionAuth";
 
 const router: IRouter = Router();
 
@@ -17,11 +18,23 @@ router.post("/users/register", async (req: Request, res: Response) => {
       ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
       RETURNING id, name, email, created_at
     `);
+    setSessionCookie(res, email.trim().toLowerCase());
     return res.status(200).json(result.rows[0]);
   } catch (err: any) {
     console.error("User register error:", err.message);
     return res.status(500).json({ error: "Failed to register user" });
   }
+});
+
+// Called by the main app to establish/refresh the session cookie so that
+// Mission Control's proxy auth can identify the user server-side.
+router.post("/session/establish", async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email?.trim()) {
+    return res.status(400).json({ error: "email required" });
+  }
+  setSessionCookie(res, email.trim().toLowerCase());
+  return res.status(200).json({ ok: true });
 });
 
 router.get("/users/me", async (req: Request, res: Response) => {

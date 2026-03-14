@@ -43,7 +43,7 @@ export function setSessionCookie(res: Response, email: string): void {
     sameSite: "strict",
     secure: true,
     maxAge: SESSION_MAX_AGE,
-    path: "/api",
+    path: "/",
   });
 }
 

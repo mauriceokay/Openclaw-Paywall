@@ -1,4 +1,5 @@
 import { getLocalAuthToken, isLocalAuthMode } from "@/auth/localAuth";
+import { isProxyAuthMode, getProxyUser } from "@/auth/proxyAuth";
 import { getApiBaseUrl } from "@/lib/api-base";
 
 type ClerkSession = {
@@ -47,7 +48,13 @@ export const customFetch = async <T>(
   if (hasBody && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  if (isLocalAuthMode() && !headers.has("Authorization")) {
+  if (isProxyAuthMode()) {
+    const user = getProxyUser();
+    if (user?.email) {
+      headers.set("X-OC-User-Email", user.email);
+      headers.set("X-OC-User-Name", user.name);
+    }
+  } else if (isLocalAuthMode() && !headers.has("Authorization")) {
     const token = getLocalAuthToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
