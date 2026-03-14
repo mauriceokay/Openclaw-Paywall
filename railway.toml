@@ -2,6 +2,9 @@
 builder = "nixpacks"
 buildCommand = "pnpm install --frozen-lockfile && pnpm run build:railway"
 
+[build.nixpacksPlan.variables]
+NODE_VERSION = "20"
+
 [deploy]
 startCommand = "node artifacts/api-server/dist/index.mjs"
 healthcheckPath = "/health"
