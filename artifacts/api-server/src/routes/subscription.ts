@@ -59,31 +59,29 @@ router.get("/subscription/status", async (req, res) => {
       return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
 
-    const sub = await storage.getSubscriptionByCustomerId((customer as any).id);
+    const sub = await storage.getSubscriptionByCustomerId(customer.id);
     if (!sub) {
       return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
 
-    const s = sub as any;
-    const items = s.items as any;
     let planName: string | null = null;
     try {
-      const firstItem = Array.isArray(items?.data) ? items.data[0] : null;
+      const firstItem = Array.isArray(sub.items?.data) ? sub.items.data[0] : null;
       planName = firstItem?.plan?.nickname || firstItem?.price?.nickname || null;
     } catch {}
 
-    const periodEnd = s.current_period_end
-      ? new Date(Number(s.current_period_end) * 1000).toISOString()
+    const periodEnd = sub.current_period_end
+      ? new Date(Number(sub.current_period_end) * 1000).toISOString()
       : null;
 
     return res.json(
       GetSubscriptionStatusResponse.parse({
         hasActiveSubscription: true,
-        subscriptionId: s.id,
+        subscriptionId: sub.id,
         planName,
-        status: s.status,
+        status: sub.status,
         currentPeriodEnd: periodEnd,
-        cancelAtPeriodEnd: s.cancel_at_period_end,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
       }),
     );
   } catch (err) {
@@ -105,7 +103,7 @@ router.post("/subscription/checkout", async (req, res) => {
     let customerId: string;
     const existingCustomer = await storage.getCustomerByEmail(email);
     if (existingCustomer) {
-      customerId = (existingCustomer as any).id;
+      customerId = existingCustomer.id;
     } else {
       const customer = await stripe.customers.create({
         email,
@@ -148,7 +146,7 @@ router.post("/subscription/portal", async (req, res) => {
     const host = process.env.REPLIT_DOMAINS?.split(",")[0] || req.get("host") || "localhost";
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: (customer as any).id,
+      customer: customer.id,
       return_url: `https://${host}/dashboard`,
     });
 

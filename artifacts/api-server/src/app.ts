@@ -110,8 +110,8 @@ app.use("/api/instance-proxy", async (req, res, next) => {
       selfHandleResponse: true,
       pathRewrite: { "^/api/instance-proxy": "" },
       on: {
-        proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, proxyResExpress) => {
-          stripIframeHeaders(proxyResExpress as unknown as express.Response);
+        proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+          stripIframeHeaders(expressRes as express.Response);
 
           const contentType = (proxyRes.headers["content-type"] ?? "") as string;
           if (contentType.includes("text/html")) {
@@ -129,8 +129,9 @@ app.use("/api/instance-proxy", async (req, res, next) => {
     });
 
     return proxy(req, res, next);
-  } catch (err: any) {
-    console.error("[instance-proxy] error:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Proxy error";
+    console.error("[instance-proxy] error:", message);
     return res.status(500).json({ error: "Proxy error" });
   }
 });

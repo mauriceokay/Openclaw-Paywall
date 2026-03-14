@@ -19,12 +19,17 @@ router.post("/provision", async (req, res) => {
     return res.status(400).json({ error: "userId or email is required" });
   }
 
+  const existingSession = getSessionEmail(req);
+  if (existingSession && existingSession !== id) {
+    return res.status(403).json({ error: "Session identity mismatch" });
+  }
+
   const customer = await storage.getCustomerByEmail(id);
   if (!customer) {
     return res.status(403).json({ error: "No active customer found for this email" });
   }
 
-  const sub = await storage.getSubscriptionByCustomerId((customer as any).id);
+  const sub = await storage.getSubscriptionByCustomerId(customer.id);
   if (!sub) {
     return res.status(403).json({ error: "Active subscription required" });
   }
@@ -69,22 +74,30 @@ router.post("/provision", async (req, res) => {
     setSessionCookie(res, id);
     console.log(`[openclaw] provisioned agent ${agentName} for user ${id}`);
     return res.json({ agent, provisioned: true });
-  } catch (err: any) {
-    console.error("[openclaw] provision error:", err.message);
-    return res.status(500).json({ error: err.message || "Provisioning failed" });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Provisioning failed";
+    console.error("[openclaw] provision error:", message);
+    return res.status(500).json({ error: message });
   }
 });
 
 router.get("/instance", async (req, res) => {
   const sessionEmail = getSessionEmail(req);
-  if (!sessionEmail) {
-    return res.status(401).json({ error: "Authentication required" });
+  const queryId = (req.query.userId || req.query.email) as string | undefined;
+
+  const id = sessionEmail || queryId;
+  if (!id) {
+    return res.status(401).json({ error: "Authentication required (session cookie or userId/email query param)" });
+  }
+
+  if (sessionEmail && queryId && sessionEmail !== queryId) {
+    return res.status(403).json({ error: "Session identity mismatch" });
   }
 
   const existing = await db
     .select()
     .from(userAgentsTable)
-    .where(eq(userAgentsTable.userId, sessionEmail))
+    .where(eq(userAgentsTable.userId, id))
     .limit(1);
 
   if (existing.length === 0) {
@@ -122,9 +135,10 @@ router.get("/agents", async (_req, res) => {
   try {
     const agents = await db.select().from(userAgentsTable);
     return res.json(agents);
-  } catch (err: any) {
-    console.error("[openclaw] list agents error:", err.message);
-    return res.status(500).json({ error: "Failed to list agents" });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to list agents";
+    console.error("[openclaw] list agents error:", message);
+    return res.status(500).json({ error: message });
   }
 });
 

@@ -1,6 +1,21 @@
 import { sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 
+export interface StripeCustomerRow {
+  id: string;
+  email: string;
+  deleted?: boolean;
+}
+
+export interface StripeSubscriptionRow {
+  id: string;
+  customer: string;
+  status: string;
+  current_period_end?: number;
+  cancel_at_period_end?: boolean;
+  items?: { data?: Array<{ plan?: { nickname?: string }; price?: { nickname?: string } }> };
+}
+
 export class Storage {
   async listProductsWithPrices(active = true) {
     const result = await db.execute(
@@ -30,25 +45,25 @@ export class Storage {
     return result.rows;
   }
 
-  async getSubscriptionByCustomerId(customerId: string) {
+  async getSubscriptionByCustomerId(customerId: string): Promise<StripeSubscriptionRow | null> {
     const result = await db.execute(
       sql`SELECT * FROM stripe.subscriptions WHERE customer = ${customerId} AND status IN ('active', 'trialing') ORDER BY created DESC LIMIT 1`,
     );
-    return result.rows[0] || null;
+    return (result.rows[0] as StripeSubscriptionRow) || null;
   }
 
-  async getSubscription(subscriptionId: string) {
+  async getSubscription(subscriptionId: string): Promise<StripeSubscriptionRow | null> {
     const result = await db.execute(
       sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`,
     );
-    return result.rows[0] || null;
+    return (result.rows[0] as StripeSubscriptionRow) || null;
   }
 
-  async getCustomerByEmail(email: string) {
+  async getCustomerByEmail(email: string): Promise<StripeCustomerRow | null> {
     const result = await db.execute(
       sql`SELECT * FROM stripe.customers WHERE email = ${email} AND deleted IS NOT TRUE LIMIT 1`,
     );
-    return result.rows[0] || null;
+    return (result.rows[0] as StripeCustomerRow) || null;
   }
 }
 
