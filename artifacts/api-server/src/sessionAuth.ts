@@ -2,7 +2,10 @@ import crypto from "crypto";
 import type { Request, Response, NextFunction } from "express";
 
 const SESSION_COOKIE = "__oc_session";
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required but was not provided.");
+}
+const SESSION_SECRET = process.env.SESSION_SECRET;
 const SESSION_MAX_AGE = 24 * 60 * 60 * 1000;
 
 function sign(payload: string): string {
@@ -18,7 +21,7 @@ function createSessionToken(email: string): string {
   return `${payload}|${signature}`;
 }
 
-function verifySessionToken(token: string): string | null {
+export function verifySessionToken(token: string): string | null {
   const parts = token.split("|");
   if (parts.length !== 3) return null;
 

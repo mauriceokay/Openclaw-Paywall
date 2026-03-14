@@ -1,27 +1,33 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { conversations, messages } from "@workspace/db/schema";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
+import { requireSession } from "../sessionAuth";
 
 const router: IRouter = Router();
 
+router.use(requireSession);
+
 const SYSTEM_PROMPT = `You are OpenClaw AI, a powerful personal AI assistant. You help users with tasks, answer questions, write code, analyze data, and engage in thoughtful conversation. Be concise, helpful, and friendly. Format your responses using markdown when it improves readability (code blocks, lists, headers). Today's date is ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
 
-router.get("/anthropic/conversations", async (_req, res) => {
-  const rows = await db.select().from(conversations).orderBy(conversations.createdAt);
+router.get("/anthropic/conversations", async (req, res) => {
+  const userId = (req as any).sessionEmail as string;
+  const rows = await db.select().from(conversations).where(eq(conversations.userId, userId)).orderBy(conversations.createdAt);
   res.json(rows);
 });
 
 router.post("/anthropic/conversations", async (req, res) => {
+  const userId = (req as any).sessionEmail as string;
   const { title = "New Conversation" } = req.body ?? {};
-  const [row] = await db.insert(conversations).values({ title }).returning();
+  const [row] = await db.insert(conversations).values({ userId, title }).returning();
   res.status(201).json(row);
 });
 
 router.get("/anthropic/conversations/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const [conv] = await db.select().from(conversations).where(eq(conversations.id, id));
+  const userId = (req as any).sessionEmail as string;
+  const id = req.params.id;
+  const [conv] = await db.select().from(conversations).where(and(eq(conversations.id, id), eq(conversations.userId, userId)));
   if (!conv) {
     res.status(404).json({ error: "Conversation not found" });
     return;
@@ -31,8 +37,9 @@ router.get("/anthropic/conversations/:id", async (req, res) => {
 });
 
 router.delete("/anthropic/conversations/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const [deleted] = await db.delete(conversations).where(eq(conversations.id, id)).returning();
+  const userId = (req as any).sessionEmail as string;
+  const id = req.params.id;
+  const [deleted] = await db.delete(conversations).where(and(eq(conversations.id, id), eq(conversations.userId, userId))).returning();
   if (!deleted) {
     res.status(404).json({ error: "Conversation not found" });
     return;
@@ -41,13 +48,20 @@ router.delete("/anthropic/conversations/:id", async (req, res) => {
 });
 
 router.get("/anthropic/conversations/:id/messages", async (req, res) => {
-  const id = Number(req.params.id);
+  const userId = (req as any).sessionEmail as string;
+  const id = req.params.id;
+  const [conv] = await db.select().from(conversations).where(and(eq(conversations.id, id), eq(conversations.userId, userId)));
+  if (!conv) {
+    res.status(404).json({ error: "Conversation not found" });
+    return;
+  }
   const msgs = await db.select().from(messages).where(eq(messages.conversationId, id)).orderBy(messages.createdAt);
   res.json(msgs);
 });
 
 router.post("/anthropic/conversations/:id/messages", async (req, res) => {
-  const convId = Number(req.params.id);
+  const userId = (req as any).sessionEmail as string;
+  const convId = req.params.id;
   const { content } = req.body ?? {};
 
   if (!content || typeof content !== "string") {
@@ -55,7 +69,7 @@ router.post("/anthropic/conversations/:id/messages", async (req, res) => {
     return;
   }
 
-  const [conv] = await db.select().from(conversations).where(eq(conversations.id, convId));
+  const [conv] = await db.select().from(conversations).where(and(eq(conversations.id, convId), eq(conversations.userId, userId)));
   if (!conv) {
     res.status(404).json({ error: "Conversation not found" });
     return;

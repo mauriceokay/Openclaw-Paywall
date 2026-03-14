@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { createServer } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { runMigrations } from "stripe-replit-sync";
@@ -6,6 +5,7 @@ import { db, pool } from "@workspace/db";
 import { userAgentsTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { getStripeSync } from "./stripeClient";
+import { verifySessionToken } from "./sessionAuth";
 import app from "./app";
 
 const rawPort = process.env["PORT"];
@@ -24,15 +24,21 @@ async function ensureSchema() {
   try {
     console.log("Ensuring database schema...");
     await pool.query(`
+      DO $$ BEGIN
+        CREATE TYPE message_role AS ENUM ('user', 'assistant');
+      EXCEPTION WHEN duplicate_object THEN null;
+      END $$;
+
       CREATE TABLE IF NOT EXISTS conversations (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT NOT NULL,
         title TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS messages (
-        id SERIAL PRIMARY KEY,
-        conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-        role TEXT NOT NULL,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        role message_role NOT NULL,
         content TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -44,6 +50,8 @@ async function ensureSchema() {
         instance_url TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE INDEX IF NOT EXISTS conversations_user_id_idx ON conversations(user_id);
+      CREATE INDEX IF NOT EXISTS messages_conversation_id_idx ON messages(conversation_id);
     `);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS app.users (
@@ -53,7 +61,6 @@ async function ensureSchema() {
         gateway_enabled BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
-      ALTER TABLE app.users ADD COLUMN IF NOT EXISTS gateway_enabled BOOLEAN NOT NULL DEFAULT true;
     `);
     console.log("Database schema ready");
   } catch (error) {
@@ -112,25 +119,7 @@ server.on("upgrade", async (req, socket, head) => {
       const sessionMatch = cookieHeader.match(/(?:^|;\s*)__oc_session=([^;]+)/);
       const sessionToken = sessionMatch ? decodeURIComponent(sessionMatch[1]) : null;
 
-      let sessionEmail: string | null = null;
-      if (sessionToken) {
-        const SESSION_SECRET = process.env.SESSION_SECRET || "";
-        const parts = sessionToken.split("|");
-        if (parts.length === 3) {
-          const [email, expiresAtStr, providedSig] = parts;
-          const payload = `${email}|${expiresAtStr}`;
-          const hmac = crypto.createHmac("sha256", SESSION_SECRET);
-          hmac.update(payload);
-          const expectedSig = hmac.digest("hex");
-          try {
-            if (crypto.timingSafeEqual(Buffer.from(providedSig, "hex"), Buffer.from(expectedSig, "hex"))) {
-              if (Date.now() <= parseInt(expiresAtStr, 10)) {
-                sessionEmail = email;
-              }
-            }
-          } catch {}
-        }
-      }
+      const sessionEmail = sessionToken ? verifySessionToken(sessionToken) : null;
 
       if (!sessionEmail) {
         socket.destroy();

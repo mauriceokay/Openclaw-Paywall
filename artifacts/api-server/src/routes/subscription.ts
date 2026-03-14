@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { storage } from "../storage";
 import { getUncachableStripeClient } from "../stripeClient";
+import { getSessionEmail } from "../sessionAuth";
 import {
   CreateCheckoutResponse,
   CreatePortalSessionResponse,
@@ -49,7 +50,8 @@ router.get("/products", async (_req, res) => {
 
 router.get("/subscription/status", async (req, res) => {
   try {
-    const email = req.query.email as string;
+    const sessionEmail = getSessionEmail(req);
+    const email = sessionEmail || (req.query.email as string);
     if (!email) {
       return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
     }
@@ -170,9 +172,10 @@ const BASE_RATE_PER_MESSAGE = 0.01; // USD per message before multiplier
 
 router.get("/subscription/usage", async (req, res) => {
   try {
-    const email = req.query.email as string;
+    const sessionEmail = getSessionEmail(req);
+    if (!sessionEmail) return res.status(401).json({ error: "Authentication required" });
+    const email = sessionEmail;
     const provider = (req.query.provider as string | undefined)?.toLowerCase() ?? "anthropic";
-    if (!email) return res.status(400).json({ error: "email is required" });
 
     const customer = await storage.getCustomerByEmail(email);
     if (!customer) return res.status(404).json({ error: "No customer found" });

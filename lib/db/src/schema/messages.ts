@@ -1,15 +1,17 @@
-import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 import { conversations } from "./conversations";
 
+export const messageRoleEnum = pgEnum("message_role", ["user", "assistant"]);
+
 export const messages = pgTable("messages", {
-  id: serial("id").primaryKey(),
-  conversationId: integer("conversation_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  conversationId: uuid("conversation_id")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
-  role: text("role").notNull(),
+  role: messageRoleEnum("role").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
