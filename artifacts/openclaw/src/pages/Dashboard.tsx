@@ -145,13 +145,13 @@ export function Dashboard() {
       canonicalPath="/dashboard"
       noindex
     />
-    <div className="min-h-screen pt-32 pb-24 bg-background">
-      <div className="max-w-5xl mx-auto px-6">
+    <div className="min-h-screen pt-20 md:pt-32 pb-12 md:pb-24 bg-background">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 md:mb-10">
           <div>
-            <h1 className="text-4xl font-display font-bold mb-2">{d.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-1 md:mb-2">{d.title}</h1>
             <p className="text-muted-foreground">
               {d.welcomeBack}{user?.name ? `, ${user.name}` : ""}. {d.gatewayOnline}
             </p>
@@ -181,9 +181,9 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, type: "spring" }}
-          className="mb-10"
+          className="mb-6 md:mb-10"
         >
-          <div className="relative rounded-2xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-[#F09819]/5 to-transparent p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_40px_rgba(255,81,47,0.1)]">
+          <div className="relative rounded-2xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-[#F09819]/5 to-transparent p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-[0_0_40px_rgba(255,81,47,0.1)]">
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-3xl shrink-0">
                 🦞
@@ -209,7 +209,7 @@ export function Dashboard() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-10">
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
               <CardDescription>{d.currentPlan}</CardDescription>
