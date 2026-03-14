@@ -159,9 +159,19 @@ router.post("/subscription/portal", async (req, res) => {
   }
 });
 
+// Fee multipliers per AI provider — Anthropic gets a 0.5x discount,
+// all other providers (OpenAI, Gemini, etc.) get a 1.5x surcharge.
+const PROVIDER_FEE_MULTIPLIERS: Record<string, number> = {
+  anthropic: 0.5,
+  openai: 1.5,
+  gemini: 1.5,
+};
+const BASE_RATE_PER_MESSAGE = 0.01; // USD per message before multiplier
+
 router.get("/subscription/usage", async (req, res) => {
   try {
     const email = req.query.email as string;
+    const provider = (req.query.provider as string | undefined)?.toLowerCase() ?? "anthropic";
     if (!email) return res.status(400).json({ error: "email is required" });
 
     const customer = await storage.getCustomerByEmail(email);
@@ -222,6 +232,9 @@ router.get("/subscription/usage", async (req, res) => {
       } catch {}
     }
 
+    const feeMultiplier = PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5;
+    const ratePerMessage = BASE_RATE_PER_MESSAGE * feeMultiplier;
+
     return res.json({
       subscriptionId: sub.id,
       planName,
@@ -231,6 +244,9 @@ router.get("/subscription/usage", async (req, res) => {
       currency,
       monthlyAmount: unitAmount ? unitAmount / 100 : null,
       usageItems,
+      feeMultiplier,
+      ratePerMessage,
+      provider,
     });
   } catch (err: any) {
     console.error("Error getting usage:", err);
