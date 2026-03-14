@@ -33,7 +33,16 @@ router.post("/gateway/control", async (req: Request, res: Response) => {
       `UPDATE app.users SET gateway_enabled = $1 WHERE email = $2 RETURNING gateway_enabled`,
       [enabled, email.trim().toLowerCase()]
     );
-    if (!result.rows[0]) return res.status(404).json({ error: "User not found" });
+    if (!result.rows[0]) {
+      const ins = await pool.query(
+        `INSERT INTO app.users (name, email, gateway_enabled)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (email) DO UPDATE SET gateway_enabled = EXCLUDED.gateway_enabled
+         RETURNING gateway_enabled`,
+        [email.trim(), email.trim().toLowerCase(), enabled]
+      );
+      return res.json({ enabled: ins.rows[0].gateway_enabled });
+    }
     return res.json({ enabled: result.rows[0].gateway_enabled });
   } catch (err: any) {
     console.error("Gateway control POST error:", err.message);

@@ -220,29 +220,71 @@ export function Dashboard() {
           transition={{ duration: 0.45, type: "spring" }}
           className="mb-6 md:mb-10"
         >
-          <div className="relative rounded-2xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-[#F09819]/5 to-transparent p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-[0_0_40px_rgba(255,81,47,0.1)]">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-3xl shrink-0">
-                🦞
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold font-display mb-1">{d.instanceTitle}</h2>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
-                  {d.instanceStatus}
+          <AnimatePresence mode="wait" initial={false}>
+            {gatewayEnabled ? (
+              <motion.div
+                key="gateway-on"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="relative rounded-2xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-[#F09819]/5 to-transparent p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-[0_0_40px_rgba(255,81,47,0.1)]"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-3xl shrink-0">🦞</div>
+                  <div>
+                    <h2 className="text-2xl font-bold font-display mb-1">{d.instanceTitle}</h2>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+                      {d.instanceStatus}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <Button
-              size="lg"
-              className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
-              onClick={() => navigate("/openclaw")}
-            >
-              <Zap className="w-5 h-5 mr-2" />
-              {d.openInstance}
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
+                <Button
+                  size="lg"
+                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
+                  onClick={() => navigate("/openclaw")}
+                >
+                  <Zap className="w-5 h-5 mr-2" />
+                  {d.openInstance}
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="gateway-off"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="relative rounded-2xl overflow-hidden border border-white/10 bg-card/20 p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-3xl shrink-0 grayscale opacity-50">🦞</div>
+                  <div>
+                    <h2 className="text-2xl font-bold font-display mb-1 text-muted-foreground">{d.instanceTitle}</h2>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-white/20 inline-block" />
+                      Gateway is turned off
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 px-8 text-lg font-bold border-white/15 hover:bg-white/5 rounded-xl group shrink-0"
+                  onClick={() => toggleMutation.mutate(true)}
+                  disabled={toggling}
+                >
+                  {toggling
+                    ? <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    : <Power className="w-5 h-5 mr-2 text-green-500" />
+                  }
+                  Turn Gateway On
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Stats */}
