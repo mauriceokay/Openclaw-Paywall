@@ -3,8 +3,10 @@
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
 >
+  <!-- Home -->
   <url>
     <loc>https://openclaw.cloud/</loc>
+    <lastmod>2025-03-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/" />
@@ -20,8 +22,10 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/" />
   </url>
 
+  <!-- Pricing -->
   <url>
     <loc>https://openclaw.cloud/pricing</loc>
+    <lastmod>2025-03-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/pricing" />
@@ -37,8 +41,29 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/pricing" />
   </url>
 
+  <!-- Signup -->
+  <url>
+    <loc>https://openclaw.cloud/signup</loc>
+    <lastmod>2025-03-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/signup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/signup" />
+  </url>
+
+  <!-- Blog index -->
   <url>
     <loc>https://openclaw.cloud/blog</loc>
+    <lastmod>2025-03-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog" />
@@ -54,39 +79,137 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog" />
   </url>
 
+  <!-- Blog: What is OpenClaw -->
   <url>
     <loc>https://openclaw.cloud/blog/what-is-openclaw</loc>
+    <lastmod>2025-03-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/what-is-openclaw" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/what-is-openclaw" />
   </url>
+
+  <!-- Blog: OpenClaw vs ChatGPT -->
   <url>
     <loc>https://openclaw.cloud/blog/openclaw-vs-chatgpt</loc>
+    <lastmod>2025-03-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-vs-chatgpt" />
   </url>
+
+  <!-- Blog: OpenClaw Setup Guide -->
   <url>
     <loc>https://openclaw.cloud/blog/openclaw-setup-guide</loc>
+    <lastmod>2025-03-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-setup-guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-setup-guide" />
   </url>
+
+  <!-- Blog: openclawd explained -->
   <url>
     <loc>https://openclaw.cloud/blog/openclawd-explained</loc>
+    <lastmod>2025-03-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclawd-explained" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclawd-explained" />
   </url>
+
+  <!-- Blog: Clawdbot vs Moltbot -->
   <url>
     <loc>https://openclaw.cloud/blog/clawdbot-vs-moltbot</loc>
+    <lastmod>2025-03-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/clawdbot-vs-moltbot" />
   </url>
+
+  <!-- Blog: OpenClaw Telegram Setup -->
   <url>
     <loc>https://openclaw.cloud/blog/openclaw-telegram-setup</loc>
+    <lastmod>2025-03-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-telegram-setup" />
   </url>
+
+  <!-- Blog: OpenClaw Privacy Guide -->
   <url>
     <loc>https://openclaw.cloud/blog/openclaw-privacy-guide</loc>
+    <lastmod>2025-03-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="de"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="ar"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="pl"      href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://openclaw.cloud/blog/openclaw-privacy-guide" />
   </url>
+
 </urlset>

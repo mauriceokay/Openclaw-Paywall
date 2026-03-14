@@ -154,17 +154,62 @@ export function BlogPost() {
     day: "numeric",
   });
 
-  const structuredData = {
+  const SITE_URL = "https://openclaw.cloud";
+
+  // Collect all FAQ sections across the post
+  const faqSections = post.content.filter((s) => s.type === "faq" && s.faqs?.length);
+
+  // Article structured data
+  const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
     headline: post.title,
     description: post.metaDescription,
+    image: `${SITE_URL}/opengraph.jpg`,
+    url: `${SITE_URL}/blog/${post.slug}`,
     datePublished: post.publishedAt,
-    author: { "@type": "Organization", name: "OpenClaw Cloud" },
-    publisher: { "@type": "Organization", name: "OpenClaw Cloud" },
+    dateModified: post.publishedAt,
+    author: {
+      "@type": "Organization",
+      name: "OpenClaw Cloud",
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "OpenClaw Cloud",
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+    },
     keywords: post.keywords.join(", "),
+    articleSection: post.category,
     inLanguage: locale,
   };
+
+  // BreadcrumbList structured data
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+    ],
+  };
+
+  // FAQPage structured data — only added when FAQs exist
+  const faqSchema = faqSections.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqSections.flatMap((s) =>
+      (s.faqs ?? []).map((faq) => ({
+        "@type": "Question",
+        name: faq.q,
+        acceptedAnswer: { "@type": "Answer", text: faq.a },
+      }))
+    ),
+  } : null;
 
   return (
     <>
@@ -176,9 +221,15 @@ export function BlogPost() {
         type="article"
         keywords={post.keywords.join(", ")}
         publishedAt={post.publishedAt}
+        articleSection={post.category}
+        articleTags={post.keywords}
       />
       <Helmet>
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        {faqSchema && (
+          <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        )}
       </Helmet>
 
       <div className="min-h-screen md:pt-32 pb-24">
