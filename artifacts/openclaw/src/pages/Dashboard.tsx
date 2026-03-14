@@ -20,6 +20,20 @@ import { SEOHead } from "@/components/SEOHead";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
+const PROVIDER_MODELS = {
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
+  anthropic: ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5"],
+  gemini: ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"],
+} as const;
+
+type Provider = keyof typeof PROVIDER_MODELS;
+
+function getValidModel(provider: Provider): string {
+  const stored = localStorage.getItem("oc_api_model");
+  if (stored && (PROVIDER_MODELS[provider] as readonly string[]).includes(stored)) return stored;
+  return PROVIDER_MODELS[provider][0];
+}
+
 export function Dashboard() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
@@ -40,8 +54,11 @@ export function Dashboard() {
 
   const portalMutation = useCreatePortalSession();
   const [portalError, setPortalError] = useState<string | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<"openai" | "anthropic" | "gemini">(
-    () => (localStorage.getItem("oc_api_provider") as "openai" | "anthropic" | "gemini") ?? "anthropic"
+  const [selectedProvider, setSelectedProvider] = useState<Provider>(
+    () => (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic"
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(
+    () => getValidModel((localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic")
   );
 
   const handleManageSubscription = () => {
@@ -231,8 +248,10 @@ export function Dashboard() {
                   {localStorage.getItem("oc_mode") ?? "not set"}
                 </span>
               </CardDescription>
-              <CardTitle className="text-2xl capitalize">
+              <CardTitle className="text-lg">
                 {selectedProvider === "openai" ? "OpenAI" : selectedProvider === "anthropic" ? "Anthropic" : "Gemini"}
+                <span className="text-muted-foreground font-normal"> · </span>
+                <span className="text-base text-muted-foreground font-normal">{selectedModel}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -244,6 +263,9 @@ export function Dashboard() {
                     onClick={() => {
                       setSelectedProvider(p);
                       localStorage.setItem("oc_api_provider", p);
+                      const newModel = PROVIDER_MODELS[p][0];
+                      setSelectedModel(newModel);
+                      localStorage.setItem("oc_api_model", newModel);
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                       selectedProvider === p
@@ -252,6 +274,25 @@ export function Dashboard() {
                     }`}
                   >
                     {p === "openai" ? "OpenAI" : p === "anthropic" ? "Anthropic" : "Gemini"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {PROVIDER_MODELS[selectedProvider].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setSelectedModel(m);
+                      localStorage.setItem("oc_api_model", m);
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                      selectedModel === m
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-white/10 text-muted-foreground hover:border-white/30"
+                    }`}
+                  >
+                    {m}
                   </button>
                 ))}
               </div>

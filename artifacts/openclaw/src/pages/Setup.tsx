@@ -11,6 +11,14 @@ import { Badge } from "@/components/ui/badge";
 type Mode = "byok" | "payg" | null;
 type Step = 1 | 2;
 
+const PROVIDER_MODELS = {
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
+  anthropic: ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5"],
+  gemini: ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"],
+} as const;
+
+type Provider = keyof typeof PROVIDER_MODELS;
+
 interface PlatformConfig {
   id: string;
   name: string;
@@ -64,7 +72,8 @@ export function Setup() {
   const [selectedMode, setSelectedMode] = useState<Mode>(null);
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useState<"openai" | "anthropic" | "gemini">("openai");
+  const [provider, setProvider] = useState<Provider>("openai");
+  const [selectedModel, setSelectedModel] = useState<string>(PROVIDER_MODELS.openai[0]);
   const [saved, setSaved] = useState(false);
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [platformInputs, setPlatformInputs] = useState<Record<string, Record<string, string>>>({});
@@ -122,6 +131,7 @@ export function Setup() {
     if (selectedMode === "byok" && apiKey) {
       localStorage.setItem("oc_api_key", apiKey);
       localStorage.setItem("oc_api_provider", provider);
+      localStorage.setItem("oc_api_model", selectedModel);
       localStorage.setItem("oc_mode", "byok");
     } else if (selectedMode === "payg") {
       localStorage.setItem("oc_mode", "payg");
@@ -457,7 +467,11 @@ export function Setup() {
                             <button
                               key={p}
                               type="button"
-                              onClick={() => setProvider(p)}
+                              onClick={() => {
+                                setProvider(p);
+                                const newModel = PROVIDER_MODELS[p][0];
+                                setSelectedModel(newModel);
+                              }}
                               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all capitalize ${
                                 provider === p
                                   ? "border-primary bg-primary/10 text-primary"
@@ -465,6 +479,26 @@ export function Setup() {
                               }`}
                             >
                               {p === "openai" ? "OpenAI" : p === "anthropic" ? "Anthropic" : "Gemini"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Model</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {PROVIDER_MODELS[provider].map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => setSelectedModel(m)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                                selectedModel === m
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-white/10 text-muted-foreground hover:border-white/30"
+                              }`}
+                            >
+                              {m}
                             </button>
                           ))}
                         </div>
