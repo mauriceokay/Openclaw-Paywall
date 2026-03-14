@@ -228,6 +228,11 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {(localStorage.getItem("oc_mode") ?? "").toLowerCase() === "payg" && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  <span className="text-orange-400 font-medium">Anthropic:</span> 1.5× &nbsp;·&nbsp; <span className="text-orange-400 font-medium">Others:</span> 2× API price
+                </p>
+              )}
               <Link href="/setup">
                 <span className="text-sm text-primary hover:underline cursor-pointer">Change setup →</span>
               </Link>

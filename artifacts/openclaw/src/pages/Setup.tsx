@@ -428,6 +428,13 @@ export function Setup() {
                       </li>
                     ))}
                   </ul>
+                  <div className="mt-4 pt-3 border-t border-white/10">
+                    <p className="text-xs font-semibold text-foreground/80 mb-1.5">Token Pricing</p>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p><span className="text-orange-400 font-medium">Anthropic</span> — 1.5× API price (+50% markup)</p>
+                      <p><span className="text-orange-400 font-medium">All other providers</span> — 2× API price</p>
+                    </div>
+                  </div>
                   {selectedMode === "payg" && (
                     <div className="mt-4 pt-4 border-t border-white/10 text-xs text-primary font-semibold flex items-center gap-1">
                       Selected <ChevronRight className="w-3 h-3" />
