@@ -95,9 +95,19 @@ OpenClaw Mission Control (abhi1693/openclaw-mission-control) is an AI agent orch
 
 ### Architecture
 - **Backend**: FastAPI (Python 3.12) on port 8001, uses the same PostgreSQL database
-- **Frontend**: Next.js 16 on port 3002 with `basePath: "/mission-control"`
+- **Frontend**: Next.js 16 on port 3002 (pinned) with `basePath: "/mission-control"`
 - **Auth**: `AUTH_MODE=local` with shared `LOCAL_AUTH_TOKEN` (64-char hex, stored as `MISSION_CONTROL_TOKEN` env var)
 - **DB**: `DB_AUTO_MIGRATE=true` runs Alembic migrations on startup
+
+### Required Secret
+- `MISSION_CONTROL_TOKEN` — Replit Secret, must be 50+ characters (hex recommended). Used as `LOCAL_AUTH_TOKEN` for the FastAPI backend. The frontend prompts for this token on the login page.
+
+### Environment Contract (workflow-injected)
+The backend workflow command injects these from the Replit runtime:
+- `DATABASE_URL` — constructed from `PGUSER`, `PGPASSWORD`, `PGHOST`, `PGPORT`, `PGDATABASE` (psycopg format)
+- `CORS_ORIGINS` — derived from `REPLIT_DOMAINS` (fallback `REPLIT_DEV_DOMAIN`)
+- `BASE_URL` — derived from `REPLIT_DOMAINS` (fallback `REPLIT_DEV_DOMAIN`) + `/mc-api`
+- `LOCAL_AUTH_TOKEN` — from `MISSION_CONTROL_TOKEN` Replit Secret
 
 ### Proxy Chain (dev mode)
 1. Browser → Vite dev server (port 20581) — Vite proxy config forwards `/mission-control` and `/mc-api` to API server
