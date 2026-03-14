@@ -11,6 +11,7 @@ import {
   Zap,
   BarChart2,
   Power,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -285,6 +286,36 @@ export function Dashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+        </motion.div>
+
+        {/* Mission Control */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1, type: "spring" }}
+          className="mb-6 md:mb-10"
+        >
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-card/30 p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-violet-500/15 flex items-center justify-center shrink-0">
+                <Rocket className="w-8 h-8 text-violet-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-display mb-1">Mission Control</h2>
+                <p className="text-sm text-muted-foreground">Manage agents, tasks, boards, and gateway orchestration</p>
+              </div>
+            </div>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-14 px-8 text-lg font-bold border-violet-500/30 hover:bg-violet-500/10 text-violet-300 rounded-xl group shrink-0"
+              onClick={() => window.open(`${BASE_URL}/mission-control`, "_blank")}
+            >
+              <Rocket className="w-5 h-5 mr-2" />
+              Open Dashboard
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </motion.div>
 
         {/* Stats */}

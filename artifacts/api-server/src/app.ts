@@ -77,6 +77,23 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
 
 app.use("/api/gateway", gatewayHttpProxy);
 
+const mcBackendProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: "http://127.0.0.1:8001",
+  changeOrigin: true,
+  pathRewrite: { "^/mc-api": "" },
+});
+
+app.use("/mc-api", mcBackendProxy);
+
+const mcFrontendProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: "http://127.0.0.1:3002",
+  changeOrigin: true,
+  ws: true,
+  pathRewrite: (p) => (p === "/" ? "/mission-control" : `/mission-control${p}`),
+});
+
+app.use("/mission-control", mcFrontendProxy);
+
 function stripIframeHeaders(res: express.Response) {
   res.removeHeader("x-frame-options");
   const csp = res.getHeader("content-security-policy");
@@ -154,7 +171,7 @@ if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { maxAge: "1h" }));
 
   app.use((req, res, next) => {
-    if (req.method === "GET" && !req.path.startsWith("/api/") && !req.path.startsWith("/health")) {
+    if (req.method === "GET" && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api")) {
       return res.sendFile(path.join(frontendDist, "index.html"));
     }
     next();

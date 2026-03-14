@@ -31,7 +31,10 @@ artifacts-monorepo/
 │   └── db/                 # Drizzle ORM schema + DB connection
 ├── scripts/                # Utility scripts (seed-products, etc.)
 ├── openclaw-app/           # OpenClaw gateway (npm package, pre-built)
-└── openclaw-src/           # OpenClaw source code (from GitHub, for reference)
+├── openclaw-src/           # OpenClaw source code (from GitHub, for reference)
+└── mission-control/        # OpenClaw Mission Control (cloned from abhi1693/openclaw-mission-control)
+    ├── backend/            # FastAPI backend (port 8001)
+    └── frontend/           # Next.js frontend (port 3002, basePath=/mission-control)
 ```
 
 ## Workflows
@@ -39,6 +42,8 @@ artifacts-monorepo/
 - `artifacts/openclaw: web` — React frontend on port 20581 (preview path `/`)
 - `artifacts/api-server: API Server` — Express API on port 8080 (prefix `/api`)
 - `OpenClaw Gateway` — OpenClaw WebSocket gateway on port 3001 (foreground mode)
+- `Mission Control: Backend` — FastAPI on port 8001 (proxied at `/mc-api`)
+- `Mission Control: Frontend` — Next.js on port 3002 (proxied at `/mission-control`)
 
 ## Stripe Integration
 
@@ -83,6 +88,26 @@ Each subscriber gets their own dedicated cloud OpenClaw instance:
 4. If `instanceUrl` is set → loads cloud instance via per-user proxy in full-screen iframe
 5. If `instanceUrl` is null → shows "Your instance is being set up" with auto-polling every 30s
 6. Infrastructure sets the `instanceUrl` via `POST /api/openclaw/provision` when the cloud instance is ready
+
+## Mission Control Integration
+
+OpenClaw Mission Control (abhi1693/openclaw-mission-control) is an AI agent orchestration dashboard integrated into the app.
+
+### Architecture
+- **Backend**: FastAPI (Python 3.12) on port 8001, uses the same PostgreSQL database
+- **Frontend**: Next.js 16 on port 3002 with `basePath: "/mission-control"`
+- **Auth**: `AUTH_MODE=local` with shared `LOCAL_AUTH_TOKEN` (64-char hex, stored as `MISSION_CONTROL_TOKEN` env var)
+- **DB**: `DB_AUTO_MIGRATE=true` runs Alembic migrations on startup
+
+### Proxy Chain (dev mode)
+1. Browser → Vite dev server (port 20581) — Vite proxy config forwards `/mission-control` and `/mc-api` to API server
+2. Vite → API server (port 8080) — Express proxies:
+   - `/mission-control/**` → Next.js on port 3002 (pathRewrite prepends `/mission-control`)
+   - `/mc-api/**` → FastAPI on port 8001
+3. SPA catch-all explicitly excludes `/mission-control` and `/mc-api` paths
+
+### Dashboard Access
+- "Mission Control" card in Dashboard.tsx opens `/mission-control` in a new tab (visible to subscribed users)
 
 ## API Routes
 

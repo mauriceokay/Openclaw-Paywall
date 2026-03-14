@@ -61,6 +61,17 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    proxy: {
+      "/mission-control": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+        ws: true,
+      },
+      "/mc-api": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port,

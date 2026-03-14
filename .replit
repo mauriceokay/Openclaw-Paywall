@@ -1,4 +1,4 @@
-modules = ["nodejs-24", "postgresql-16"]
+modules = ["nodejs-24", "postgresql-16", "python-3.12"]
 
 [[artifacts]]
 id = "artifacts/api-server"
@@ -26,6 +26,14 @@ author = "agent"
 task = "workflow.run"
 args = "OpenClaw Gateway"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Mission Control: Backend"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Mission Control: Frontend"
+
 [[workflows.workflow]]
 name = "OpenClaw Gateway"
 author = "agent"
@@ -37,6 +45,28 @@ outputType = "console"
 task = "shell.exec"
 args = "cd /home/runner/workspace/openclaw-app && bash start-gateway.sh"
 
+[[workflows.workflow]]
+name = "Mission Control: Backend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/workspace/mission-control/backend && uvicorn app.main:app --host 0.0.0.0 --port 8001"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Mission Control: Frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/workspace/mission-control/frontend && npx next dev --port 3002 --hostname 0.0.0.0"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
@@ -47,3 +77,8 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+MISSION_CONTROL_TOKEN = "6d97282bad353daa29c83755432a9c0fb147b470ea0b520fa02e3fd6597d23de"
