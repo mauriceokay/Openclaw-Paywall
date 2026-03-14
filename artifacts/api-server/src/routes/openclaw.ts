@@ -83,21 +83,14 @@ router.post("/provision", async (req, res) => {
 
 router.get("/instance", async (req, res) => {
   const sessionEmail = getSessionEmail(req);
-  const queryId = (req.query.userId || req.query.email) as string | undefined;
-
-  const id = sessionEmail || queryId;
-  if (!id) {
-    return res.status(401).json({ error: "Authentication required (session cookie or userId/email query param)" });
-  }
-
-  if (sessionEmail && queryId && sessionEmail !== queryId) {
-    return res.status(403).json({ error: "Session identity mismatch" });
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
   }
 
   const existing = await db
     .select()
     .from(userAgentsTable)
-    .where(eq(userAgentsTable.userId, id))
+    .where(eq(userAgentsTable.userId, sessionEmail))
     .limit(1);
 
   if (existing.length === 0) {
