@@ -1,56 +1,123 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, X, ArrowLeft } from "lucide-react";
+import { Check, Loader2, X, ArrowLeft, Zap } from "lucide-react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useListProducts, createCheckout } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { SEOHead } from "@/components/SEOHead";
 
+type Interval = "month" | "year";
+
+const PLANS = [
+  {
+    id: "starter",
+    name: "Starter",
+    monthlyPrice: 15,
+    yearlyPrice: 12,
+    description: "Perfect for personal use and getting started with AI automation.",
+    features: [
+      "5 Channel Integrations",
+      "500 AI messages / month",
+      "Basic Automations",
+      "Email Support",
+      "1 Cloud Instance",
+    ],
+    highlight: false,
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    monthlyPrice: 35,
+    yearlyPrice: 28,
+    description: "For power users who want full automation and unlimited integrations.",
+    features: [
+      "All 20+ Channel Integrations",
+      "Unlimited AI messages",
+      "Advanced Automations (Cron/Webhooks)",
+      "Priority Model Routing",
+      "Priority Support",
+      "3 Cloud Instances",
+    ],
+    highlight: true,
+  },
+  {
+    id: "team",
+    name: "Team",
+    monthlyPrice: 79,
+    yearlyPrice: 63,
+    description: "Built for teams and agencies managing multiple AI assistants.",
+    features: [
+      "Everything in Pro",
+      "Unlimited Cloud Instances",
+      "Team Member Access",
+      "Custom Integrations",
+      "Dedicated Support",
+      "SLA Guarantee",
+    ],
+    highlight: false,
+  },
+];
+
 export function Pricing() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
   const [, navigate] = useLocation();
-  const { data: productsData, isLoading, error } = useListProducts();
+  const { data: productsData } = useListProducts();
 
+  const [interval, setInterval] = useState<Interval>("month");
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [step, setStep] = useState<"idle" | "checkout">("idle");
-  const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/signup");
-      return;
-    }
+    if (!user) { navigate("/signup"); return; }
     fetch("/api/config")
       .then((r) => r.json())
-      .then((cfg) => {
-        if (cfg.stripePublishableKey) {
-          setStripePromise(loadStripe(cfg.stripePublishableKey));
-        }
-      })
+      .then((cfg) => { if (cfg.stripePublishableKey) setStripePromise(loadStripe(cfg.stripePublishableKey)); })
       .catch(() => {});
   }, [user, navigate]);
 
-  // Synchronous render guard — returns null immediately so pricing content never flashes
   if (!user) return null;
 
-  const handleSubscribeClick = async (priceId: string) => {
+  const findStripePrice = (plan: typeof PLANS[number]) => {
+    if (!productsData?.products) return null;
+    const targetCents = (interval === "month" ? plan.monthlyPrice : plan.yearlyPrice * 12) * 100;
+    for (const product of productsData.products) {
+      const n = product.name.toLowerCase();
+      if (!n.startsWith("openclaw") || n.includes("hosting")) continue;
+      const price = product.prices.find(
+        (p) => p.interval === interval && p.unitAmount === targetCents
+      ) ?? product.prices.find((p) => p.interval === interval);
+      if (price) return price.id;
+    }
+    return productsData.products
+      .filter((p) => {
+        const n = p.name.toLowerCase();
+        return n.startsWith("openclaw") && !n.includes("hosting") && !n.includes("free");
+      })
+      .flatMap((p) => p.prices)
+      .find((p) => p.interval === interval)?.id ?? null;
+  };
+
+  const handleSubscribeClick = async (plan: typeof PLANS[number]) => {
     if (!user) { navigate("/signup"); return; }
-    setSelectedPriceId(priceId);
+    setSelectedPlanId(plan.id);
     setCheckoutLoading(true);
     setCheckoutError(null);
     try {
+      const priceId = findStripePrice(plan);
+      if (!priceId) throw new Error("Plan not yet available. Please try again soon.");
       const mockUserId = `usr_${Math.random().toString(36).slice(2, 9)}`;
       const data = await createCheckout({ priceId, userId: mockUserId, email: user.email });
       setClientSecret(data.clientSecret);
@@ -65,7 +132,7 @@ export function Pricing() {
   const handleClose = () => {
     setStep("idle");
     setClientSecret(null);
-    setSelectedPriceId(null);
+    setSelectedPlanId(null);
     setCheckoutError(null);
   };
 
@@ -73,14 +140,14 @@ export function Pricing() {
 
   const container = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
+    show: { opacity: 1, transition: { staggerChildren: 0.12 } },
   };
   const item = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
   };
 
-  if (!user) return null;
+  const yearlySavingsPct = Math.round((1 - 28 / 35) * 100);
 
   return (
     <>
@@ -91,106 +158,142 @@ export function Pricing() {
       canonicalPath="/pricing"
       keywords="openclaw pricing, openclaw cloud plans, ai assistant subscription"
     />
-    <div className="min-h-screen pt-32 pb-24 bg-mesh">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-gradient">
+    <div className="min-h-screen pt-20 md:pt-32 pb-16 md:pb-24 bg-mesh">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
+          <h1 className="text-3xl md:text-5xl font-display font-bold mb-4 md:mb-6 text-gradient">
             Simple, transparent pricing
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Unlock the full potential of your personal AI assistant. Get premium features, all channel integrations, and unlimited automations.
+          <p className="text-base md:text-lg text-muted-foreground mb-8">
+            Unlock the full potential of your personal AI assistant — all channel integrations, unlimited automations, and cloud hosting included.
           </p>
+
+          {/* Billing Toggle */}
+          <div className="inline-flex items-center gap-1 bg-card/60 border border-white/10 rounded-full p-1 backdrop-blur-sm">
+            <button
+              onClick={() => setInterval("month")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                interval === "month"
+                  ? "bg-white/10 text-white shadow"
+                  : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setInterval("year")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
+                interval === "year"
+                  ? "bg-white/10 text-white shadow"
+                  : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              Yearly
+              <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                -{yearlySavingsPct}%
+              </span>
+            </button>
+          </div>
+
           {checkoutError && (
             <p className="mt-4 text-sm text-destructive">{checkoutError}</p>
           )}
         </div>
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="w-10 h-10 animate-spin mb-4 text-primary" />
-            <p>Loading plans...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-20">
-            <h3 className="text-xl font-bold mb-2">Failed to load plans</h3>
-            <p className="text-muted-foreground">Please try refreshing the page.</p>
-          </div>
-        ) : (
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center max-w-5xl mx-auto"
-          >
-            {productsData?.products
-              ?.filter((p) => {
-                const n = p.name.toLowerCase();
-                return n.startsWith("openclaw") && !n.includes("hosting");
-              })
-              .sort((a, b) => {
-                const order = ["free", "pro", "team"];
-                const ai = order.findIndex((k) => a.name.toLowerCase().includes(k));
-                const bi = order.findIndex((k) => b.name.toLowerCase().includes(k));
-                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-              })
-              .map((product) => {
-                const price = product.prices.find((p) => p.interval === "month") ?? product.prices[0] ?? null;
-                const formattedPrice = price?.unitAmount ? (price.unitAmount / 100).toFixed(2) : "0.00";
-                const isFree = product.name.toLowerCase().includes("free") || !price?.unitAmount;
-                const isPremium = product.name.toLowerCase().includes("pro");
-                const isLoadingCard = checkoutLoading && selectedPriceId === price?.id;
+        {/* Plan Cards */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid md:grid-cols-3 gap-6 md:gap-8"
+        >
+          {PLANS.map((plan) => {
+            const displayPrice = interval === "month" ? plan.monthlyPrice : plan.yearlyPrice;
+            const isLoadingCard = checkoutLoading && selectedPlanId === plan.id;
 
-                const features = isFree
-                  ? ["15 AI messages / day", "3 Channel Integrations", "Basic Automations", "Community Support"]
-                  : ["All 20+ Channel Integrations", "Unlimited Voice/Talk Usage", "Advanced Automations (Cron/Webhooks)", "Priority Model Routing"];
+            return (
+              <motion.div key={plan.id} variants={item} className="h-full">
+                <Card className={`h-full flex flex-col relative overflow-hidden backdrop-blur-xl transition-all duration-300 hover:shadow-2xl ${
+                  plan.highlight
+                    ? "bg-gradient-to-b from-primary/10 to-card/40 border-primary/40 ring-2 ring-primary hover:ring-primary/80"
+                    : "bg-card/40 border-white/5 hover:border-white/20"
+                }`}>
+                  {plan.highlight && (
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary via-[#F09819] to-primary" />
+                  )}
 
-                return (
-                  <motion.div key={product.id} variants={item} className="h-full">
-                    <Card className={`h-full flex flex-col relative overflow-hidden bg-card/40 backdrop-blur-xl border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-2xl ${isPremium ? "ring-2 ring-primary border-transparent" : ""}`}>
-                      {isPremium && (
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary via-accent to-primary" />
-                      )}
-                      <CardHeader className="pb-8">
-                        {isPremium && (
-                          <div className="text-xs font-bold tracking-wider uppercase text-primary mb-2">Most Popular</div>
-                        )}
-                        <CardTitle className="text-2xl font-display">{product.name}</CardTitle>
-                        <CardDescription className="text-muted-foreground min-h-[40px]">
-                          {product.description || "The perfect plan to get started with OpenClaw."}
-                        </CardDescription>
-                      </CardHeader>
+                  <CardHeader className="pb-4 pt-6 px-6">
+                    {plan.highlight && (
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Zap className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-xs font-bold tracking-wider uppercase text-primary">Most Popular</span>
+                      </div>
+                    )}
+                    <CardTitle className="text-2xl font-display">{plan.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1 min-h-[40px]">{plan.description}</p>
+                  </CardHeader>
 
-                      <CardContent className="flex-1 pb-8">
-                        <div className="mb-8">
-                          <span className="text-4xl font-bold text-foreground">${formattedPrice}</span>
-                          <span className="text-muted-foreground">/{price?.interval || "month"}</span>
-                        </div>
-                        <ul className="space-y-4">
-                          {features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
-                              <Check className="w-5 h-5 text-primary shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-
-                      <CardFooter>
-                        <Button
-                          onClick={() => price ? handleSubscribeClick(price.id) : navigate("/dashboard")}
-                          disabled={checkoutLoading}
-                          className={`w-full py-6 rounded-xl text-md font-semibold transition-all ${isPremium ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25" : "bg-white/10 hover:bg-white/20 text-white"}`}
+                  <CardContent className="flex-1 px-6 pb-6">
+                    {/* Price */}
+                    <div className="mb-6">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={`${plan.id}-${interval}`}
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.18 }}
                         >
-                          {isLoadingCard ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                          {price ? `Subscribe to ${product.name}` : "Get Started Free"}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-          </motion.div>
-        )}
+                          <div className="flex items-end gap-1">
+                            <span className="text-5xl font-bold text-foreground">${displayPrice}</span>
+                            <span className="text-muted-foreground mb-1.5">/mo</span>
+                          </div>
+                          {interval === "year" && (
+                            <p className="text-xs text-green-400 mt-1">
+                              Billed ${displayPrice * 12}/year · Save ${(plan.monthlyPrice - plan.yearlyPrice) * 12}/yr
+                            </p>
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
+                          <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlight ? "text-primary" : "text-green-500"}`} />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter className="px-6 pb-6">
+                    <Button
+                      onClick={() => handleSubscribeClick(plan)}
+                      disabled={checkoutLoading}
+                      className={`w-full py-6 rounded-xl text-sm font-semibold transition-all ${
+                        plan.highlight
+                          ? "bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white shadow-lg shadow-primary/25"
+                          : "bg-white/10 hover:bg-white/20 text-white"
+                      }`}
+                    >
+                      {isLoadingCard && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      Get {plan.name}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Footer note */}
+        <p className="text-center text-xs text-muted-foreground mt-8 md:mt-10">
+          All plans include a 7-day free trial. Cancel anytime. No hidden fees.
+        </p>
       </div>
 
       {/* Embedded Stripe checkout */}
@@ -223,10 +326,7 @@ export function Pricing() {
                 Back
               </button>
 
-              <EmbeddedCheckoutProvider
-                stripe={stripePromise}
-                options={{ fetchClientSecret }}
-              >
+              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
             </motion.div>
