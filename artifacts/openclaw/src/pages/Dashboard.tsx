@@ -37,6 +37,7 @@ function getValidModel(provider: Provider): string {
 export function Dashboard() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
+  const d = t.dashboard;
   const [, navigate] = useLocation();
 
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
@@ -72,7 +73,7 @@ export function Dashboard() {
         onError: (err: CreatePortalSessionMutationError) => {
           const apiMessage = err?.data?.error ?? null;
           setPortalError(
-            apiMessage || "Could not open billing portal. Please try again."
+            apiMessage || d.portalError
           );
         },
       }
@@ -83,7 +84,7 @@ export function Dashboard() {
     return (
       <div className="min-h-screen pt-32 flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground animate-pulse">Loading workspace...</p>
+        <p className="text-muted-foreground animate-pulse">{d.loadingWorkspace}</p>
       </div>
     );
   }
@@ -93,9 +94,9 @@ export function Dashboard() {
       <div className="min-h-screen pt-32 flex items-center justify-center px-6">
         <Card className="max-w-md w-full border-destructive/20 bg-destructive/5 text-center p-8">
           <ShieldAlert className="w-12 h-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Access Error</h2>
-          <p className="text-muted-foreground mb-6">Could not verify your subscription status.</p>
-          <Button onClick={() => window.location.reload()} variant="outline">Try Again</Button>
+          <h2 className="text-2xl font-bold mb-2">{d.accessError}</h2>
+          <p className="text-muted-foreground mb-6">{d.accessErrorDesc}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">{d.tryAgain}</Button>
         </Card>
       </div>
     );
@@ -116,15 +117,15 @@ export function Dashboard() {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle className="text-3xl font-display mb-2">Premium Workspace</CardTitle>
+              <CardTitle className="text-3xl font-display mb-2">{d.premiumTitle}</CardTitle>
               <CardDescription className="text-base text-muted-foreground">
-                This dashboard is locked. Upgrade your account to manage your OpenClaw gateway, view analytics, and configure advanced routing.
+                {d.premiumDesc}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center pt-6 pb-4">
               <Link href="/pricing" className="w-full">
                 <Button size="lg" className="w-full h-14 text-lg bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 shadow-lg text-white font-bold rounded-xl group">
-                  View Subscription Plans
+                  {d.viewPlans}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -150,9 +151,9 @@ export function Dashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
           <div>
-            <h1 className="text-4xl font-display font-bold mb-2">Workspace Dashboard</h1>
+            <h1 className="text-4xl font-display font-bold mb-2">{d.title}</h1>
             <p className="text-muted-foreground">
-              Welcome back{user?.name ? `, ${user.name}` : ""}. Your gateway is online.
+              {d.welcomeBack}{user?.name ? `, ${user.name}` : ""}. {d.gatewayOnline}
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -165,11 +166,11 @@ export function Dashboard() {
               {portalMutation.isPending
                 ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 : <Settings className="w-4 h-4 mr-2" />}
-              Manage Subscription
+              {d.manageSubscription}
             </Button>
             {(portalMutation.isError || portalError) && (
               <p className="text-sm text-destructive max-w-xs text-right">
-                {portalError || "Could not open billing portal. Please try again."}
+                {portalError || d.portalError}
               </p>
             )}
           </div>
@@ -188,10 +189,10 @@ export function Dashboard() {
                 🦞
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-display mb-1">Your OpenClaw Instance</h2>
+                <h2 className="text-2xl font-bold font-display mb-1">{d.instanceTitle}</h2>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
-                  Gateway online · Port 3001 · Ready to chat
+                  {d.instanceStatus}
                 </div>
               </div>
             </div>
@@ -201,7 +202,7 @@ export function Dashboard() {
               onClick={() => navigate("/openclaw")}
             >
               <Zap className="w-5 h-5 mr-2" />
-              Open OpenClaw
+              {d.openInstance}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -211,17 +212,17 @@ export function Dashboard() {
         <div className="grid md:grid-cols-3 gap-6 mb-10">
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
-              <CardDescription>Current Plan</CardDescription>
-              <CardTitle className="text-2xl text-primary">{status.planName || "Pro Tier"}</CardTitle>
+              <CardDescription>{d.currentPlan}</CardDescription>
+              <CardTitle className="text-2xl text-primary">{status.planName || d.defaultPlan}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className={`w-2 h-2 rounded-full ${status.status === "active" ? "bg-green-500" : "bg-yellow-500"}`} />
-                Status: {status.status || "Active"}
+                {d.statusLabel}: {status.status || d.defaultStatus}
               </div>
               {status.currentPeriodEnd && (
                 <div className="text-sm text-muted-foreground mt-2">
-                  Renews: {new Date(Number(status.currentPeriodEnd) * 1000).toLocaleDateString()}
+                  {d.renewsLabel}: {new Date(Number(status.currentPeriodEnd) * 1000).toLocaleDateString()}
                 </div>
               )}
             </CardContent>
@@ -229,23 +230,23 @@ export function Dashboard() {
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
-              <CardDescription>Gateway Status</CardDescription>
+              <CardDescription>{d.gatewayStatus}</CardDescription>
               <CardTitle className="text-2xl flex items-center gap-2">
                 <Activity className="w-6 h-6 text-green-500" />
-                Online
+                {d.gatewayOnlineLabel}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">Listening on port 3001</div>
+              <div className="text-sm text-muted-foreground">{d.listeningOn}</div>
             </CardContent>
           </Card>
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center justify-between">
-                <span>AI Provider</span>
+                <span>{d.aiProvider}</span>
                 <span className="text-xs capitalize px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
-                  {localStorage.getItem("oc_mode") ?? "not set"}
+                  {localStorage.getItem("oc_mode") ?? d.modeNotSet}
                 </span>
               </CardDescription>
               <CardTitle className="text-lg">
@@ -300,7 +301,7 @@ export function Dashboard() {
                 ))}
               </div>
               <Link href="/setup">
-                <span className="text-sm text-primary hover:underline cursor-pointer">Change setup →</span>
+                <span className="text-sm text-primary hover:underline cursor-pointer">{d.changeSetup}</span>
               </Link>
             </CardContent>
           </Card>

@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Mode = "byok" | "payg" | null;
 type Step = 1 | 2;
@@ -29,45 +30,48 @@ interface PlatformConfig {
   description: string;
 }
 
-const platforms: PlatformConfig[] = [
-  {
-    id: "telegram",
-    name: "Telegram",
-    icon: <MessageCircle className="w-6 h-6" />,
-    color: "text-sky-400",
-    storageKey: "oc_telegram_token",
-    fields: [
-      { key: "token", label: "Bot Token", placeholder: "123456:ABC-DEF1234ghIkl-zyx57W2v..." },
-    ],
-    description: "Connect your Telegram bot to receive and respond to messages automatically.",
-  },
-  {
-    id: "whatsapp",
-    name: "WhatsApp",
-    icon: <Phone className="w-6 h-6" />,
-    color: "text-green-400",
-    storageKey: "oc_whatsapp_token",
-    fields: [
-      { key: "token", label: "API Token", placeholder: "EAAGn..." },
-      { key: "phone_id", label: "Phone Number ID", placeholder: "10150..." },
-    ],
-    description: "Connect your WhatsApp Business API to automate customer conversations.",
-  },
-  {
-    id: "slack",
-    name: "Slack",
-    icon: <Hash className="w-6 h-6" />,
-    color: "text-purple-400",
-    storageKey: "oc_slack_token",
-    fields: [
-      { key: "token", label: "Bot Token", placeholder: "xoxb-..." },
-    ],
-    description: "Add your Slack bot to channels and respond to messages in your workspace.",
-  },
-];
-
 export function Setup() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
+  const s = t.setup;
+
+  const platforms: PlatformConfig[] = [
+    {
+      id: "telegram",
+      name: "Telegram",
+      icon: <MessageCircle className="w-6 h-6" />,
+      color: "text-sky-400",
+      storageKey: "oc_telegram_token",
+      fields: [
+        { key: "token", label: s.botTokenLabel, placeholder: "123456:ABC-DEF1234ghIkl-zyx57W2v..." },
+      ],
+      description: s.telegramDesc,
+    },
+    {
+      id: "whatsapp",
+      name: "WhatsApp",
+      icon: <Phone className="w-6 h-6" />,
+      color: "text-green-400",
+      storageKey: "oc_whatsapp_token",
+      fields: [
+        { key: "token", label: s.apiTokenLabel, placeholder: "EAAGn..." },
+        { key: "phone_id", label: s.phoneIdLabel, placeholder: "10150..." },
+      ],
+      description: s.whatsappDesc,
+    },
+    {
+      id: "slack",
+      name: "Slack",
+      icon: <Hash className="w-6 h-6" />,
+      color: "text-purple-400",
+      storageKey: "oc_slack_token",
+      fields: [
+        { key: "token", label: s.botTokenLabel, placeholder: "xoxb-..." },
+      ],
+      description: s.slackDesc,
+    },
+  ];
+
   const [step, setStep] = useState<Step>(1);
   const [selectedMode, setSelectedMode] = useState<Mode>(null);
   const [apiKey, setApiKey] = useState("");
@@ -95,6 +99,7 @@ export function Setup() {
       }
     }
     setConnectedPlatforms(connected);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const providerPlaceholders: Record<string, string> = {
@@ -174,8 +179,8 @@ export function Setup() {
           <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-green-400" />
           </div>
-          <h2 className="text-3xl font-display font-bold mb-2">You're all set!</h2>
-          <p className="text-muted-foreground">Taking you to your dashboard…</p>
+          <h2 className="text-3xl font-display font-bold mb-2">{s.savedTitle}</h2>
+          <p className="text-muted-foreground">{s.savedDesc}</p>
         </motion.div>
       </div>
     );
@@ -203,7 +208,7 @@ export function Setup() {
               <span className={`text-sm font-medium transition-colors ${
                 step === 1 ? "text-foreground" : "text-muted-foreground"
               }`}>
-                Connect Channels
+                {s.step1Label}
               </span>
             </button>
 
@@ -222,7 +227,7 @@ export function Setup() {
               <span className={`text-sm font-medium transition-colors ${
                 step === 2 ? "text-foreground" : "text-muted-foreground"
               }`}>
-                AI Billing
+                {s.step2Label}
               </span>
             </button>
           </div>
@@ -240,13 +245,13 @@ export function Setup() {
             >
               <motion.div variants={item} className="text-center">
                 <Badge className="mb-4 bg-primary/20 text-primary border-primary/30 text-xs font-semibold uppercase tracking-wider px-3 py-1">
-                  Step 1 of 2
+                  {s.step1Badge}
                 </Badge>
                 <h1 className="text-4xl font-display font-bold mb-3 text-gradient">
-                  Connect Your Channels
+                  {s.step1Title}
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                  Link your messaging platforms so OpenClaw can manage conversations for you. Connect as many as you like.
+                  {s.step1Desc}
                 </p>
               </motion.div>
 
@@ -276,7 +281,7 @@ export function Setup() {
                               {platform.name}
                               {isConnected && (
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                  Connected
+                                  {s.connected}
                                 </Badge>
                               )}
                             </h3>
@@ -292,7 +297,7 @@ export function Setup() {
                               className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             >
                               <X className="w-4 h-4 mr-1" />
-                              Disconnect
+                              {s.disconnect}
                             </Button>
                           ) : (
                             <Button
@@ -301,7 +306,7 @@ export function Setup() {
                               onClick={() => setExpandedPlatform(isExpanded ? null : platform.id)}
                               className={!isExpanded ? "border-white/20 hover:border-primary/40" : ""}
                             >
-                              {isExpanded ? "Cancel" : "Connect"}
+                              {isExpanded ? s.cancel : s.connect}
                             </Button>
                           )}
                         </div>
@@ -338,7 +343,7 @@ export function Setup() {
                                   className="bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold"
                                 >
                                   <Check className="w-4 h-4 mr-1" />
-                                  Save Connection
+                                  {s.saveConnection}
                                 </Button>
                               </div>
                             </div>
@@ -356,7 +361,7 @@ export function Setup() {
                   onClick={() => setStep(2)}
                   className="h-14 px-10 text-lg bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 shadow-lg text-white font-bold rounded-xl group"
                 >
-                  Continue
+                  {s.continue}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <button
@@ -364,7 +369,7 @@ export function Setup() {
                   onClick={() => setStep(2)}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Skip for now
+                  {s.skipForNow}
                 </button>
               </motion.div>
             </motion.div>
@@ -379,13 +384,13 @@ export function Setup() {
             >
               <motion.div variants={item} className="text-center">
                 <Badge className="mb-4 bg-primary/20 text-primary border-primary/30 text-xs font-semibold uppercase tracking-wider px-3 py-1">
-                  Step 2 of 2
+                  {s.step2Badge}
                 </Badge>
                 <h1 className="text-4xl font-display font-bold mb-3 text-gradient">
-                  How do you want to power your AI?
+                  {s.step2Title}
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                  Choose how OpenClaw sources its AI models. You can change this any time from your dashboard.
+                  {s.step2Desc}
                 </p>
               </motion.div>
 
@@ -402,12 +407,10 @@ export function Setup() {
                   <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-4">
                     <Key className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-1">Bring Your Own Key</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Connect your existing OpenAI, Anthropic, or Gemini API key. Pay providers directly at their rates — no markup.
-                  </p>
+                  <h3 className="text-xl font-bold mb-1">{s.byokTitle}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{s.byokDesc}</p>
                   <ul className="space-y-1.5 text-sm text-foreground/70">
-                    {["Full control over model choice", "Pay providers at cost", "No usage markup"].map((f) => (
+                    {(s.byokFeatures as readonly string[]).map((f) => (
                       <li key={f} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-primary shrink-0" />
                         {f}
@@ -416,7 +419,7 @@ export function Setup() {
                   </ul>
                   {selectedMode === "byok" && (
                     <div className="mt-4 pt-4 border-t border-white/10 text-xs text-primary font-semibold flex items-center gap-1">
-                      Selected <ChevronRight className="w-3 h-3" />
+                      {s.selected} <ChevronRight className="w-3 h-3" />
                     </div>
                   )}
                 </button>
@@ -433,12 +436,10 @@ export function Setup() {
                   <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4">
                     <Zap className="w-6 h-6 text-orange-400" />
                   </div>
-                  <h3 className="text-xl font-bold mb-1">Pay As You Go</h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    We handle everything. Use OpenClaw instantly — metered usage is billed to your subscription automatically.
-                  </p>
+                  <h3 className="text-xl font-bold mb-1">{s.paygTitle}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{s.paygDesc}</p>
                   <ul className="space-y-1.5 text-sm text-foreground/70">
-                    {["Zero configuration", "Works immediately", "Usage tracked on dashboard"].map((f) => (
+                    {(s.paygFeatures as readonly string[]).map((f) => (
                       <li key={f} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-orange-400 shrink-0" />
                         {f}
@@ -447,7 +448,7 @@ export function Setup() {
                   </ul>
                   {selectedMode === "payg" && (
                     <div className="mt-4 pt-4 border-t border-white/10 text-xs text-primary font-semibold flex items-center gap-1">
-                      Selected <ChevronRight className="w-3 h-3" />
+                      {s.selected} <ChevronRight className="w-3 h-3" />
                     </div>
                   )}
                 </button>
@@ -461,14 +462,12 @@ export function Setup() {
                 >
                   <Card className="bg-card/40 border-white/10 backdrop-blur-xl">
                     <CardHeader>
-                      <CardTitle className="text-xl font-display">Enter your API key</CardTitle>
-                      <CardDescription>
-                        Your key is stored locally in your browser and never sent to our servers.
-                      </CardDescription>
+                      <CardTitle className="text-xl font-display">{s.apiKeyTitle}</CardTitle>
+                      <CardDescription>{s.apiKeyDesc}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <Label>Provider</Label>
+                        <Label>{s.providerLabel}</Label>
                         <div className="flex gap-2">
                           {(["openai", "anthropic", "gemini"] as const).map((p) => (
                             <button
@@ -495,7 +494,7 @@ export function Setup() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Model</Label>
+                        <Label>{s.modelLabel}</Label>
                         <div className="flex flex-wrap gap-2">
                           {PROVIDER_MODELS[provider].map((m) => (
                             <button
@@ -515,7 +514,7 @@ export function Setup() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="api-key">API Key</Label>
+                        <Label htmlFor="api-key">{s.apiKeyLabel}</Label>
                         <div className="relative">
                           <Input
                             id="api-key"
@@ -533,9 +532,7 @@ export function Setup() {
                             {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Keys are encrypted and stored only in your browser's local storage.
-                        </p>
+                        <p className="text-xs text-muted-foreground">{s.apiKeyNote}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -554,7 +551,7 @@ export function Setup() {
                     disabled={selectedMode === "byok" && !apiKey}
                     className="h-14 px-10 text-lg bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 shadow-lg text-white font-bold rounded-xl group"
                   >
-                    Continue to Dashboard
+                    {s.saveAndContinue}
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
