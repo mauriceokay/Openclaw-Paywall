@@ -40,6 +40,9 @@ export function Dashboard() {
 
   const portalMutation = useCreatePortalSession();
   const [portalError, setPortalError] = useState<string | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<"openai" | "anthropic" | "gemini">(
+    () => (localStorage.getItem("oc_api_provider") as "openai" | "anthropic" | "gemini") ?? "anthropic"
+  );
 
   const handleManageSubscription = () => {
     setPortalError(null);
@@ -222,17 +225,36 @@ export function Dashboard() {
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
             <CardHeader className="pb-2">
-              <CardDescription>AI Mode</CardDescription>
+              <CardDescription className="flex items-center justify-between">
+                <span>AI Provider</span>
+                <span className="text-xs capitalize px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
+                  {localStorage.getItem("oc_mode") ?? "not set"}
+                </span>
+              </CardDescription>
               <CardTitle className="text-2xl capitalize">
-                {localStorage.getItem("oc_mode") ?? "Not set"}
+                {selectedProvider === "openai" ? "OpenAI" : selectedProvider === "anthropic" ? "Anthropic" : "Gemini"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {(localStorage.getItem("oc_mode") ?? "").toLowerCase() === "payg" && (
-                <p className="text-xs text-muted-foreground mb-2">
-                  <span className="text-orange-400 font-medium">Anthropic:</span> 1.5× &nbsp;·&nbsp; <span className="text-orange-400 font-medium">Others:</span> 2× API price
-                </p>
-              )}
+            <CardContent className="space-y-3">
+              <div className="flex gap-2">
+                {(["openai", "anthropic", "gemini"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setSelectedProvider(p);
+                      localStorage.setItem("oc_api_provider", p);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      selectedProvider === p
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-white/10 text-muted-foreground hover:border-white/30"
+                    }`}
+                  >
+                    {p === "openai" ? "OpenAI" : p === "anthropic" ? "Anthropic" : "Gemini"}
+                  </button>
+                ))}
+              </div>
               <Link href="/setup">
                 <span className="text-sm text-primary hover:underline cursor-pointer">Change setup →</span>
               </Link>
