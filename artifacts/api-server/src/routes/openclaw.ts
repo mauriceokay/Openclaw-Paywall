@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { isValidInstanceUrl } from "../instanceUrlValidator";
 import { setSessionCookie, getSessionEmail } from "../sessionAuth";
 import { storage } from "../storage";
+import { provisionInstance, isDockerProvisioningEnabled } from "../dockerProvisioner";
 
 const router = Router();
 
@@ -45,13 +46,20 @@ router.post("/provision", async (req, res) => {
       .where(eq(userAgentsTable.userId, id))
       .limit(1);
 
+    // Resolve the instance URL: Docker-provisioned > user-supplied > null (pending).
+    let resolvedInstanceUrl: string | null = instanceUrl || null;
+    if (!resolvedInstanceUrl && isDockerProvisioningEnabled()) {
+      resolvedInstanceUrl = await provisionInstance(id);
+    }
+
     if (existing.length > 0) {
       setSessionCookie(res, id);
 
-      if (instanceUrl && existing[0].instanceUrl !== instanceUrl) {
+      const needsUpdate = resolvedInstanceUrl && existing[0].instanceUrl !== resolvedInstanceUrl;
+      if (needsUpdate) {
         const [updated] = await db
           .update(userAgentsTable)
-          .set({ instanceUrl })
+          .set({ instanceUrl: resolvedInstanceUrl })
           .where(eq(userAgentsTable.userId, id))
           .returning();
         return res.json({ agent: updated, provisioned: false, updated: true });
@@ -67,7 +75,7 @@ router.post("/provision", async (req, res) => {
         userId: id,
         agentName,
         status: "active",
-        instanceUrl: instanceUrl || null,
+        instanceUrl: resolvedInstanceUrl,
       })
       .returning();
 
