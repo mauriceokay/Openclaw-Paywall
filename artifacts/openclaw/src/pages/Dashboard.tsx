@@ -9,6 +9,7 @@ import {
   Sparkles,
   Activity,
   Zap,
+  BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -157,17 +158,30 @@ export function Dashboard() {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Button
-              variant="outline"
-              onClick={handleManageSubscription}
-              disabled={portalMutation.isPending}
-              className="border-white/10 hover:bg-white/5"
-            >
-              {portalMutation.isPending
-                ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                : <Settings className="w-4 h-4 mr-2" />}
-              {d.manageSubscription}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={portalMutation.isPending}
+                className="border-white/10 hover:bg-white/5 text-sm"
+              >
+                {portalMutation.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  : <Settings className="w-3.5 h-3.5 mr-1.5" />}
+                {d.manageSubscription}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={portalMutation.isPending}
+                className="border-white/10 hover:bg-white/5 text-sm"
+              >
+                <BarChart2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                See Usage
+              </Button>
+            </div>
             {(portalMutation.isError || portalError) && (
               <p className="text-sm text-destructive max-w-xs text-right">
                 {portalError || d.portalError}
