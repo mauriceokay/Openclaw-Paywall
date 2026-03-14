@@ -1,6 +1,9 @@
 import { createServer } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { runMigrations } from "stripe-replit-sync";
+import { db } from "@workspace/db";
+import { userAgentsTable } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 import { getStripeSync } from "./stripeClient";
 import app from "./app";
 
@@ -47,19 +50,55 @@ async function initStripe() {
 
 await initStripe();
 
-// Create HTTP server to also handle WebSocket upgrades for the gateway proxy
 const server = createServer(app);
 
-// WebSocket proxy for /api/gateway — gateway runs with --auth none so no token needed
 const wsProxy = createProxyMiddleware({
   target: "http://127.0.0.1:3001",
   changeOrigin: true,
   pathRewrite: { "^/api/gateway": "" },
 });
 
-server.on("upgrade", (req, socket, head) => {
+server.on("upgrade", async (req, socket, head) => {
   if (req.url?.startsWith("/api/gateway")) {
     (wsProxy as any).upgrade(req, socket, head);
+  } else if (req.url?.startsWith("/api/instance-proxy")) {
+    try {
+      const urlObj = new URL(req.url, "http://localhost");
+      let userId = urlObj.searchParams.get("userId");
+
+      if (!userId) {
+        const cookieHeader = req.headers.cookie || "";
+        const match = cookieHeader.match(/(?:^|;\s*)__oc_proxy_user=([^;]+)/);
+        userId = match ? decodeURIComponent(match[1]) : null;
+      }
+
+      if (!userId) {
+        socket.destroy();
+        return;
+      }
+
+      const rows = await db
+        .select()
+        .from(userAgentsTable)
+        .where(eq(userAgentsTable.userId, userId))
+        .limit(1);
+
+      if (rows.length === 0 || !rows[0].instanceUrl) {
+        socket.destroy();
+        return;
+      }
+
+      const instanceProxy = createProxyMiddleware({
+        target: rows[0].instanceUrl,
+        changeOrigin: true,
+        pathRewrite: { "^/api/instance-proxy": "" },
+      });
+
+      (instanceProxy as any).upgrade(req, socket, head);
+    } catch (err) {
+      console.error("[instance-proxy] WS upgrade error:", err);
+      socket.destroy();
+    }
   }
 });
 

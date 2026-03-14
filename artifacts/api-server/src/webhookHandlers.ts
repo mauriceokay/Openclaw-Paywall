@@ -1,4 +1,46 @@
-import { getStripeSync } from "./stripeClient";
+import { getStripeSync, getUncachableStripeClient } from "./stripeClient";
+import { db } from "@workspace/db";
+import { userAgentsTable } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
+
+async function provisionOnActiveSubscription(customerId: string) {
+  try {
+    const stripe = await getUncachableStripeClient();
+    const customer = await stripe.customers.retrieve(customerId);
+
+    if (customer.deleted || !("email" in customer) || !customer.email) {
+      console.log("[webhook] customer has no email, skipping provision");
+      return;
+    }
+
+    const email = customer.email;
+    const existing = await db
+      .select()
+      .from(userAgentsTable)
+      .where(eq(userAgentsTable.userId, email))
+      .limit(1);
+
+    if (existing.length > 0) {
+      console.log(`[webhook] agent already exists for ${email}`);
+      return;
+    }
+
+    const agentName = `user-${email.replace(/[^a-z0-9]/gi, "-").toLowerCase().slice(0, 32)}`;
+
+    await db
+      .insert(userAgentsTable)
+      .values({
+        userId: email,
+        agentName,
+        status: "active",
+        instanceUrl: null,
+      });
+
+    console.log(`[webhook] provisioned agent record for ${email} (instanceUrl pending)`);
+  } catch (err: any) {
+    console.error("[webhook] provision error:", err.message);
+  }
+}
 
 export class WebhookHandlers {
   static async processWebhook(payload: Buffer, signature: string): Promise<void> {
@@ -15,5 +57,26 @@ export class WebhookHandlers {
 
     const sync = await getStripeSync();
     await sync.processWebhook(payload, signature);
+
+    try {
+      const stripe = await getUncachableStripeClient();
+      const event = stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET || "",
+      );
+
+      if (
+        event.type === "customer.subscription.created" ||
+        event.type === "customer.subscription.updated"
+      ) {
+        const subscription = event.data.object as any;
+        if (subscription.status === "active" || subscription.status === "trialing") {
+          await provisionOnActiveSubscription(subscription.customer as string);
+        }
+      }
+    } catch (err: any) {
+      console.log("[webhook] post-process note:", err.message);
+    }
   }
 }

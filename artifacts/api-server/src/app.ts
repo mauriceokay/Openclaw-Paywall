@@ -2,8 +2,13 @@ import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createProxyMiddleware, responseInterceptor } from "http-proxy-middleware";
+import { db } from "@workspace/db";
+import { userAgentsTable } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 import router from "./routes";
 import { WebhookHandlers } from "./webhookHandlers";
+
+const PROXY_USER_COOKIE = "__oc_proxy_user";
 
 const app: Express = express();
 
@@ -34,9 +39,6 @@ app.post(
   },
 );
 
-// Gateway HTTP proxy — serves the real OpenClaw control UI at /api/gateway/*
-// Strips X-Frame-Options and frame-ancestors CSP so it can be embedded in our iframe.
-// Injects window.__OPENCLAW_CONTROL_UI_BASE_PATH__ so the gateway WS connects at /api/gateway.
 const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
   target: "http://127.0.0.1:3001",
   changeOrigin: true,
@@ -44,7 +46,6 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   pathRewrite: { "^/api/gateway": "" },
   on: {
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
-      // Strip iframe-blocking headers
       res.removeHeader("x-frame-options");
       const csp = res.getHeader("content-security-policy");
       if (typeof csp === "string") {
@@ -54,7 +55,6 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
         res.setHeader("content-security-policy", relaxed);
       }
 
-      // Inject base path into HTML so the gateway WS connects via /api/gateway
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
         let html = responseBuffer.toString("utf8");
@@ -72,8 +72,85 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
 
 app.use("/api/gateway", gatewayHttpProxy);
 
-app.use(cors());
+function stripIframeHeaders(res: express.Response) {
+  res.removeHeader("x-frame-options");
+  const csp = res.getHeader("content-security-policy");
+  if (typeof csp === "string") {
+    const relaxed = csp
+      .replace(/frame-ancestors[^;]*(;|$)/g, "")
+      .replace(/frame-src[^;]*(;|$)/g, "");
+    res.setHeader("content-security-policy", relaxed);
+  }
+}
+
 app.use(cookieParser());
+
+app.use("/api/instance-proxy", async (req, res, next) => {
+  let userId = req.query.userId as string | undefined;
+
+  if (!userId) {
+    userId = req.cookies?.[PROXY_USER_COOKIE] as string | undefined;
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: "Not authenticated for instance proxy" });
+  }
+
+  try {
+    const rows = await db
+      .select()
+      .from(userAgentsTable)
+      .where(eq(userAgentsTable.userId, userId))
+      .limit(1);
+
+    if (rows.length === 0 || !rows[0].instanceUrl) {
+      return res.status(404).json({ error: "No instance URL configured for this user" });
+    }
+
+    const targetUrl = rows[0].instanceUrl;
+
+    if (req.query.userId) {
+      res.cookie(PROXY_USER_COOKIE, userId, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/api/instance-proxy",
+      });
+    }
+
+    const proxy = createProxyMiddleware<express.Request, express.Response>({
+      target: targetUrl,
+      changeOrigin: true,
+      selfHandleResponse: true,
+      pathRewrite: { "^/api/instance-proxy": "" },
+      on: {
+        proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, proxyResExpress) => {
+          stripIframeHeaders(proxyResExpress as unknown as express.Response);
+
+          const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+          if (contentType.includes("text/html")) {
+            let html = responseBuffer.toString("utf8");
+            const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/instance-proxy";</script>`;
+            html = html.includes("<head>")
+              ? html.replace("<head>", `<head>${injection}`)
+              : `${injection}${html}`;
+            return Buffer.from(html, "utf8");
+          }
+
+          return responseBuffer;
+        }),
+      },
+    });
+
+    return proxy(req, res, next);
+  } catch (err: any) {
+    console.error("[instance-proxy] error:", err.message);
+    return res.status(500).json({ error: "Proxy error" });
+  }
+});
+
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -66,19 +66,23 @@ OpenClaw uses the Replit AI Integration for Anthropic (Claude):
 - `ANTHROPIC_BASE_URL` = `$AI_INTEGRATIONS_ANTHROPIC_BASE_URL` (set in `start-gateway.sh`)
 - Model: `anthropic/claude-opus-4-6` (configured by OpenClaw)
 
-### Per-User Agent Provisioning
-Each subscriber gets their own OpenClaw agent workspace:
-- `POST /api/openclaw/provision` — calls `openclaw agents add --non-interactive --workspace <dir>`
+### Per-User Cloud Instance Routing
+Each subscriber gets their own dedicated cloud OpenClaw instance:
+- `POST /api/openclaw/provision` — creates a DB record for the user; accepts optional `instanceUrl` (validated HTTPS, no internal hosts)
+- `GET /api/openclaw/instance?userId=<email>` — returns user's instance URL and readiness status
 - `GET /api/openclaw/agent?email=<email>` — get user's agent info
-- Stored in `user_agents` PostgreSQL table
-- Workspaces at `~/.openclaw/workspaces/user-<sanitized-email>/`
+- `GET /api/instance-proxy/*` — per-user dynamic proxy to the user's cloud instance (cookie-based session after initial `?userId=` request)
+- Stored in `user_agents` PostgreSQL table with `instance_url` column
+- Instance URL validation: must be HTTPS, blocks private/internal IPs and hostnames (SSRF protection in `instanceUrlValidator.ts`)
+- Webhook auto-provisioning: Stripe `customer.subscription.created`/`updated` with `status: active` creates a pending user_agents record
 
 ### User Flow
 1. User subscribes via Stripe checkout
-2. User clicks "Open OpenClaw" on Dashboard
-3. App provisions their OpenClaw agent workspace (first time only)
-4. Real OpenClaw control UI loads in full-screen iframe (proxied via `/api/gateway/`)
-5. User can configure channels (Telegram, Discord, WhatsApp), set up skills, chat with AI
+2. Stripe webhook creates pending user_agents record (no instanceUrl yet)
+3. User clicks "Open OpenClaw" on Dashboard
+4. If `instanceUrl` is set → loads cloud instance via per-user proxy in full-screen iframe
+5. If `instanceUrl` is null → shows "Your instance is being set up" with auto-polling every 10s
+6. Infrastructure sets the `instanceUrl` via `POST /api/openclaw/provision` when the cloud instance is ready
 
 ## API Routes
 
@@ -88,11 +92,14 @@ Each subscriber gets their own OpenClaw agent workspace:
 - `POST /api/subscription/checkout` — Create Stripe checkout session `{ priceId, userId, email }`
 - `POST /api/subscription/portal` — Create Stripe billing portal session `{ email }`
 - `POST /api/stripe/webhook` — Stripe webhook (registered before express.json())
-- `POST /api/openclaw/provision` — Provision per-user OpenClaw agent `{ userId, email }`
+- `POST /api/openclaw/provision` — Provision per-user agent record `{ userId, email, instanceUrl? }`
+- `GET /api/openclaw/instance?userId=<email>` — Get user's instance URL and readiness
 - `GET /api/openclaw/agent?email=<email>` — Get user's agent info
 - `GET /api/openclaw/agents` — List all provisioned agents
-- `GET /api/gateway/*` — Proxied OpenClaw control UI (HTTP)
-- `WS /api/gateway` — Proxied OpenClaw gateway WebSocket
+- `GET /api/instance-proxy/*?userId=<email>` — Per-user dynamic proxy to cloud instance (sets cookie for subsequent requests)
+- `GET /api/gateway/*` — Proxied local OpenClaw control UI (HTTP, fallback/demo)
+- `WS /api/gateway` — Proxied local OpenClaw gateway WebSocket (fallback/demo)
+- `WS /api/instance-proxy` — Per-user WebSocket proxy to cloud instance
 
 ## Database Tables
 
@@ -112,7 +119,7 @@ The OpenClaw frontend supports 8 languages with full translation coverage across
 - **RTL**: Arabic (`ar`) sets `document.documentElement.dir = "rtl"` automatically via `useEffect`.
 
 ### Supported Languages
-`en` · `de` · `fr` · `zh-CN` · `zh-TW` · `ja` · `ar` (RTL) · `pl`
+`en` · `de` · `fr` · `zh-CN` · `zh-TW` · `ja` · `ar` (RTL) · `pl` · `ko` · `ms`
 
 ### File Structure
 ```
