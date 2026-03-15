@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { SEOHead } from "@/components/SEOHead";
 import { Clock, Tag, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -33,6 +34,45 @@ export function Blog() {
   const featured = posts[0];
   const rest = posts.slice(1);
 
+  const SITE_URL = "https://openclaw.cloud";
+
+  // WebSite schema — enables Google Sitelinks Searchbox
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "OpenClaw Cloud",
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/blog?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  // Blog + ItemList schema — lists all posts for rich indexing
+  const blogSchema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "OpenClaw Cloud Blog",
+    url: `${SITE_URL}/blog`,
+    description: t.seo.blogDesc,
+    publisher: {
+      "@type": "Organization",
+      name: "OpenClaw Cloud",
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+    },
+    blogPost: posts.map((post, i) => ({
+      "@type": "BlogPosting",
+      position: i + 1,
+      headline: post.title,
+      description: post.excerpt,
+      url: `${SITE_URL}/blog/${post.slug}`,
+      datePublished: post.publishedAt,
+      keywords: post.keywords.join(", "),
+    })),
+  };
+
   return (
     <>
       <SEOHead
@@ -40,8 +80,12 @@ export function Blog() {
         title={t.seo.blogTitle}
         description={t.seo.blogDesc}
         canonicalPath="/blog"
-        keywords="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant"
+        keywords="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant, telegram ai bot, discord ai bot, whatsapp ai"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
+      </Helmet>
 
       <div className="min-h-screen md:pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-6">
