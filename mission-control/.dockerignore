@@ -13,12 +13,7 @@
 **/.coverage
 **/htmlcov
 **/*.egg-info
-.venv
-**/.venv
-
 # Node / Next
-**/node_modules
-**/.next
 **/dist
 **/build
 **/.turbo
