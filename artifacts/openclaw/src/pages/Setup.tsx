@@ -139,7 +139,7 @@ export function Setup() {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedMode === "byok" && apiKey) {
       localStorage.setItem("oc_api_key", apiKey);
       localStorage.setItem("oc_api_provider", provider);
@@ -148,6 +148,44 @@ export function Setup() {
     } else if (selectedMode === "payg") {
       localStorage.setItem("oc_mode", "payg");
     }
+
+    // Build platform token payload from connected platforms
+    const telegramStored = localStorage.getItem("oc_telegram_token");
+    const slackStored = localStorage.getItem("oc_slack_token");
+    const whatsappRaw = localStorage.getItem("oc_whatsapp_token");
+    let whatsappToken: string | undefined;
+    let whatsappPhoneId: string | undefined;
+    if (whatsappRaw) {
+      try {
+        const parsed = JSON.parse(whatsappRaw) as Record<string, string>;
+        whatsappToken = parsed.token;
+        whatsappPhoneId = parsed.phone_id;
+      } catch {
+        whatsappToken = whatsappRaw;
+      }
+    }
+
+    // Apply config to the OpenClaw gateway automatically
+    try {
+      await fetch("/api/openclaw/apply-setup-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          mode: selectedMode,
+          apiKey: selectedMode === "byok" ? apiKey : undefined,
+          provider: selectedMode === "byok" ? provider : undefined,
+          model: selectedMode === "byok" ? selectedModel : undefined,
+          telegramToken: telegramStored ?? undefined,
+          whatsappToken,
+          whatsappPhoneId,
+          slackToken: slackStored ?? undefined,
+        }),
+      });
+    } catch {
+      // Non-critical: gateway may not be running yet; tokens are safely stored in localStorage
+    }
+
     setSaved(true);
     setTimeout(() => navigate("/dashboard"), 1200);
   };
