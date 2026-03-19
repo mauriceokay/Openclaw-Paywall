@@ -63,8 +63,15 @@ export default function OnboardingPage() {
   const errorMessage = error ?? loadError;
   const profile = meQuery.data?.status === 200 ? meQuery.data.data : null;
 
-  const clerkFallbackName =
-    user?.fullName ?? user?.firstName ?? user?.username ?? "";
+  const clerkFirstName =
+    user && "firstName" in user && typeof user.firstName === "string"
+      ? user.firstName
+      : "";
+  const clerkUsername =
+    user && "username" in user && typeof user.username === "string"
+      ? user.username
+      : "";
+  const clerkFallbackName = user?.fullName ?? clerkFirstName ?? clerkUsername ?? "";
   const resolvedName = name.trim()
     ? name
     : (profile?.preferred_name ?? profile?.name ?? clerkFallbackName ?? "");
