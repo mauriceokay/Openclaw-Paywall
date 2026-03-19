@@ -89,6 +89,9 @@ export function useUser() {
             id: proxyUser.email,
             primaryEmailAddress: { emailAddress: proxyUser.email },
             fullName: proxyUser.name,
+            firstName: null,
+            username: null,
+            imageUrl: null,
           }
         : null,
     } as const;
