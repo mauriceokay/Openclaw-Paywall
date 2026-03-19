@@ -3,20 +3,27 @@ import healthRouter from "./health";
 import subscriptionRouter from "./subscription";
 import configRouter from "./config";
 import gatewayRouter from "./gateway";
+import missionControlRouter from "./missionControl";
 import usersRouter from "./users";
-import anthropicRouter from "./anthropic";
+import { isDbEnabled } from "../localDev";
 import openclawRouter from "./openclaw";
-import hooksRouter from "./hooks";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(configRouter);
 router.use(gatewayRouter);
+router.use(missionControlRouter);
 router.use(usersRouter);
 router.use(subscriptionRouter);
-router.use(anthropicRouter);
 router.use("/openclaw", openclawRouter);
-router.use(hooksRouter);
+
+if (isDbEnabled()) {
+  const { default: anthropicRouter } = await import("./anthropic");
+  const { default: hooksRouter } = await import("./hooks");
+
+  router.use(anthropicRouter);
+  router.use(hooksRouter);
+}
 
 export default router;

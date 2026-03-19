@@ -12,7 +12,9 @@ import { Pricing } from "@/pages/Pricing";
 import { Dashboard } from "@/pages/Dashboard";
 import { Setup } from "@/pages/Setup";
 import { SignUp } from "@/pages/SignUp";
+import { SignIn } from "@/pages/SignIn";
 import { OpenClawApp } from "@/pages/OpenClawApp";
+import { MissionControlApp } from "@/pages/MissionControlApp";
 import { Blog } from "@/pages/Blog";
 import { BlogPost } from "@/pages/BlogPost";
 import { Usage } from "@/pages/Usage";
@@ -38,6 +40,7 @@ function Router() {
     <Switch>
       {/* Full-screen route — no navbar/footer */}
       <Route path="/openclaw" component={OpenClawApp} />
+      <Route path="/mission-control-app" component={MissionControlApp} />
 
       {/* Standard layout routes */}
       <Route>
@@ -45,6 +48,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/signup" component={SignUp} />
+            <Route path="/sign-in" component={SignIn} />
             <Route path="/pricing" component={Pricing} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/setup" component={Setup} />

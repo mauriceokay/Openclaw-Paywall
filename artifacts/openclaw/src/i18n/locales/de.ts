@@ -98,6 +98,7 @@ const de = {
     tryAgain: "Erneut versuchen",
     premiumTitle: "Premium-Arbeitsbereich",
     premiumDesc: "Dieses Dashboard ist gesperrt. Upgrade deinen Account, um dein OpenClaw-Gateway zu verwalten, Analysen zu sehen und erweitertes Routing zu konfigurieren.",
+    billingBlockedDesc: "Dein Account ist vorübergehend gesperrt, weil offene Nutzungskosten $15 erreicht haben. Bitte bezahle, um den Zugriff wieder zu aktivieren.",
     viewPlans: "Abonnementpläne ansehen",
     title: "Workspace Dashboard",
     welcomeBack: "Willkommen zurück",

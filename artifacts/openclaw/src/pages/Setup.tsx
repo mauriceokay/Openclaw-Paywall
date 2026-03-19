@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Key, Zap, ArrowRight, Check, Eye, EyeOff, ChevronRight, MessageCircle, Phone, Hash, X } from "lucide-react";
+import { Key, Zap, ArrowRight, Check, Eye, EyeOff, ChevronRight, MessageCircle, Phone, Hash, X, MessagesSquare, MessageSquare, Smartphone, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,24 @@ interface PlatformConfig {
   storageKey: string;
   fields: { key: string; label: string; placeholder: string }[];
   description: string;
+  requiredTier?: "pro";
 }
 
 export function Setup() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const s = t.setup;
+  const isProOrTeamPlan = (value: string | null | undefined) => Boolean(value && /(pro|team)/i.test(value));
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const sessionId = params.get("session_id");
+    if (success === "true" && sessionId) {
+      localStorage.setItem("oc_checkout_session_id", sessionId);
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const platforms: PlatformConfig[] = [
     {
@@ -53,10 +65,7 @@ export function Setup() {
       icon: <Phone className="w-6 h-6" />,
       color: "text-green-400",
       storageKey: "oc_whatsapp_token",
-      fields: [
-        { key: "token", label: s.apiTokenLabel, placeholder: "EAAGn..." },
-        { key: "phone_id", label: s.phoneIdLabel, placeholder: "10150..." },
-      ],
+      fields: [],
       description: s.whatsappDesc,
     },
     {
@@ -66,14 +75,58 @@ export function Setup() {
       color: "text-purple-400",
       storageKey: "oc_slack_token",
       fields: [
-        { key: "token", label: s.botTokenLabel, placeholder: "xoxb-..." },
+        { key: "bot_token", label: s.botTokenLabel, placeholder: "xoxb-..." },
       ],
       description: s.slackDesc,
+    },
+    {
+      id: "discord",
+      name: "Discord",
+      icon: <MessageSquare className="w-6 h-6" />,
+      color: "text-indigo-400",
+      storageKey: "oc_discord_token",
+      fields: [
+        { key: "token", label: "Bot Token", placeholder: "MTA...discord-bot-token..." },
+      ],
+      description: "Connect your Discord bot and respond in DMs and channels.",
+    },
+    {
+      id: "line",
+      name: "LINE",
+      icon: <MessagesSquare className="w-6 h-6" />,
+      color: "text-green-300",
+      storageKey: "oc_line_config",
+      fields: [
+        { key: "token", label: "Channel Access Token", placeholder: "LINE_CHANNEL_ACCESS_TOKEN" },
+      ],
+      description: "Connect LINE Messaging API for automated replies.",
+    },
+    {
+      id: "gchat",
+      name: "Google Chat",
+      icon: <MessagesSquare className="w-6 h-6" />,
+      color: "text-sky-300",
+      storageKey: "oc_gchat_config",
+      fields: [
+        { key: "webhook_url", label: "Webhook URL", placeholder: "https://chat.googleapis.com/v1/spaces/..." },
+      ],
+      description: "Connect Google Chat spaces using an incoming webhook.",
+    },
+    {
+      id: "imessage",
+      name: "iMessage",
+      icon: <Smartphone className="w-6 h-6" />,
+      color: "text-cyan-300",
+      storageKey: "oc_imessage_config",
+      fields: [
+        { key: "cli_path", label: "CLI Path", placeholder: "/usr/local/bin/imsg" },
+      ],
+      description: "Connect iMessage bridge for Apple Messages workflows.",
     },
   ];
 
   const [step, setStep] = useState<Step>(1);
-  const [selectedMode, setSelectedMode] = useState<Mode>(null);
+  const [selectedMode, setSelectedMode] = useState<Mode>("payg");
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [provider, setProvider] = useState<Provider>(
@@ -89,17 +142,47 @@ export function Setup() {
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [platformInputs, setPlatformInputs] = useState<Record<string, Record<string, string>>>({});
   const [connectedPlatforms, setConnectedPlatforms] = useState<Record<string, boolean>>({});
+  const [channelBusy, setChannelBusy] = useState<Record<string, boolean>>({});
+  const [channelErrors, setChannelErrors] = useState<Record<string, string>>({});
+  const [planName, setPlanName] = useState<string | null>(null);
+  const [startingWhatsAppQr, setStartingWhatsAppQr] = useState(false);
+  const [whatsAppQr, setWhatsAppQr] = useState("");
+  const [whatsAppQrError, setWhatsAppQrError] = useState("");
 
   useEffect(() => {
-    const connected: Record<string, boolean> = {};
-    for (const platform of platforms) {
-      const stored = localStorage.getItem(platform.storageKey);
-      if (stored) {
-        connected[platform.id] = true;
+    const normalizeStatusKey = (key: string) => (key === "googlechat" ? "gchat" : key);
+
+    (async () => {
+      try {
+        const res = await fetch("/api/openclaw/channels/status", { credentials: "include" });
+        if (!res.ok) throw new Error("status request failed");
+        const data = (await res.json()) as { status?: Record<string, boolean> };
+        const connected: Record<string, boolean> = {};
+        for (const [key, value] of Object.entries(data.status ?? {})) {
+          connected[normalizeStatusKey(key)] = Boolean(value);
+        }
+        setConnectedPlatforms(connected);
+      } catch {
+        const connected: Record<string, boolean> = {};
+        for (const platform of platforms) {
+          const stored = localStorage.getItem(platform.storageKey);
+          if (stored) connected[platform.id] = true;
+        }
+        setConnectedPlatforms(connected);
       }
-    }
-    setConnectedPlatforms(connected);
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/subscription/status", { credentials: "include" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { planName?: string | null };
+        setPlanName(data.planName ?? null);
+      } catch {}
+    })();
   }, []);
 
   const providerPlaceholders: Record<string, string> = {
@@ -108,35 +191,93 @@ export function Setup() {
     gemini: "AIza...",
   };
 
-  const handleConnectPlatform = (platform: PlatformConfig) => {
-    const inputs = platformInputs[platform.id];
-    if (!inputs) return;
+  const handleConnectPlatform = async (platform: PlatformConfig) => {
+    if (platform.requiredTier === "pro" && !isProOrTeamPlan(planName)) {
+      setChannelErrors((prev) => ({
+        ...prev,
+        [platform.id]: "This integration is available for Pro and Team plans.",
+      }));
+      return;
+    }
 
-    const hasAllFields = platform.fields.every((f) => inputs[f.key]?.trim());
+    const inputs = platformInputs[platform.id];
+    const hasAllFields = platform.id === "whatsapp" || platform.fields.every((f) => inputs?.[f.key]?.trim());
     if (!hasAllFields) return;
 
+    setChannelBusy((prev) => ({ ...prev, [platform.id]: true }));
+    setChannelErrors((prev) => ({ ...prev, [platform.id]: "" }));
+
+    try {
+      if (platform.id === "whatsapp") {
+        await startWhatsAppQr();
+        return;
+      }
+
+      const response = await fetch("/api/openclaw/channels/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ channel: platform.id, fields: inputs ?? {} }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string; details?: string };
+        throw new Error(payload.error || payload.details || "Failed to connect channel");
+      }
+    } catch (error: unknown) {
+      setChannelErrors((prev) => ({
+        ...prev,
+        [platform.id]: error instanceof Error ? error.message : "Failed to connect channel",
+      }));
+      return;
+    } finally {
+      setChannelBusy((prev) => ({ ...prev, [platform.id]: false }));
+    }
+
     if (platform.fields.length === 1) {
-      localStorage.setItem(platform.storageKey, inputs[platform.fields[0].key]);
+      localStorage.setItem(platform.storageKey, inputs?.[platform.fields[0].key] ?? "connected");
     } else {
-      localStorage.setItem(platform.storageKey, JSON.stringify(inputs));
+      localStorage.setItem(platform.storageKey, JSON.stringify(inputs ?? {}));
     }
 
     setConnectedPlatforms((prev) => ({ ...prev, [platform.id]: true }));
     setExpandedPlatform(null);
   };
 
-  const handleDisconnect = (platform: PlatformConfig) => {
-    localStorage.removeItem(platform.storageKey);
-    setConnectedPlatforms((prev) => {
-      const next = { ...prev };
-      delete next[platform.id];
-      return next;
-    });
-    setPlatformInputs((prev) => {
-      const next = { ...prev };
-      delete next[platform.id];
-      return next;
-    });
+  const handleDisconnect = async (platform: PlatformConfig) => {
+    setChannelBusy((prev) => ({ ...prev, [platform.id]: true }));
+    setChannelErrors((prev) => ({ ...prev, [platform.id]: "" }));
+    try {
+      const response = await fetch("/api/openclaw/channels/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ channel: platform.id }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string; details?: string };
+        throw new Error(payload.error || payload.details || "Failed to disconnect channel");
+      }
+
+      localStorage.removeItem(platform.storageKey);
+      setConnectedPlatforms((prev) => {
+        const next = { ...prev };
+        delete next[platform.id];
+        return next;
+      });
+      setPlatformInputs((prev) => {
+        const next = { ...prev };
+        delete next[platform.id];
+        return next;
+      });
+    } catch (error: unknown) {
+      setChannelErrors((prev) => ({
+        ...prev,
+        [platform.id]: error instanceof Error ? error.message : "Failed to disconnect channel",
+      }));
+    } finally {
+      setChannelBusy((prev) => ({ ...prev, [platform.id]: false }));
+    }
   };
 
   const handleContinue = () => {
@@ -158,6 +299,53 @@ export function Setup() {
       [platformId]: { ...prev[platformId], [fieldKey]: value },
     }));
   };
+
+  const fetchWhatsAppQr = async () => {
+    try {
+      const response = await fetch("/api/openclaw/whatsapp/qr", { credentials: "include" });
+      if (!response.ok) {
+        return;
+      }
+      const data = (await response.json()) as { ready?: boolean; qr?: string };
+      if (data.ready && data.qr) {
+        setWhatsAppQr(data.qr);
+      }
+    } catch {
+      // noop: background polling should stay silent unless start fails
+    }
+  };
+
+  const startWhatsAppQr = async () => {
+    setStartingWhatsAppQr(true);
+    setWhatsAppQr("");
+    setWhatsAppQrError("");
+    try {
+      const response = await fetch("/api/openclaw/whatsapp/qr/start", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Failed to start WhatsApp QR login");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await fetchWhatsAppQr();
+    } catch (error: unknown) {
+      setWhatsAppQrError(error instanceof Error ? error.message : "Failed to start WhatsApp QR login");
+    } finally {
+      setStartingWhatsAppQr(false);
+    }
+  };
+
+  useEffect(() => {
+    if (expandedPlatform !== "whatsapp") {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      void fetchWhatsAppQr();
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [expandedPlatform]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -259,6 +447,7 @@ export function Setup() {
                 {platforms.map((platform) => {
                   const isConnected = connectedPlatforms[platform.id];
                   const isExpanded = expandedPlatform === platform.id;
+                  const isTierLocked = platform.requiredTier === "pro" && !isProOrTeamPlan(planName);
 
                   return (
                     <div
@@ -279,6 +468,11 @@ export function Setup() {
                           <div>
                             <h3 className="text-lg font-bold flex items-center gap-2">
                               {platform.name}
+                              {platform.requiredTier === "pro" && (
+                                <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 text-xs">
+                                  Pro / Team
+                                </Badge>
+                              )}
                               {isConnected && (
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
                                   {s.connected}
@@ -293,7 +487,8 @@ export function Setup() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDisconnect(platform)}
+                              onClick={() => void handleDisconnect(platform)}
+                              disabled={Boolean(channelBusy[platform.id])}
                               className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             >
                               <X className="w-4 h-4 mr-1" />
@@ -304,9 +499,10 @@ export function Setup() {
                               variant={isExpanded ? "secondary" : "outline"}
                               size="sm"
                               onClick={() => setExpandedPlatform(isExpanded ? null : platform.id)}
+                              disabled={isTierLocked}
                               className={!isExpanded ? "border-white/20 hover:border-primary/40" : ""}
                             >
-                              {isExpanded ? s.cancel : s.connect}
+                              {isTierLocked ? "Pro only" : isExpanded ? s.cancel : s.connect}
                             </Button>
                           )}
                         </div>
@@ -322,6 +518,44 @@ export function Setup() {
                           >
                             <div className="px-5 pb-5 pt-1 border-t border-white/10">
                               <div className="space-y-4 mt-4">
+                                {platform.id === "whatsapp" && (
+                                  <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                      <p className="text-sm text-muted-foreground">
+                                        Fast connect: start WhatsApp QR and scan it in Linked Devices.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => void startWhatsAppQr()}
+                                        disabled={startingWhatsAppQr}
+                                        className="bg-green-600 hover:bg-green-500 text-white"
+                                      >
+                                        {startingWhatsAppQr ? "Starting..." : "Connect with QR"}
+                                      </Button>
+                                    </div>
+                                    {whatsAppQrError && (
+                                      <p className="text-xs text-red-400">{whatsAppQrError}</p>
+                                    )}
+                                    {whatsAppQr ? (
+                                      <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-[8px] leading-[9px] text-white/90">
+                                        {whatsAppQr}
+                                      </pre>
+                                    ) : (
+                                      <p className="text-xs text-muted-foreground">
+                                        QR will appear here after you click "Connect with QR".
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                                {channelErrors[platform.id] && (
+                                  <p className="text-xs text-red-400">{channelErrors[platform.id]}</p>
+                                )}
+                                {isTierLocked && (
+                                  <p className="text-xs text-orange-300 flex items-center gap-1">
+                                    <Lock className="w-3.5 h-3.5" />
+                                    Upgrade your plan to unlock this integration.
+                                  </p>
+                                )}
                                 {platform.fields.map((field) => (
                                   <div key={field.key} className="space-y-2">
                                     <Label>{field.label}</Label>
@@ -336,14 +570,14 @@ export function Setup() {
                                 ))}
                                 <Button
                                   size="sm"
-                                  onClick={() => handleConnectPlatform(platform)}
-                                  disabled={!platform.fields.every(
-                                    (f) => platformInputs[platform.id]?.[f.key]?.trim()
+                                  onClick={() => void handleConnectPlatform(platform)}
+                                  disabled={Boolean(channelBusy[platform.id]) || (
+                                    platform.id !== "whatsapp" && !platform.fields.every((f) => platformInputs[platform.id]?.[f.key]?.trim())
                                   )}
                                   className="bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold"
                                 >
                                   <Check className="w-4 h-4 mr-1" />
-                                  {s.saveConnection}
+                                  {channelBusy[platform.id] ? "Connecting..." : s.saveConnection}
                                 </Button>
                               </div>
                             </div>

@@ -80,7 +80,7 @@ export function Blog() {
         title={t.seo.blogTitle}
         description={t.seo.blogDesc}
         canonicalPath="/blog"
-        keywords="openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant, telegram ai bot, discord ai bot, whatsapp ai"
+        keywords="openclaw, openclaw cloud hosting, openclaw on cloud, deploy openclaw, openclaw hosting, managed openclaw, openclawd, clawdbot, moltbot, self-hosted ai, personal ai assistant, telegram ai bot, discord ai bot, whatsapp ai"
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
@@ -188,7 +188,8 @@ export function Blog() {
             <p className="text-xs text-muted-foreground/40 text-center leading-relaxed">
               {t.blog.topicsLabel}: openclaw · openclawd · clawdbot · moltbot · self-hosted ai · personal ai assistant ·
               openclaw discord · openclaw telegram · openclaw whatsapp · openclaw integrations · clawdbot discord ·
-              moltbot setup · openclaw cloud · openclaw tutorial · ai gateway · personal ai 2025
+              moltbot setup · openclaw cloud · openclaw cloud hosting · openclaw on cloud · deploy openclaw ·
+              openclaw hosting · openclaw tutorial · ai gateway · personal ai 2025
             </p>
           </div>
         </div>

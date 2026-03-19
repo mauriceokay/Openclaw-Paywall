@@ -70,7 +70,7 @@ export function Pricing() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
   const [, navigate] = useLocation();
-  const { data: productsData } = useListProducts();
+  const { data: productsData, refetch: refetchProducts } = useListProducts();
 
   const [interval, setInterval] = useState<Interval>("month");
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
@@ -81,7 +81,7 @@ export function Pricing() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) { navigate("/signup"); return; }
+    if (!user) { navigate("/sign-in"); return; }
     fetch("/api/config")
       .then((r) => r.json())
       .then((cfg) => { if (cfg.stripePublishableKey) setStripePromise(loadStripe(cfg.stripePublishableKey)); })
@@ -90,40 +90,97 @@ export function Pricing() {
 
   if (!user) return null;
 
+  const planMatchesProduct = (plan: typeof PLANS[number], productName: string) => {
+    const name = productName.toLowerCase();
+    if (!name.startsWith("openclaw") || name.includes("hosting") || name.includes("free")) return false;
+    return name.includes(plan.name.toLowerCase());
+  };
+
   const findStripePrice = (plan: typeof PLANS[number]) => {
     if (!productsData?.products) return null;
     const targetCents = (interval === "month" ? plan.monthlyPrice : plan.yearlyPrice * 12) * 100;
     for (const product of productsData.products) {
-      const n = product.name.toLowerCase();
-      if (!n.startsWith("openclaw") || n.includes("hosting")) continue;
+      if (!planMatchesProduct(plan, product.name)) continue;
       const price = product.prices.find(
         (p) => p.interval === interval && p.unitAmount === targetCents
       ) ?? product.prices.find((p) => p.interval === interval);
       if (price) return price.id;
     }
     return productsData.products
-      .filter((p) => {
-        const n = p.name.toLowerCase();
-        return n.startsWith("openclaw") && !n.includes("hosting") && !n.includes("free");
-      })
+      .filter((p) => planMatchesProduct(plan, p.name))
       .flatMap((p) => p.prices)
       .find((p) => p.interval === interval)?.id ?? null;
   };
 
+  const canUseLocalActivate = () =>
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
   const handleSubscribeClick = async (plan: typeof PLANS[number]) => {
-    if (!user) { navigate("/signup"); return; }
+    if (!user) { navigate("/sign-in"); return; }
     setSelectedPlanId(plan.id);
     setCheckoutLoading(true);
     setCheckoutError(null);
     try {
-      const priceId = findStripePrice(plan);
-      if (!priceId) throw new Error("Plan not yet available. Please try again soon.");
+      let priceId = findStripePrice(plan);
+      if (!priceId) {
+        const refreshed = await refetchProducts();
+        const refreshedProducts = refreshed.data?.products;
+        if (refreshedProducts?.length) {
+          const targetCents = (interval === "month" ? plan.monthlyPrice : plan.yearlyPrice * 12) * 100;
+          for (const product of refreshedProducts) {
+            if (!planMatchesProduct(plan, product.name)) continue;
+            const price = product.prices.find(
+              (p) => p.interval === interval && p.unitAmount === targetCents
+            ) ?? product.prices.find((p) => p.interval === interval);
+            if (price) {
+              priceId = price.id;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!priceId) {
+        if (!canUseLocalActivate()) {
+          throw new Error("Plan not yet available. Please try again soon.");
+        }
+        const response = await fetch("/api/subscription/local-activate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email: user.email, planName: `OpenClaw ${plan.name}` }),
+        });
+        if (!response.ok) {
+          throw new Error("Could not activate the selected plan. Please try again.");
+        }
+        navigate("/setup?success=true&local=1");
+        return;
+      }
       const mockUserId = `usr_${Math.random().toString(36).slice(2, 9)}`;
       const data = await createCheckout({ priceId, userId: mockUserId, email: user.email });
       setClientSecret(data.clientSecret);
       setStep("checkout");
     } catch (err: any) {
-      setCheckoutError(err?.message || "Failed to start checkout. Please try again.");
+      const message = err?.message || "Failed to start checkout. Please try again.";
+      if (message.includes("Not a valid URL") && canUseLocalActivate()) {
+        try {
+          const response = await fetch("/api/subscription/local-activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email: user.email, planName: `OpenClaw ${plan.name}` }),
+          });
+          if (!response.ok) {
+            throw new Error("Could not activate the selected plan. Please try again.");
+          }
+          navigate("/setup?success=true&local=1");
+          return;
+        } catch {
+          // fall through to default error UI
+        }
+      }
+      setCheckoutError(message);
     } finally {
       setCheckoutLoading(false);
     }

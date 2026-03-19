@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { SignUp as ClerkSignUp } from "@clerk/clerk-react";
+import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
 import { useAuth } from "@/context/AuthContext";
 
-export function SignUp() {
+export function SignIn() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (user) navigate("/pricing");
+    if (user) navigate("/dashboard");
   }, [navigate, user]);
 
   if (user) return null;
@@ -17,14 +17,14 @@ export function SignUp() {
     <div className="min-h-screen flex items-center justify-center bg-mesh px-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-5">
-          <h1 className="text-3xl font-display font-bold mb-2 text-gradient">Create your account</h1>
-          <p className="text-muted-foreground">Use email verification with Clerk to continue.</p>
+          <h1 className="text-3xl font-display font-bold mb-2 text-gradient">Welcome back</h1>
+          <p className="text-muted-foreground">Sign in to access your OpenClaw workspace.</p>
         </div>
         <div className="flex justify-center">
-          <ClerkSignUp
-            path="/signup"
-            signInUrl="/sign-in"
-            forceRedirectUrl="/pricing"
+          <ClerkSignIn
+            path="/sign-in"
+            signUpUrl="/signup"
+            forceRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 card: "shadow-none border border-white/10 bg-card/40 backdrop-blur-xl",
@@ -39,7 +39,7 @@ export function SignUp() {
           />
         </div>
         <p className="text-xs text-muted-foreground text-center mt-4">
-          Already have an account? <Link href="/sign-in" className="text-primary">Sign in</Link>
+          New here? <Link href="/signup" className="text-primary">Create account</Link>
         </p>
       </div>
     </div>

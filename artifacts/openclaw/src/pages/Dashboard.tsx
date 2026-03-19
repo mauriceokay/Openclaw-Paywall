@@ -12,9 +12,12 @@ import {
   BarChart2,
   Power,
   Rocket,
+  Puzzle,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubscriptionStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +33,14 @@ const PROVIDER_MODELS = {
 } as const;
 
 type Provider = keyof typeof PROVIDER_MODELS;
+type DashboardSubscriptionStatus = SubscriptionStatus & { _billingBlocked?: boolean };
+type MarketplaceSkill = {
+  id: string;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  installed?: boolean;
+};
 
 function getValidModel(provider: Provider): string {
   const stored = localStorage.getItem("oc_api_model");
@@ -42,24 +53,53 @@ export function Dashboard() {
   const { t, locale } = useLanguage();
   const d = t.dashboard;
   const [, navigate] = useLocation();
+  const billingBlockedDesc =
+    d.billingBlockedDesc
+    ?? (locale === "ko"
+      ? "미지불 사용료가 $15에 도달해 계정이 일시 차단되었습니다. 결제 후 다시 접근할 수 있습니다."
+      : "Your account is temporarily blocked because unpaid usage reached $15. Complete payment to unlock access.");
 
   // Establish a server-side session cookie so Mission Control can identify the user.
   useEffect(() => {
     if (!user?.email) return;
-    fetch(`${BASE_URL}/api/session/establish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: user.email }),
-      credentials: "include",
-    }).catch(() => {/* best-effort */});
-  }, [user?.email]);
+    (async () => {
+      try {
+        await fetch(`${BASE_URL}/api/users/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: user.name || user.email, email: user.email }),
+          credentials: "include",
+        });
+      } catch {
+        // best-effort
+      }
 
-  const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
+      try {
+        await fetch(`${BASE_URL}/api/session/establish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email }),
+          credentials: "include",
+        });
+      } catch {
+        // best-effort
+      }
+    })();
+  }, [user?.email, user?.name]);
+
+  const { data: status, isLoading, error } = useQuery<DashboardSubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/api/subscription/status`, { credentials: "include" });
+      const params = new URLSearchParams();
+      if (user?.email) params.set("email", user.email);
+      const checkoutSessionId = localStorage.getItem("oc_checkout_session_id");
+      if (checkoutSessionId) params.set("sessionId", checkoutSessionId);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${BASE_URL}/api/subscription/status${suffix}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch status");
-      return res.json();
+      const billingBlocked = res.headers.get("x-oc-billing-blocked") === "1";
+      const data = await res.json() as SubscriptionStatus;
+      return { ...data, _billingBlocked: billingBlocked };
     },
     enabled: true,
   });
@@ -78,6 +118,7 @@ export function Dashboard() {
   });
 
   const [toggling, setToggling] = useState(false);
+  const [openingInstance, setOpeningInstance] = useState(false);
   const toggleMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
       const res = await fetch(`${BASE_URL}/api/gateway-control`, {
@@ -107,12 +148,233 @@ export function Dashboard() {
 
   const gatewayEnabled = gatewayData?.enabled ?? true;
 
+  function normalizeGatewayTokenScope(gatewayUrl: string): string {
+    const trimmed = gatewayUrl.trim();
+    if (!trimmed) {
+      return "default";
+    }
+    try {
+      const parsed = new URL(trimmed, window.location.href);
+      const pathname =
+        parsed.pathname === "/" ? "" : parsed.pathname.replace(/\/+$/, "") || parsed.pathname;
+      return `${parsed.protocol}//${parsed.host}${pathname}`;
+    } catch {
+      return trimmed;
+    }
+  }
+
+  function preloadOpenClawControlUi(launchUrl: string) {
+    try {
+      const parsed = new URL(launchUrl, window.location.origin);
+      const hashParams = new URLSearchParams(parsed.hash.startsWith("#") ? parsed.hash.slice(1) : parsed.hash);
+      const queryParams = parsed.searchParams;
+      const gatewayUrl = queryParams.get("gatewayUrl")?.trim();
+      const token = hashParams.get("token")?.trim();
+
+      if (!gatewayUrl) return;
+
+      localStorage.setItem(
+        "openclaw.control.settings.v1",
+        JSON.stringify({
+          gatewayUrl,
+          sessionKey: "main",
+          lastActiveSessionKey: "main",
+          theme: "claw",
+          themeMode: "system",
+          chatFocusMode: false,
+          chatShowThinking: true,
+          splitRatio: 0.6,
+          navCollapsed: false,
+          navWidth: 220,
+          navGroupsCollapsed: {},
+        })
+      );
+
+      if (token) {
+        const key = `openclaw.control.token.v1:${normalizeGatewayTokenScope(gatewayUrl)}`;
+        sessionStorage.setItem(key, token);
+      }
+    } catch {
+      // Best-effort preload only.
+    }
+  }
+
+  async function syncOpenClawSettings() {
+    const provider = (localStorage.getItem("oc_api_provider") as Provider | null) ?? "anthropic";
+    const model = localStorage.getItem("oc_api_model") ?? getValidModel(provider);
+    const mode = localStorage.getItem("oc_mode") ?? "payg";
+    const apiKey = localStorage.getItem("oc_api_key") ?? "";
+
+    const res = await fetch(`${BASE_URL}/api/openclaw/settings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        provider,
+        model,
+        mode,
+        apiKey,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to sync OpenClaw settings");
+    }
+  }
+
+  async function openControlUiDirect() {
+    if (!user?.email || openingInstance) return;
+    setOpeningInstance(true);
+
+    try {
+      const getInstance = async () => {
+        const res = await fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch instance");
+        return res.json() as Promise<{ instanceUrl: string | null; localDev?: boolean }>;
+      };
+
+      let instance = await getInstance().catch(() => null);
+
+      if (!instance?.instanceUrl) {
+        const provisionRes = await fetch(`${BASE_URL}/api/openclaw/provision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ userId: user.email, email: user.email }),
+        });
+
+        if (!provisionRes.ok) {
+          throw new Error("Provision failed");
+        }
+
+        instance = await getInstance();
+      }
+
+      await syncOpenClawSettings();
+
+      const launchRes = await fetch(`${BASE_URL}/api/openclaw/launch`, {
+        credentials: "include",
+      });
+
+      if (!launchRes.ok) {
+        throw new Error("Failed to build launch URL");
+      }
+
+      const launch = await launchRes.json() as { launchUrl?: string };
+      if (!launch.launchUrl) {
+        throw new Error("Missing launch URL");
+      }
+
+      preloadOpenClawControlUi(launch.launchUrl);
+      navigate("/openclaw");
+    } catch (err) {
+      console.error("[dashboard] failed to open control ui:", err);
+      navigate("/openclaw");
+    } finally {
+      setOpeningInstance(false);
+    }
+  }
+
   const [selectedProvider, setSelectedProvider] = useState<Provider>(
     () => (localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic"
   );
   const [selectedModel, setSelectedModel] = useState<string>(
     () => getValidModel((localStorage.getItem("oc_api_provider") as Provider) ?? "anthropic")
   );
+  const [clawHubGatewayId, setClawHubGatewayId] = useState<string | null>(null);
+  const [clawHubSkills, setClawHubSkills] = useState<MarketplaceSkill[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+  const [clawHubLoading, setClawHubLoading] = useState(false);
+  const [clawHubSyncing, setClawHubSyncing] = useState(false);
+  const [clawHubError, setClawHubError] = useState("");
+  const [clawHubSyncMessage, setClawHubSyncMessage] = useState("");
+
+  const hasProOrTeam = Boolean(status?.planName && /(pro|team)/i.test(status.planName));
+
+  useEffect(() => {
+    if (!user?.email || !hasProOrTeam) return;
+    (async () => {
+      setClawHubLoading(true);
+      setClawHubError("");
+      try {
+        const gatewayRes = await fetch(`${BASE_URL}/mc-api/api/v1/gateways?limit=1`, {
+          credentials: "include",
+        });
+        if (!gatewayRes.ok) {
+          throw new Error("Unable to load gateway");
+        }
+        const gatewayData = (await gatewayRes.json()) as { items?: Array<{ id?: string }> };
+        const firstGatewayId = gatewayData.items?.[0]?.id?.trim() ?? "";
+        if (!firstGatewayId) {
+          throw new Error("No gateway found. Open Mission Control and create a gateway first.");
+        }
+        setClawHubGatewayId(firstGatewayId);
+
+        const skillsRes = await fetch(
+          `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(firstGatewayId)}&limit=100`,
+          { credentials: "include" },
+        );
+        if (!skillsRes.ok) {
+          throw new Error("Unable to load skills catalog");
+        }
+        const skillsData = (await skillsRes.json()) as MarketplaceSkill[];
+        setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
+      } catch {
+        setClawHubError("Could not load skills catalog from Mission Control.");
+      } finally {
+        setClawHubLoading(false);
+      }
+    })();
+  }, [user?.email, hasProOrTeam]);
+
+  const toggleSelectedSkill = (skillId: string) => {
+    setSelectedSkillIds((prev) =>
+      prev.includes(skillId) ? prev.filter((id) => id !== skillId) : [...prev, skillId]
+    );
+  };
+
+  const installSelectedSkills = async () => {
+    if (!clawHubGatewayId || selectedSkillIds.length === 0) return;
+    setClawHubSyncing(true);
+    setClawHubError("");
+    setClawHubSyncMessage("");
+    try {
+      let success = 0;
+      for (const skillId of selectedSkillIds) {
+        const res = await fetch(
+          `${BASE_URL}/mc-api/api/v1/skills/marketplace/${encodeURIComponent(skillId)}/install?gateway_id=${encodeURIComponent(clawHubGatewayId)}`,
+          {
+            method: "POST",
+            credentials: "include",
+          },
+        );
+        if (res.ok) {
+          success += 1;
+        }
+      }
+      setClawHubSyncMessage(`Added ${success}/${selectedSkillIds.length} skills to OpenClaw.`);
+      setSelectedSkillIds([]);
+
+      const skillsRes = await fetch(
+        `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(clawHubGatewayId)}&limit=100`,
+        { credentials: "include" },
+      );
+      if (skillsRes.ok) {
+        const skillsData = (await skillsRes.json()) as MarketplaceSkill[];
+        setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
+      }
+    } catch (error) {
+      setClawHubError(error instanceof Error ? error.message : "Failed to add selected skills");
+    } finally {
+      setClawHubSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (status && !status.hasActiveSubscription) {
+      navigate("/pricing");
+    }
+  }, [status, navigate]);
 
   if (isLoading) {
     return (
@@ -153,7 +415,7 @@ export function Dashboard() {
               </div>
               <CardTitle className="text-3xl font-display mb-2">{d.premiumTitle}</CardTitle>
               <CardDescription className="text-base text-muted-foreground">
-                {d.premiumDesc}
+                {status._billingBlocked ? billingBlockedDesc : d.premiumDesc}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center pt-6 pb-4">
@@ -252,9 +514,14 @@ export function Dashboard() {
                 <Button
                   size="lg"
                   className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
-                  onClick={() => navigate("/openclaw")}
+                  onClick={openControlUiDirect}
+                  disabled={openingInstance}
                 >
-                  <Zap className="w-5 h-5 mr-2" />
+                  {openingInstance ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Zap className="w-5 h-5 mr-2" />
+                  )}
                   {d.openInstance}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -317,7 +584,7 @@ export function Dashboard() {
               size="lg"
               variant="outline"
               className="h-14 px-8 text-lg font-bold border-violet-500/30 hover:bg-violet-500/10 text-violet-300 rounded-xl group shrink-0"
-              onClick={() => window.open(`${BASE_URL}/mission-control`, "_blank")}
+              onClick={() => navigate("/mission-control-app")}
             >
               <Rocket className="w-5 h-5 mr-2" />
               Open Dashboard
@@ -460,6 +727,93 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15, type: "spring" }}
+          className="mb-6 md:mb-10"
+        >
+          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Puzzle className="w-5 h-5 text-orange-300" />
+                ClawHub Skills
+                <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 text-xs">
+                  Pro / Team
+                </Badge>
+              </CardTitle>
+              <CardDescription>Add skills to OpenClaw through ClawHub.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!hasProOrTeam && (
+                <p className="text-xs text-orange-300 flex items-center gap-1">
+                  <Lock className="w-3.5 h-3.5" />
+                  Upgrade to Pro or Team to add skills.
+                </p>
+              )}
+              {clawHubError && <p className="text-xs text-red-400">{clawHubError}</p>}
+              {clawHubSyncMessage && <p className="text-xs text-green-400">{clawHubSyncMessage}</p>}
+              {hasProOrTeam && (
+                <>
+                  <div className="max-h-64 overflow-auto rounded-lg border border-white/10 bg-black/20 p-2 space-y-1.5">
+                    {clawHubLoading ? (
+                      <p className="text-xs text-muted-foreground px-2 py-1">Loading skills...</p>
+                    ) : clawHubSkills.length === 0 ? (
+                      <p className="text-xs text-muted-foreground px-2 py-1">
+                        No skills available yet.
+                      </p>
+                    ) : (
+                      clawHubSkills.map((skill) => (
+                        <label
+                          key={skill.id}
+                          className="flex items-start gap-2 rounded-md px-2 py-2 hover:bg-white/5 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={selectedSkillIds.includes(skill.id)}
+                            disabled={Boolean(skill.installed)}
+                            onChange={() => toggleSelectedSkill(skill.id)}
+                          />
+                          <span className="min-w-0">
+                            <span className="text-sm font-medium text-foreground">
+                              {skill.name}
+                              {skill.installed ? (
+                                <span className="ml-2 text-xs text-green-400">(Installed)</span>
+                              ) : null}
+                            </span>
+                            {skill.description ? (
+                              <span className="block text-xs text-muted-foreground mt-0.5">
+                                {skill.description}
+                              </span>
+                            ) : null}
+                          </span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={installSelectedSkills}
+                      disabled={
+                        clawHubLoading ||
+                        clawHubSyncing ||
+                        !clawHubGatewayId ||
+                        selectedSkillIds.length === 0
+                      }
+                      className="bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold"
+                    >
+                      <Puzzle className="w-4 h-4 mr-1" />
+                      {clawHubSyncing ? "Adding..." : "Add Selected Skills"}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
       </div>
     </div>

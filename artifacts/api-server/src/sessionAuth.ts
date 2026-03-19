@@ -41,10 +41,13 @@ export function verifySessionToken(token: string): string | null {
 
 export function setSessionCookie(res: Response, email: string): void {
   const token = createSessionToken(email);
+  const isHttpsLike =
+    process.env.NODE_ENV === "production" &&
+    process.env.APP_URL?.startsWith("https://");
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "strict",
-    secure: true,
+    secure: Boolean(isHttpsLike),
     maxAge: SESSION_MAX_AGE,
     path: "/",
   });

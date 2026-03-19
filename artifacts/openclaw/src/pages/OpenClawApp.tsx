@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, AlertTriangle, RefreshCw, Clock } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCw, Clock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,70 @@ import type { SubscriptionStatus } from "@workspace/api-client-react";
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 type ProvisionState = "idle" | "provisioning" | "ready" | "pending" | "error";
+
+interface InstanceResponse {
+  instanceUrl: string | null;
+  ready?: boolean;
+  localDev?: boolean;
+}
+
+type OpenClawLaunchConfig = {
+  launchUrl?: string;
+};
+
+function normalizeGatewayTokenScope(gatewayUrl: string): string {
+  const trimmed = gatewayUrl.trim();
+  if (!trimmed) return "default";
+  try {
+    const parsed = new URL(trimmed, window.location.href);
+    const pathname =
+      parsed.pathname === "/" ? "" : parsed.pathname.replace(/\/+$/, "") || parsed.pathname;
+    return `${parsed.protocol}//${parsed.host}${pathname}`;
+  } catch {
+    return trimmed;
+  }
+}
+
+function preloadOpenClawControlUi(launchUrl?: string) {
+  const defaultGatewayUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/gateway`;
+  let gatewayUrl = defaultGatewayUrl;
+  let token = "";
+
+  if (launchUrl) {
+    try {
+      const parsed = new URL(launchUrl, window.location.origin);
+      const queryParams = parsed.searchParams;
+      const hashParams = new URLSearchParams(parsed.hash.startsWith("#") ? parsed.hash.slice(1) : parsed.hash);
+      const fromQuery = queryParams.get("gatewayUrl")?.trim();
+      if (fromQuery) gatewayUrl = fromQuery;
+      token = hashParams.get("token")?.trim() ?? "";
+    } catch {
+      // fall back to current host
+    }
+  }
+
+  localStorage.setItem(
+    "openclaw.control.settings.v1",
+    JSON.stringify({
+      gatewayUrl,
+      sessionKey: "main",
+      lastActiveSessionKey: "main",
+      theme: "claw",
+      themeMode: "system",
+      chatFocusMode: false,
+      chatShowThinking: true,
+      splitRatio: 0.6,
+      navCollapsed: false,
+      navWidth: 220,
+      navGroupsCollapsed: {},
+    }),
+  );
+
+  if (token) {
+    const key = `openclaw.control.token.v1:${normalizeGatewayTokenScope(gatewayUrl)}`;
+    sessionStorage.setItem(key, token);
+  }
+}
 
 function useRelativeTime(date: Date | null) {
   const [, setTick] = useState(0);
@@ -33,6 +97,7 @@ export function OpenClawApp() {
   const [provisionState, setProvisionState] = useState<ProvisionState>("idle");
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const [instanceUrl, setInstanceUrl] = useState<string | null>(null);
+  const [instanceIsLocalDev, setInstanceIsLocalDev] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
@@ -40,10 +105,24 @@ export function OpenClawApp() {
 
   const relativeTime = useRelativeTime(lastChecked);
 
+  const goToDashboard = useCallback(() => {
+    navigate("/dashboard");
+    window.setTimeout(() => {
+      if (window.location.pathname.includes("/openclaw")) {
+        window.location.assign("/dashboard");
+      }
+    }, 80);
+  }, [navigate]);
+
   const { data: status, isLoading: statusLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/api/subscription/status`, { credentials: "include" });
+      const params = new URLSearchParams();
+      if (user?.email) params.set("email", user.email);
+      const checkoutSessionId = localStorage.getItem("oc_checkout_session_id");
+      if (checkoutSessionId) params.set("sessionId", checkoutSessionId);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${BASE_URL}/api/subscription/status${suffix}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch status");
       return res.json();
     },
@@ -67,11 +146,12 @@ export function OpenClawApp() {
       })
       .then(() =>
         fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" })
-          .then((r) => r.json())
+          .then((r) => r.json() as Promise<InstanceResponse>)
       )
       .then((data) => {
         if (data.instanceUrl) {
           setInstanceUrl(data.instanceUrl);
+          setInstanceIsLocalDev(Boolean(data.localDev));
           setProvisionState("ready");
         } else {
           setProvisionState("pending");
@@ -90,10 +170,11 @@ export function OpenClawApp() {
     setCheckMessage(null);
 
     fetch(`${BASE_URL}/api/openclaw/instance`, { credentials: "include" })
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<InstanceResponse>)
       .then((data) => {
         if (data.instanceUrl) {
           setInstanceUrl(data.instanceUrl);
+          setInstanceIsLocalDev(Boolean(data.localDev));
           setProvisionState("ready");
         } else {
           setCheckMessage("Still being set up — we'll keep checking automatically");
@@ -115,6 +196,30 @@ export function OpenClawApp() {
     const interval = setInterval(checkInstanceReady, 30000);
     return () => clearInterval(interval);
   }, [provisionState, checkInstanceReady]);
+
+  useEffect(() => {
+    if (provisionState !== "ready") return;
+    if (!instanceIsLocalDev || !instanceUrl) return;
+
+    let cancelled = false;
+    fetch(`${BASE_URL}/api/openclaw/launch`, { credentials: "include" })
+      .then(async (res) => {
+        if (!res.ok) return {};
+        return (await res.json()) as OpenClawLaunchConfig;
+      })
+      .then((launch) => {
+        if (cancelled) return;
+        preloadOpenClawControlUi(launch.launchUrl);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        preloadOpenClawControlUi();
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [instanceIsLocalDev, instanceUrl, provisionState]);
 
   if (statusLoading || provisionState === "provisioning") {
     return (
@@ -222,11 +327,25 @@ export function OpenClawApp() {
   }
 
   if (provisionState === "ready" && instanceUrl) {
+    const frameSrc = instanceIsLocalDev
+      ? `${BASE_URL}/api/gateway/chat`
+      : `${BASE_URL}/api/instance-proxy/chat`;
     return (
       <div className="fixed inset-0 z-50 bg-background">
+        <div className="absolute top-4 left-4 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToDashboard}
+            className="border-white/20 bg-background/80 backdrop-blur hover:bg-background"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            Back to Dashboard
+          </Button>
+        </div>
         <iframe
           key={iframeKey}
-          src={`${BASE_URL}/api/instance-proxy/`}
+          src={frameSrc}
           className="w-full h-full border-0"
           title="OpenClaw"
           allow="clipboard-read; clipboard-write; microphone"

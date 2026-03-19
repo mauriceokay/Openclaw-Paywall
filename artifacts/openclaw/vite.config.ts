@@ -62,6 +62,14 @@ export default defineConfig({
       deny: ["**/.*"],
     },
     proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
+      "/chat": {
+        target: "http://127.0.0.1:3005",
+        changeOrigin: true,
+      },
       "/mission-control": {
         target: "http://127.0.0.1:8080",
         changeOrigin: true,

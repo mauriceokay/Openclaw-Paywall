@@ -1,0 +1,132 @@
+name: openclaw-paywall
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  app-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME}
+      POSTGRES_USER: ${APP_DB_USER}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD}
+    volumes:
+      - app_db_data:/var/lib/postgresql/data
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/hetzner/Dockerfile.gateway
+    restart: unless-stopped
+    environment:
+      OPENCLAW_GATEWAY_PORT: 3005
+    volumes:
+      - openclaw_config:/root/.openclaw
+
+  mc-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MC_DB_NAME}
+      POSTGRES_USER: ${MC_DB_USER}
+      POSTGRES_PASSWORD: ${MC_DB_PASSWORD}
+    volumes:
+      - mc_db_data:/var/lib/postgresql/data
+
+  mc-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  mc-backend:
+    build:
+      context: ../../mission-control
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${MC_DB_USER}:${MC_DB_PASSWORD}@mc-db:5432/${MC_DB_NAME}
+      CORS_ORIGINS: ${APP_URL}
+      DB_AUTO_MIGRATE: "true"
+      AUTH_MODE: proxy
+      LOCAL_AUTH_TOKEN: ${MISSION_CONTROL_TOKEN}
+      BASE_URL: ${APP_URL}/mc-api
+      RQ_REDIS_URL: redis://mc-redis:6379/0
+    depends_on:
+      - mc-db
+      - mc-redis
+
+  mc-worker:
+    build:
+      context: ../../mission-control
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    command: ["python", "scripts/rq-docker", "worker"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${MC_DB_USER}:${MC_DB_PASSWORD}@mc-db:5432/${MC_DB_NAME}
+      AUTH_MODE: proxy
+      LOCAL_AUTH_TOKEN: ${MISSION_CONTROL_TOKEN}
+      BASE_URL: ${APP_URL}/mc-api
+      RQ_REDIS_URL: redis://mc-redis:6379/0
+    depends_on:
+      - mc-db
+      - mc-redis
+
+  mc-frontend:
+    build:
+      context: ../../mission-control/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: auto
+        NEXT_PUBLIC_AUTH_MODE: proxy
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: auto
+      NEXT_PUBLIC_AUTH_MODE: proxy
+    depends_on:
+      - mc-backend
+
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/hetzner/Dockerfile.app
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      APP_URL: ${APP_URL}
+      DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/${APP_DB_NAME}
+      SESSION_SECRET: ${SESSION_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      OPENCLAW_GATEWAY_URL: http://gateway:3005
+      MISSION_CONTROL_BACKEND_URL: http://mc-backend:8000
+      MISSION_CONTROL_FRONTEND_URL: http://mc-frontend:3000
+      MISSION_CONTROL_AUTH_MODE: proxy
+      MISSION_CONTROL_TOKEN: ${MISSION_CONTROL_TOKEN}
+    depends_on:
+      - app-db
+      - gateway
+      - mc-backend
+      - mc-frontend
+    volumes:
+      - openclaw_config:/root/.openclaw
+
+volumes:
+  app_db_data:
+  mc_db_data:
+  openclaw_config:
+  caddy_data:
+  caddy_config:

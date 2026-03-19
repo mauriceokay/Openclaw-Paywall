@@ -1,5 +1,4 @@
 import { sql } from "drizzle-orm";
-import { db } from "@workspace/db";
 
 export interface StripeCustomerRow {
   id: string;
@@ -18,6 +17,7 @@ export interface StripeSubscriptionRow {
 
 export class Storage {
   async listProductsWithPrices(active = true) {
+    const { db } = await import("@workspace/db");
     const result = await db.execute(
       sql`
         WITH paginated_products AS (
@@ -46,6 +46,7 @@ export class Storage {
   }
 
   async getSubscriptionByCustomerId(customerId: string): Promise<StripeSubscriptionRow | null> {
+    const { db } = await import("@workspace/db");
     const result = await db.execute(
       sql`SELECT * FROM stripe.subscriptions WHERE customer = ${customerId} AND status IN ('active', 'trialing') ORDER BY created DESC LIMIT 1`,
     );
@@ -53,6 +54,7 @@ export class Storage {
   }
 
   async getSubscription(subscriptionId: string): Promise<StripeSubscriptionRow | null> {
+    const { db } = await import("@workspace/db");
     const result = await db.execute(
       sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`,
     );
@@ -60,6 +62,7 @@ export class Storage {
   }
 
   async getCustomerByEmail(email: string): Promise<StripeCustomerRow | null> {
+    const { db } = await import("@workspace/db");
     const result = await db.execute(
       sql`SELECT * FROM stripe.customers WHERE email = ${email} AND deleted IS NOT TRUE LIMIT 1`,
     );

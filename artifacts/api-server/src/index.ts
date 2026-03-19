@@ -1,12 +1,11 @@
 import { createServer } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { runMigrations } from "stripe-replit-sync";
-import { db, pool } from "@workspace/db";
-import { userAgentsTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
 import { getStripeSync } from "./stripeClient";
 import { verifySessionToken } from "./sessionAuth";
 import app from "./app";
+import { isDbEnabled } from "./localDev";
+const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
 
 const rawPort = process.env["PORT"];
 
@@ -21,7 +20,13 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 async function ensureSchema() {
+  if (!isDbEnabled()) {
+    console.log("DATABASE_URL not set, starting API server in local no-db mode");
+    return;
+  }
+
   try {
+    const { pool } = await import("@workspace/db");
     console.log("Ensuring database schema...");
     await pool.query(`
       DO $$ BEGIN
@@ -61,6 +66,15 @@ async function ensureSchema() {
         gateway_enabled BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS app.usage_events (
+        id BIGSERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        type TEXT NOT NULL,
+        metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS usage_events_email_created_idx
+        ON app.usage_events (email, created_at DESC);
     `);
     console.log("Database schema ready");
   } catch (error) {
@@ -70,13 +84,13 @@ async function ensureSchema() {
 }
 
 async function initStripe() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    console.warn("DATABASE_URL not set — skipping Stripe initialization");
+  if (!isDbEnabled()) {
+    console.warn("DATABASE_URL not set - skipping Stripe initialization");
     return;
   }
 
   try {
+    const databaseUrl = process.env.DATABASE_URL!;
     console.log("Initializing Stripe schema...");
     await runMigrations({ databaseUrl, schema: "stripe" });
     console.log("Stripe schema ready");
@@ -84,16 +98,19 @@ async function initStripe() {
     const stripeSync = await getStripeSync();
 
     console.log("Setting up managed webhook...");
-    const webhookBaseUrl = process.env.APP_URL
-      || `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || "localhost"}`;
+    const webhookBaseUrl =
+      process.env.APP_URL || `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || "localhost"}`;
     await stripeSync.findOrCreateManagedWebhook(`${webhookBaseUrl}/api/stripe/webhook`);
     console.log("Webhook configured");
 
-    stripeSync.syncBackfill().then(() => {
-      console.log("Stripe data synced");
-    }).catch((err) => {
-      console.error("Error syncing Stripe data:", err);
-    });
+    stripeSync
+      .syncBackfill()
+      .then(() => {
+        console.log("Stripe data synced");
+      })
+      .catch((err) => {
+        console.error("Error syncing Stripe data:", err);
+      });
   } catch (error) {
     console.error("Failed to initialize Stripe:", error);
   }
@@ -105,7 +122,7 @@ await initStripe();
 const server = createServer(app);
 
 const wsProxy = createProxyMiddleware({
-  target: "http://127.0.0.1:3001",
+  target: GATEWAY_URL,
   changeOrigin: true,
   pathRewrite: { "^/api/gateway": "" },
 });
@@ -113,41 +130,55 @@ const wsProxy = createProxyMiddleware({
 server.on("upgrade", async (req, socket, head) => {
   if (req.url?.startsWith("/api/gateway")) {
     (wsProxy as any).upgrade(req, socket, head);
-  } else if (req.url?.startsWith("/api/instance-proxy")) {
-    try {
-      const cookieHeader = req.headers.cookie || "";
-      const sessionMatch = cookieHeader.match(/(?:^|;\s*)__oc_session=([^;]+)/);
-      const sessionToken = sessionMatch ? decodeURIComponent(sessionMatch[1]) : null;
+    return;
+  }
 
-      const sessionEmail = sessionToken ? verifySessionToken(sessionToken) : null;
+  if (!req.url?.startsWith("/api/instance-proxy")) {
+    return;
+  }
 
-      if (!sessionEmail) {
-        socket.destroy();
-        return;
-      }
+  if (!isDbEnabled()) {
+    socket.destroy();
+    return;
+  }
 
-      const rows = await db
-        .select()
-        .from(userAgentsTable)
-        .where(eq(userAgentsTable.userId, sessionEmail))
-        .limit(1);
+  try {
+    const cookieHeader = req.headers.cookie || "";
+    const sessionMatch = cookieHeader.match(/(?:^|;\s*)__oc_session=([^;]+)/);
+    const sessionToken = sessionMatch ? decodeURIComponent(sessionMatch[1]) : null;
 
-      if (rows.length === 0 || !rows[0].instanceUrl) {
-        socket.destroy();
-        return;
-      }
+    const sessionEmail = sessionToken ? verifySessionToken(sessionToken) : null;
 
-      const instanceProxy = createProxyMiddleware({
-        target: rows[0].instanceUrl,
-        changeOrigin: true,
-        pathRewrite: { "^/api/instance-proxy": "" },
-      });
-
-      (instanceProxy as any).upgrade(req, socket, head);
-    } catch (err) {
-      console.error("[instance-proxy] WS upgrade error:", err);
+    if (!sessionEmail) {
       socket.destroy();
+      return;
     }
+
+    const { db } = await import("@workspace/db");
+    const { userAgentsTable } = await import("@workspace/db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    const rows = await db
+      .select()
+      .from(userAgentsTable)
+      .where(eq(userAgentsTable.userId, sessionEmail))
+      .limit(1);
+
+    if (rows.length === 0 || !rows[0].instanceUrl) {
+      socket.destroy();
+      return;
+    }
+
+    const instanceProxy = createProxyMiddleware({
+      target: rows[0].instanceUrl,
+      changeOrigin: true,
+      pathRewrite: { "^/api/instance-proxy": "" },
+    });
+
+    (instanceProxy as any).upgrade(req, socket, head);
+  } catch (err) {
+    console.error("[instance-proxy] WS upgrade error:", err);
+    socket.destroy();
   }
 });
 

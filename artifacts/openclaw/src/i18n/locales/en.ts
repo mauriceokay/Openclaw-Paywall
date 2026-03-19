@@ -98,6 +98,7 @@ const en = {
     tryAgain: "Try Again",
     premiumTitle: "Premium Workspace",
     premiumDesc: "This dashboard is locked. Upgrade your account to manage your OpenClaw gateway, view analytics, and configure advanced routing.",
+    billingBlockedDesc: "Your account is temporarily blocked because unpaid usage reached $15. Complete payment to unlock access.",
     viewPlans: "View Subscription Plans",
     title: "Workspace Dashboard",
     welcomeBack: "Welcome back",

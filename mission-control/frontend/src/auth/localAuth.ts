@@ -14,6 +14,7 @@ export function setLocalAuthToken(token: string): void {
   if (typeof window === "undefined") return;
   try {
     window.sessionStorage.setItem(STORAGE_KEY, token);
+    window.localStorage.setItem(STORAGE_KEY, token);
   } catch {
     // Ignore storage failures (private mode / policy).
   }
@@ -28,6 +29,12 @@ export function getLocalAuthToken(): string | null {
       localToken = stored;
       return stored;
     }
+    const fallback = window.localStorage.getItem(STORAGE_KEY);
+    if (fallback) {
+      window.sessionStorage.setItem(STORAGE_KEY, fallback);
+      localToken = fallback;
+      return fallback;
+    }
   } catch {
     // Ignore storage failures (private mode / policy).
   }
@@ -39,6 +46,7 @@ export function clearLocalAuthToken(): void {
   if (typeof window === "undefined") return;
   try {
     window.sessionStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Ignore storage failures (private mode / policy).
   }

@@ -2,7 +2,6 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 
 import { isLikelyValidClerkPublishableKey } from "@/auth/clerkKey";
 import {
@@ -14,15 +13,17 @@ import { isProxyAuthMode, getProxyUser } from "@/auth/proxyAuth";
 import { LocalAuthLogin } from "@/components/organisms/LocalAuthLogin";
 
 function ProxyAuthGuard({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const user = getProxyUser();
 
   useEffect(() => {
     if (!user) {
       // No main-app session found — redirect back to the main app sign-up
-      router.replace("/signup");
+      if (typeof window !== "undefined") {
+        window.location.href = `${window.location.origin}/dashboard`;
+        return;
+      }
     }
-  }, [user, router]);
+  }, [user]);
 
   if (!user) return null;
   return <>{children}</>;

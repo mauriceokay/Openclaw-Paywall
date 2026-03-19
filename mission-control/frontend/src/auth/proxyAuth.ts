@@ -19,15 +19,16 @@ export function getProxyUser(): OcUser | null {
     const raw = window.localStorage.getItem(OC_USER_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      "email" in parsed &&
-      "name" in parsed &&
-      typeof (parsed as OcUser).email === "string" &&
-      typeof (parsed as OcUser).name === "string"
-    ) {
-      return parsed as OcUser;
+    if (parsed && typeof parsed === "object" && "email" in parsed) {
+      const email = typeof (parsed as OcUser).email === "string" ? (parsed as OcUser).email.trim() : "";
+      const nameRaw = "name" in parsed && typeof (parsed as OcUser).name === "string"
+        ? (parsed as OcUser).name.trim()
+        : "";
+      if (!email) return null;
+      return {
+        email,
+        name: nameRaw || email,
+      };
     }
   } catch {
     // ignore

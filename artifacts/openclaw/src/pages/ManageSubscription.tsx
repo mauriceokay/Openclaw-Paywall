@@ -31,7 +31,12 @@ export function ManageSubscription() {
   const { data: status, isLoading, error } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/api/subscription/status`, { credentials: "include" });
+      const params = new URLSearchParams();
+      if (user?.email) params.set("email", user.email);
+      const checkoutSessionId = localStorage.getItem("oc_checkout_session_id");
+      if (checkoutSessionId) params.set("sessionId", checkoutSessionId);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${BASE_URL}/api/subscription/status${suffix}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch status");
       return res.json();
     },

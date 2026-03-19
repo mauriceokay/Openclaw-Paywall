@@ -9,11 +9,9 @@ export function getApiBaseUrl(): string {
   }
 
   if (typeof window !== "undefined") {
-    const protocol = window.location.protocol === "https:" ? "https" : "http";
-    const host = window.location.hostname;
-    if (host) {
-      return `${protocol}://${host}:8000`;
-    }
+    // In the integrated OpenClaw setup, API traffic should go through the
+    // same-origin reverse proxy mounted at /mc-api.
+    return `${window.location.origin}/mc-api`;
   }
 
   throw new Error(

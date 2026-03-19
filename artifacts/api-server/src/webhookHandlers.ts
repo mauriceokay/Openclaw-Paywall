@@ -1,7 +1,4 @@
 import { getStripeSync, getUncachableStripeClient } from "./stripeClient";
-import { db } from "@workspace/db";
-import { userAgentsTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
 
 async function provisionOnActiveSubscription(customerId: string) {
   try {
@@ -14,6 +11,9 @@ async function provisionOnActiveSubscription(customerId: string) {
     }
 
     const email = customer.email;
+    const { db } = await import("@workspace/db");
+    const { userAgentsTable } = await import("@workspace/db/schema");
+    const { eq } = await import("drizzle-orm");
     const existing = await db
       .select()
       .from(userAgentsTable)

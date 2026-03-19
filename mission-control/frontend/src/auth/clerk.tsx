@@ -17,9 +17,14 @@ import {
 
 import { isLikelyValidClerkPublishableKey } from "@/auth/clerkKey";
 import { getLocalAuthToken, isLocalAuthMode } from "@/auth/localAuth";
+import { getProxyUser, isProxyAuthMode } from "@/auth/proxyAuth";
 
 function hasLocalAuthToken(): boolean {
   return Boolean(getLocalAuthToken());
+}
+
+function hasProxyUser(): boolean {
+  return Boolean(getProxyUser());
 }
 
 export function isClerkEnabled(): boolean {
@@ -35,6 +40,9 @@ export function SignedIn(props: { children: ReactNode }) {
   if (isLocalAuthMode()) {
     return hasLocalAuthToken() ? <>{props.children}</> : null;
   }
+  if (isProxyAuthMode()) {
+    return hasProxyUser() ? <>{props.children}</> : null;
+  }
   if (!isClerkEnabled()) return null;
   return <ClerkSignedIn>{props.children}</ClerkSignedIn>;
 }
@@ -42,6 +50,9 @@ export function SignedIn(props: { children: ReactNode }) {
 export function SignedOut(props: { children: ReactNode }) {
   if (isLocalAuthMode()) {
     return hasLocalAuthToken() ? null : <>{props.children}</>;
+  }
+  if (isProxyAuthMode()) {
+    return hasProxyUser() ? null : <>{props.children}</>;
   }
   if (!isClerkEnabled()) return <>{props.children}</>;
   return <ClerkSignedOut>{props.children}</ClerkSignedOut>;
@@ -68,6 +79,20 @@ export function useUser() {
       user: null,
     } as const;
   }
+  if (isProxyAuthMode()) {
+    const proxyUser = getProxyUser();
+    return {
+      isLoaded: true,
+      isSignedIn: Boolean(proxyUser),
+      user: proxyUser
+        ? {
+            id: proxyUser.email,
+            primaryEmailAddress: { emailAddress: proxyUser.email },
+            fullName: proxyUser.name,
+          }
+        : null,
+    } as const;
+  }
   if (!isClerkEnabled()) {
     return { isLoaded: true, isSignedIn: false, user: null } as const;
   }
@@ -83,6 +108,16 @@ export function useAuth() {
       userId: token ? "local-user" : null,
       sessionId: token ? "local-session" : null,
       getToken: async () => token,
+    } as const;
+  }
+  if (isProxyAuthMode()) {
+    const proxyUser = getProxyUser();
+    return {
+      isLoaded: true,
+      isSignedIn: Boolean(proxyUser),
+      userId: proxyUser?.email ?? null,
+      sessionId: proxyUser ? "proxy-session" : null,
+      getToken: async () => null,
     } as const;
   }
   if (!isClerkEnabled()) {

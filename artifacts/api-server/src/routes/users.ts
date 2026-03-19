@@ -1,7 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db } from "@workspace/db";
-import { sql } from "drizzle-orm";
 import { setSessionCookie, getSessionEmail } from "../sessionAuth";
+import { getLocalUser, isDbEnabled, upsertLocalUser } from "../localDev";
 
 const router: IRouter = Router();
 
@@ -12,6 +11,14 @@ router.post("/users/register", async (req: Request, res: Response) => {
   }
 
   try {
+    if (!isDbEnabled()) {
+      const user = upsertLocalUser(name, email);
+      setSessionCookie(res, user.email);
+      return res.status(200).json(user);
+    }
+
+    const { db } = await import("@workspace/db");
+    const { sql } = await import("drizzle-orm");
     const result = await db.execute(sql`
       INSERT INTO app.users (name, email)
       VALUES (${name.trim()}, ${email.trim().toLowerCase()})
@@ -35,7 +42,18 @@ router.post("/session/establish", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "email required" });
   }
   const normalised = email.trim().toLowerCase();
+  if (!isDbEnabled()) {
+    const user = getLocalUser(normalised);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    setSessionCookie(res, normalised);
+    return res.status(200).json({ ok: true });
+  }
+
   try {
+    const { db } = await import("@workspace/db");
+    const { sql } = await import("drizzle-orm");
     const result = await db.execute(sql`
       SELECT id FROM app.users WHERE email = ${normalised} LIMIT 1
     `);
@@ -53,7 +71,15 @@ router.get("/users/me", async (req: Request, res: Response) => {
   const email = getSessionEmail(req);
   if (!email) return res.status(401).json({ error: "Authentication required" });
 
+  if (!isDbEnabled()) {
+    const user = getLocalUser(email);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json(user);
+  }
+
   try {
+    const { db } = await import("@workspace/db");
+    const { sql } = await import("drizzle-orm");
     const result = await db.execute(sql`
       SELECT id, name, email, created_at FROM app.users
       WHERE email = ${email.toLowerCase()}
