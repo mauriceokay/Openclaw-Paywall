@@ -59,6 +59,7 @@ async function ensureSchema() {
       CREATE INDEX IF NOT EXISTS messages_conversation_id_idx ON messages(conversation_id);
     `);
     await pool.query(`
+      CREATE SCHEMA IF NOT EXISTS app;
       CREATE TABLE IF NOT EXISTS app.users (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
