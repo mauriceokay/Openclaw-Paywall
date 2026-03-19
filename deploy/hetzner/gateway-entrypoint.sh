@@ -23,4 +23,4 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 JSON
 fi
 
-exec openclaw gateway run --allow-unconfigured --host 0.0.0.0 --port "${PORT}"
+exec openclaw gateway run --allow-unconfigured --port "${PORT}"
