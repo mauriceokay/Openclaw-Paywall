@@ -59,32 +59,42 @@ export function Dashboard() {
       ? "미지불 사용료가 $15에 도달해 계정이 일시 차단되었습니다. 결제 후 다시 접근할 수 있습니다."
       : "Your account is temporarily blocked because unpaid usage reached $15. Complete payment to unlock access.");
 
+  async function ensureMissionControlSession(email: string, name?: string | null): Promise<boolean> {
+    try {
+      const establish = await fetch(`${BASE_URL}/api/session/establish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        credentials: "include",
+      });
+      if (establish.ok) return true;
+    } catch {
+      // continue with register + retry
+    }
+
+    try {
+      await fetch(`${BASE_URL}/api/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name || email, email }),
+        credentials: "include",
+      });
+      const establishRetry = await fetch(`${BASE_URL}/api/session/establish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        credentials: "include",
+      });
+      return establishRetry.ok;
+    } catch {
+      return false;
+    }
+  }
+
   // Establish a server-side session cookie so Mission Control can identify the user.
   useEffect(() => {
     if (!user?.email) return;
-    (async () => {
-      try {
-        await fetch(`${BASE_URL}/api/users/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: user.name || user.email, email: user.email }),
-          credentials: "include",
-        });
-      } catch {
-        // best-effort
-      }
-
-      try {
-        await fetch(`${BASE_URL}/api/session/establish`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email }),
-          credentials: "include",
-        });
-      } catch {
-        // best-effort
-      }
-    })();
+    void ensureMissionControlSession(user.email, user.name);
   }, [user?.email, user?.name]);
 
   const { data: status, isLoading, error } = useQuery<DashboardSubscriptionStatus>({
@@ -288,11 +298,25 @@ export function Dashboard() {
   const [clawHubSyncing, setClawHubSyncing] = useState(false);
   const [clawHubError, setClawHubError] = useState("");
   const [clawHubSyncMessage, setClawHubSyncMessage] = useState("");
+  const [mcSessionReady, setMcSessionReady] = useState(false);
 
   const hasProOrTeam = Boolean(status?.planName && /(pro|team)/i.test(status.planName));
 
   useEffect(() => {
-    if (!user?.email || !hasProOrTeam) return;
+    if (!user?.email) return;
+    let cancelled = false;
+    setMcSessionReady(false);
+    (async () => {
+      const ok = await ensureMissionControlSession(user.email, user.name);
+      if (!cancelled) setMcSessionReady(ok);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email, user?.name]);
+
+  useEffect(() => {
+    if (!user?.email || !hasProOrTeam || !mcSessionReady) return;
     (async () => {
       setClawHubLoading(true);
       setClawHubError("");
@@ -310,10 +334,19 @@ export function Dashboard() {
         }
         setClawHubGatewayId(firstGatewayId);
 
-        const skillsRes = await fetch(
+        let skillsRes = await fetch(
           `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(firstGatewayId)}&limit=100`,
           { credentials: "include" },
         );
+        if (skillsRes.status === 401) {
+          const refreshed = await ensureMissionControlSession(user.email, user.name);
+          if (refreshed) {
+            skillsRes = await fetch(
+              `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(firstGatewayId)}&limit=100`,
+              { credentials: "include" },
+            );
+          }
+        }
         if (!skillsRes.ok) {
           throw new Error("Unable to load skills catalog");
         }
@@ -325,7 +358,7 @@ export function Dashboard() {
         setClawHubLoading(false);
       }
     })();
-  }, [user?.email, hasProOrTeam]);
+  }, [user?.email, user?.name, hasProOrTeam, mcSessionReady]);
 
   const toggleSelectedSkill = (skillId: string) => {
     setSelectedSkillIds((prev) =>
