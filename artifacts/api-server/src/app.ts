@@ -50,6 +50,7 @@ app.post(
 const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
   changeOrigin: true,
+  selfHandleResponse: true,
   pathRewrite: { "^/api/gateway": "" },
   on: {
     proxyReq: (proxyReq) => {
@@ -57,6 +58,21 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
         proxyReq.setHeader("authorization", `Bearer ${GATEWAY_TOKEN}`);
       }
     },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+      stripIframeHeaders(expressRes as express.Response);
+
+      const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+      if (contentType.includes("text/html")) {
+        let html = responseBuffer.toString("utf8");
+        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>`;
+        html = html.includes("<head>")
+          ? html.replace("<head>", `<head>${injection}`)
+          : `${injection}${html}`;
+        return Buffer.from(html, "utf8");
+      }
+
+      return responseBuffer;
+    }),
   },
 });
 

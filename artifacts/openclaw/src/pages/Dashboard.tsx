@@ -62,7 +62,7 @@ export function Dashboard() {
   const { user, signOut } = useAuth();
   const { t, locale } = useLanguage();
   const d = t.dashboard;
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const billingBlockedDesc =
     d.billingBlockedDesc
     ?? (locale === "ko"
@@ -415,6 +415,17 @@ export function Dashboard() {
       setClawHubSyncing(false);
     }
   };
+
+  useEffect(() => {
+    if (!user?.email) return;
+    if (location !== "/dashboard") return;
+    const encoded = btoa(user.email.toLowerCase())
+      .replace(/=+$/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .slice(0, 12);
+    navigate(`/dashboard/${encoded}`);
+  }, [location, navigate, user?.email]);
 
   const handleSignOut = async () => {
     try {

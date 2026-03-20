@@ -54,6 +54,7 @@ function Router() {
             <Route path="/sign-in" component={SignIn} />
             <Route path="/pricing" component={Pricing} />
             <Route path="/dashboard" component={Dashboard} />
+            <Route path="/dashboard/:workspaceId" component={Dashboard} />
             <Route path="/setup" component={Setup} />
             <Route path="/blog" component={Blog} />
             <Route path="/blog/:slug" component={BlogPost} />
