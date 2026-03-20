@@ -21,6 +21,13 @@ const WHATSAPP_QR_OUT_PATH = path.join(process.cwd(), ".wa-login.out.log");
 const WHATSAPP_QR_ERR_PATH = path.join(process.cwd(), ".wa-login.err.log");
 const CHANNEL_OPERATION_TIMEOUT_MS = 45_000;
 
+function getSharedGatewayInstanceUrl(): string | null {
+  const raw = process.env.OPENCLAW_GATEWAY_URL?.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return null;
+}
+
 function getOpenClawCliPath(): string {
   const appData = process.env.APPDATA;
   if (appData?.trim()) {
@@ -276,6 +283,11 @@ router.post("/provision", async (req, res) => {
     let resolvedInstanceUrl: string | null = instanceUrl || null;
     if (!resolvedInstanceUrl && isDockerProvisioningEnabled()) {
       resolvedInstanceUrl = await provisionInstance(id);
+    }
+    if (!resolvedInstanceUrl && !isDockerProvisioningEnabled()) {
+      // In shared-gateway deployments (like Hetzner), use the configured gateway URL
+      // so users do not get stuck in "pending" forever.
+      resolvedInstanceUrl = getSharedGatewayInstanceUrl();
     }
 
     if (existing.length > 0) {
