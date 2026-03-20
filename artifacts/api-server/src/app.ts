@@ -235,7 +235,7 @@ if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { maxAge: "1h" }));
 
   app.use((req, res, next) => {
-    if (req.method === "GET" && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api")) {
+    if ((req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api")) {
       return res.sendFile(path.join(frontendDist, "index.html"));
     }
     next();
