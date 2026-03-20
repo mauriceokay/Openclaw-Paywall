@@ -219,7 +219,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-const frontendDist = path.resolve(process.cwd(), "artifacts/openclaw/dist/public");
+const frontendDistCandidates = [
+  path.resolve(process.cwd(), "artifacts/openclaw/dist/public"),
+  path.resolve(process.cwd(), "artifacts/openclaw/dist/artifacts/openclaw/dist/public"),
+];
+const frontendDist = frontendDistCandidates.find((candidate) => existsSync(candidate)) ?? frontendDistCandidates[0];
 
 if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { maxAge: "1h" }));
