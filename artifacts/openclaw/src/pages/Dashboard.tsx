@@ -52,6 +52,11 @@ type MarketplaceSkill = {
   installed?: boolean;
 };
 
+type SkillsCatalogResponse = {
+  gatewayId?: string;
+  skills?: MarketplaceSkill[];
+};
+
 function getValidModel(provider: Provider): string {
   const stored = localStorage.getItem("oc_api_model");
   if (stored && (PROVIDER_MODELS[provider] as readonly string[]).includes(stored)) return stored;
@@ -339,39 +344,20 @@ export function Dashboard() {
       setClawHubLoading(true);
       setClawHubError("");
       try {
-        const gatewayRes = await fetch(`${BASE_URL}/api/mission-control/ensure-gateway`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ name: user.name }),
-        });
-        if (!gatewayRes.ok) {
-          throw new Error("Unable to load gateway");
+        const catalogRes = await fetch(
+          `${BASE_URL}/api/mission-control/skills-catalog?limit=100`,
+          { credentials: "include" },
+        );
+        if (!catalogRes.ok) {
+          throw new Error("Unable to load skills catalog");
         }
-        const gatewayData = (await gatewayRes.json()) as { gatewayId?: string };
-        const firstGatewayId = gatewayData.gatewayId?.trim() ?? "";
+        const catalogData = (await catalogRes.json()) as SkillsCatalogResponse;
+        const firstGatewayId = catalogData.gatewayId?.trim() ?? "";
         if (!firstGatewayId) {
           throw new Error("No gateway available for this workspace.");
         }
         setClawHubGatewayId(firstGatewayId);
-
-        let skillsRes = await fetch(
-          `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(firstGatewayId)}&limit=100`,
-          { credentials: "include" },
-        );
-        if (skillsRes.status === 401) {
-          const refreshed = await ensureMissionControlSession(user.email, user.name);
-          if (refreshed) {
-            skillsRes = await fetch(
-              `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(firstGatewayId)}&limit=100`,
-              { credentials: "include" },
-            );
-          }
-        }
-        if (!skillsRes.ok) {
-          throw new Error("Unable to load skills catalog");
-        }
-        const skillsData = (await skillsRes.json()) as MarketplaceSkill[];
+        const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
         setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
       } catch {
         setClawHubError("Could not load skills catalog from Mission Control.");
@@ -396,10 +382,12 @@ export function Dashboard() {
       let success = 0;
       for (const skillId of selectedSkillIds) {
         const res = await fetch(
-          `${BASE_URL}/mc-api/api/v1/skills/marketplace/${encodeURIComponent(skillId)}/install?gateway_id=${encodeURIComponent(clawHubGatewayId)}`,
+          `${BASE_URL}/api/mission-control/skills/install`,
           {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
+            body: JSON.stringify({ skillId, gatewayId: clawHubGatewayId }),
           },
         );
         if (res.ok) {
@@ -409,12 +397,16 @@ export function Dashboard() {
       setClawHubSyncMessage(`Added ${success}/${selectedSkillIds.length} skills to OpenClaw.`);
       setSelectedSkillIds([]);
 
-      const skillsRes = await fetch(
-        `${BASE_URL}/mc-api/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(clawHubGatewayId)}&limit=100`,
+      const catalogRes = await fetch(
+        `${BASE_URL}/api/mission-control/skills-catalog?limit=100`,
         { credentials: "include" },
       );
-      if (skillsRes.ok) {
-        const skillsData = (await skillsRes.json()) as MarketplaceSkill[];
+      if (catalogRes.ok) {
+        const catalogData = (await catalogRes.json()) as SkillsCatalogResponse;
+        const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
+        if (catalogData.gatewayId) {
+          setClawHubGatewayId(catalogData.gatewayId);
+        }
         setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
       }
     } catch (error) {

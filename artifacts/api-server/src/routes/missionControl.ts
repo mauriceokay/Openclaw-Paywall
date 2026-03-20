@@ -7,6 +7,7 @@ import { trackUsageEvent } from "../usageTracking";
 const router = Router();
 const MISSION_CONTROL_BACKEND_URL = (process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001").replace(/\/+$/, "");
 const DEFAULT_SKILL_PACK_URL = "https://github.com/openclaw/openclaw";
+const DEFAULT_MARKETPLACE_LIMIT = 100;
 
 function toGatewayWsUrl(raw: string): string {
   const trimmed = raw.trim();
@@ -24,12 +25,22 @@ async function ensureMarketplaceSeed(headers: Record<string, string>, gatewayId:
     { headers },
   );
   if (!marketplaceProbe.ok) return;
-  const existingCards = (await marketplaceProbe.json()) as unknown;
-  if (Array.isArray(existingCards) && existingCards.length > 0) return;
+  const existingCardsPayload = (await marketplaceProbe.json()) as unknown;
+  const existingCards = Array.isArray(existingCardsPayload)
+    ? existingCardsPayload
+    : (typeof existingCardsPayload === "object" && existingCardsPayload !== null && Array.isArray((existingCardsPayload as { items?: unknown[] }).items)
+      ? (existingCardsPayload as { items: unknown[] }).items
+      : []);
+  if (existingCards.length > 0) return;
 
   const packsRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/packs`, { headers });
   if (!packsRes.ok) return;
-  const packs = (await packsRes.json()) as Array<{ id?: string; source_url?: string }>;
+  const packsPayload = (await packsRes.json()) as unknown;
+  const packs = Array.isArray(packsPayload)
+    ? (packsPayload as Array<{ id?: string; source_url?: string }>)
+    : (typeof packsPayload === "object" && packsPayload !== null && Array.isArray((packsPayload as { items?: unknown[] }).items)
+      ? ((packsPayload as { items: Array<{ id?: string; source_url?: string }> }).items ?? [])
+      : []);
   const existingPack = packs.find((p) => p?.source_url?.trim().toLowerCase() === DEFAULT_SKILL_PACK_URL);
 
   let packId = existingPack?.id?.trim() ?? "";
@@ -55,6 +66,77 @@ async function ensureMarketplaceSeed(headers: Record<string, string>, gatewayId:
     method: "POST",
     headers,
   });
+}
+
+function buildProxyHeaders(sessionEmail: string, sessionName: string): Record<string, string> {
+  return {
+    "x-oc-user-email": sessionEmail,
+    "x-oc-user-name": sessionName,
+    "content-type": "application/json",
+  };
+}
+
+function extractGatewayId(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  if (Array.isArray(payload)) {
+    const first = payload[0] as { id?: unknown } | undefined;
+    return typeof first?.id === "string" ? first.id : null;
+  }
+  const asPage = payload as { items?: Array<{ id?: unknown }> };
+  const first = asPage.items?.[0];
+  return typeof first?.id === "string" ? first.id : null;
+}
+
+async function ensureGatewayForUser(
+  sessionEmail: string,
+  sessionName: string,
+): Promise<{ gatewayId: string; created: boolean; proxyHeaders: Record<string, string> }> {
+  const proxyHeaders = buildProxyHeaders(sessionEmail, sessionName);
+  const listRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways?limit=1&offset=0`, {
+    headers: proxyHeaders,
+  });
+
+  if (!listRes.ok) {
+    const detail = (await listRes.text()).slice(0, 500);
+    throw new Error(`Failed to list Mission Control gateways: ${detail || listRes.status}`);
+  }
+
+  const listPayload = await listRes.json();
+  const existingGatewayId = extractGatewayId(listPayload);
+  if (existingGatewayId) {
+    await ensureMarketplaceSeed(proxyHeaders, existingGatewayId);
+    return { gatewayId: existingGatewayId, created: false, proxyHeaders };
+  }
+
+  const gatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
+  const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
+  const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
+
+  const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
+    method: "POST",
+    headers: proxyHeaders,
+    body: JSON.stringify({
+      name: "OpenClaw Gateway",
+      url: gatewayUrl,
+      token: gatewayToken,
+      workspace_root: workspaceRoot,
+      allow_insecure_tls: false,
+      disable_device_pairing: false,
+    }),
+  });
+
+  if (!createRes.ok) {
+    const detail = (await createRes.text()).slice(0, 500);
+    throw new Error(`Failed to create Mission Control gateway: ${detail || createRes.status}`);
+  }
+
+  const created = (await createRes.json()) as { id?: string };
+  if (!created?.id) {
+    throw new Error("Mission Control gateway created but no ID returned");
+  }
+
+  await ensureMarketplaceSeed(proxyHeaders, created.id);
+  return { gatewayId: created.id, created: true, proxyHeaders };
 }
 
 function readMissionControlEnv(): Record<string, string> {
@@ -130,77 +212,95 @@ router.post("/mission-control/ensure-gateway", async (req, res) => {
     || "OpenClaw User"
   ).trim();
 
-  const proxyHeaders: Record<string, string> = {
-    "x-oc-user-email": sessionEmail,
-    "x-oc-user-name": sessionName,
-    "content-type": "application/json",
-  };
-
-  const extractGatewayId = (payload: unknown): string | null => {
-    if (!payload || typeof payload !== "object") return null;
-    if (Array.isArray(payload)) {
-      const first = payload[0] as { id?: unknown } | undefined;
-      return typeof first?.id === "string" ? first.id : null;
-    }
-    const asPage = payload as { items?: Array<{ id?: unknown }> };
-    const first = asPage.items?.[0];
-    return typeof first?.id === "string" ? first.id : null;
-  };
-
   try {
-    const listRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways?limit=1&offset=0`, {
-      headers: proxyHeaders,
-    });
-
-    if (!listRes.ok) {
-      return res.status(502).json({ error: "Failed to list Mission Control gateways" });
-    }
-
-    const listPayload = await listRes.json();
-    const existingGatewayId = extractGatewayId(listPayload);
-    if (existingGatewayId) {
-      try {
-        await ensureMarketplaceSeed(proxyHeaders, existingGatewayId);
-      } catch {}
-      return res.json({ gatewayId: existingGatewayId, created: false });
-    }
-
-    const gatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
-    const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
-    const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
-
-    const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
-      method: "POST",
-      headers: proxyHeaders,
-      body: JSON.stringify({
-        name: "OpenClaw Gateway",
-        url: gatewayUrl,
-        token: gatewayToken,
-        workspace_root: workspaceRoot,
-        allow_insecure_tls: false,
-        disable_device_pairing: false,
-      }),
-    });
-
-    if (!createRes.ok) {
-      const raw = await createRes.text();
-      const detail = raw.slice(0, 500);
-      return res.status(502).json({ error: "Failed to create Mission Control gateway", detail });
-    }
-
-    const created = (await createRes.json()) as { id?: string };
-    if (!created?.id) {
-      return res.status(502).json({ error: "Mission Control gateway created but no ID returned" });
-    }
-
-    try {
-      await ensureMarketplaceSeed(proxyHeaders, created.id);
-    } catch {}
-
-    return res.json({ gatewayId: created.id, created: true });
+    const result = await ensureGatewayForUser(sessionEmail, sessionName);
+    return res.json({ gatewayId: result.gatewayId, created: result.created });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return res.status(502).json({ error: "Mission Control gateway bootstrap failed", detail: message });
+  }
+});
+
+router.get("/mission-control/skills-catalog", async (req, res) => {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  const sessionName = (sessionEmail.split("@")[0] || "OpenClaw User").trim();
+  const rawLimit = Number(req.query.limit);
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : DEFAULT_MARKETPLACE_LIMIT;
+
+  try {
+    const { gatewayId, proxyHeaders } = await ensureGatewayForUser(sessionEmail, sessionName);
+    let skillsRes = await fetch(
+      `${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(gatewayId)}&limit=${limit}`,
+      { headers: proxyHeaders },
+    );
+
+    if (!skillsRes.ok) {
+      await ensureMarketplaceSeed(proxyHeaders, gatewayId);
+      skillsRes = await fetch(
+        `${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(gatewayId)}&limit=${limit}`,
+        { headers: proxyHeaders },
+      );
+    }
+
+    if (!skillsRes.ok) {
+      const detail = (await skillsRes.text()).slice(0, 500);
+      return res.status(502).json({ error: "Unable to load skills catalog", detail });
+    }
+
+    const payload = (await skillsRes.json()) as unknown;
+    const skills = Array.isArray(payload)
+      ? payload
+      : (typeof payload === "object" && payload !== null && Array.isArray((payload as { items?: unknown[] }).items)
+        ? (payload as { items: unknown[] }).items
+        : []);
+    return res.json({ gatewayId, skills });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res.status(502).json({ error: "Failed to resolve skills catalog", detail: message });
+  }
+});
+
+router.post("/mission-control/skills/install", async (req, res) => {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  const skillId = typeof req.body?.skillId === "string" ? req.body.skillId.trim() : "";
+  if (!skillId) {
+    return res.status(400).json({ error: "skillId is required" });
+  }
+
+  const sessionName = (sessionEmail.split("@")[0] || "OpenClaw User").trim();
+  const providedGatewayId = typeof req.body?.gatewayId === "string" ? req.body.gatewayId.trim() : "";
+
+  try {
+    const ensured = providedGatewayId
+      ? { gatewayId: providedGatewayId, proxyHeaders: buildProxyHeaders(sessionEmail, sessionName) }
+      : await ensureGatewayForUser(sessionEmail, sessionName);
+
+    const installRes = await fetch(
+      `${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/marketplace/${encodeURIComponent(skillId)}/install?gateway_id=${encodeURIComponent(ensured.gatewayId)}`,
+      {
+        method: "POST",
+        headers: ensured.proxyHeaders,
+      },
+    );
+
+    if (!installRes.ok) {
+      const detail = (await installRes.text()).slice(0, 500);
+      return res.status(502).json({ error: "Failed to install selected skill", detail });
+    }
+
+    const payload = (await installRes.json().catch(() => ({}))) as Record<string, unknown>;
+    return res.json({ gatewayId: ensured.gatewayId, ...payload });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res.status(502).json({ error: "Failed to install selected skill", detail: message });
   }
 });
 
