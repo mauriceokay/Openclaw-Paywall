@@ -50,6 +50,11 @@ function getLocalGatewayToken(): string | null {
   }
 }
 
+function getSharedGatewayToken(): string | null {
+  const token = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
+  return token || null;
+}
+
 function getLocalOpenClawConfigPath(): string {
   return path.join(os.homedir(), ".openclaw", "openclaw.json");
 }
@@ -443,11 +448,24 @@ router.get("/launch", async (req, res) => {
   // so users skip manual dashboard connection and token entry.
   const sharedGateway = getSharedGatewayInstanceUrl();
   if (sharedGateway) {
+    const token = getSharedGatewayToken();
+    const queryParams = new URLSearchParams();
+    if (hasHost) {
+      queryParams.set("gatewayUrl", `${protocol}://${host}/api/gateway`);
+    }
+    const hashParams = new URLSearchParams();
+    if (token) {
+      hashParams.set("token", token);
+    }
+    const query = queryParams.toString();
+    const hash = hashParams.toString();
+    const launchUrl = `/api/gateway/chat${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
+
     await trackUsageEvent(sessionEmail, "terminal_open", {
       source: "openclaw_launch",
       mode: "shared-gateway",
     });
-    return res.json({ launchUrl: "/api/gateway/chat", localDev: false, ready: true });
+    return res.json({ launchUrl, localDev: false, ready: true });
   }
 
   const { db } = await import("@workspace/db");
