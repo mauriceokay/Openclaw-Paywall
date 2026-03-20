@@ -14,10 +14,20 @@ import {
   Rocket,
   Puzzle,
   Lock,
+  User,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubscriptionStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
@@ -49,7 +59,7 @@ function getValidModel(provider: Provider): string {
 }
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { t, locale } = useLanguage();
   const d = t.dashboard;
   const [, navigate] = useLocation();
@@ -406,6 +416,14 @@ export function Dashboard() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } finally {
+      navigate("/sign-in");
+    }
+  };
+
   useEffect(() => {
     if (status && !status.hasActiveSubscription) {
       navigate("/pricing");
@@ -498,6 +516,28 @@ export function Dashboard() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-white/10 hover:bg-white/5 text-sm"
+                  >
+                    <User className="w-3.5 h-3.5 mr-1.5" />
+                    Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="truncate">
+                    {user?.name || user?.email || "Account"}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="outline"
                 size="sm"
