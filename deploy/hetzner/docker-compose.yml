@@ -32,6 +32,7 @@ services:
     restart: unless-stopped
     environment:
       OPENCLAW_GATEWAY_PORT: 3005
+      NODE_OPTIONS: --max-old-space-size=1536
     volumes:
       - openclaw_config:/root/.openclaw
 
