@@ -439,6 +439,17 @@ router.get("/launch", async (req, res) => {
     });
   }
 
+  // Shared-gateway deployments (Hetzner) should always launch via the API gateway proxy
+  // so users skip manual dashboard connection and token entry.
+  const sharedGateway = getSharedGatewayInstanceUrl();
+  if (sharedGateway) {
+    await trackUsageEvent(sessionEmail, "terminal_open", {
+      source: "openclaw_launch",
+      mode: "shared-gateway",
+    });
+    return res.json({ launchUrl: "/api/gateway/chat", localDev: false, ready: true });
+  }
+
   const { db } = await import("@workspace/db");
   const { userAgentsTable } = await import("@workspace/db/schema");
   const { eq } = await import("drizzle-orm");

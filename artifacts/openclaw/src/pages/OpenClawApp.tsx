@@ -98,6 +98,7 @@ export function OpenClawApp() {
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const [instanceUrl, setInstanceUrl] = useState<string | null>(null);
   const [instanceIsLocalDev, setInstanceIsLocalDev] = useState(false);
+  const [launchUrl, setLaunchUrl] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
@@ -199,7 +200,7 @@ export function OpenClawApp() {
 
   useEffect(() => {
     if (provisionState !== "ready") return;
-    if (!instanceIsLocalDev || !instanceUrl) return;
+    if (!instanceUrl) return;
 
     let cancelled = false;
     fetch(`${BASE_URL}/api/openclaw/launch`, { credentials: "include" })
@@ -209,17 +210,21 @@ export function OpenClawApp() {
       })
       .then((launch) => {
         if (cancelled) return;
-        preloadOpenClawControlUi(launch.launchUrl);
+        const resolvedLaunchUrl = launch.launchUrl?.trim() || `${BASE_URL}/api/gateway/chat`;
+        setLaunchUrl(resolvedLaunchUrl);
+        preloadOpenClawControlUi(resolvedLaunchUrl);
       })
       .catch(() => {
         if (cancelled) return;
-        preloadOpenClawControlUi();
+        const fallback = `${BASE_URL}/api/gateway/chat`;
+        setLaunchUrl(fallback);
+        preloadOpenClawControlUi(fallback);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [instanceIsLocalDev, instanceUrl, provisionState]);
+  }, [instanceUrl, provisionState]);
 
   if (statusLoading || provisionState === "provisioning") {
     return (
@@ -327,9 +332,7 @@ export function OpenClawApp() {
   }
 
   if (provisionState === "ready" && instanceUrl) {
-    const frameSrc = instanceIsLocalDev
-      ? `${BASE_URL}/api/gateway/chat`
-      : `${BASE_URL}/api/instance-proxy/chat`;
+    const frameSrc = launchUrl || `${BASE_URL}/api/gateway/chat`;
     return (
       <div className="fixed inset-0 z-50 bg-background">
         <div className="absolute top-4 left-4 z-10">
