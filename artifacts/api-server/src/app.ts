@@ -87,6 +87,12 @@ app.use("/mc-api", cookieParser(), (req, _res, next) => {
   if (sessionEmail) {
     req.headers["x-oc-user-email"] = sessionEmail;
   }
+  // Backward compatibility: older dashboard bundles still call
+  // /api/v1/skills/catalog while the backend now serves
+  // /api/v1/skills/marketplace.
+  if (typeof req.url === "string" && req.url.startsWith("/api/v1/skills/catalog")) {
+    req.url = req.url.replace("/api/v1/skills/catalog", "/api/v1/skills/marketplace");
+  }
   next();
 });
 
