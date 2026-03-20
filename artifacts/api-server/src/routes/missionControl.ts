@@ -6,6 +6,56 @@ import { trackUsageEvent } from "../usageTracking";
 
 const router = Router();
 const MISSION_CONTROL_BACKEND_URL = (process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001").replace(/\/+$/, "");
+const DEFAULT_SKILL_PACK_URL = "https://github.com/openclaw/openclaw";
+
+function toGatewayWsUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "ws://gateway:3005";
+  if (/^wss?:\/\//i.test(trimmed)) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
+  }
+  return trimmed;
+}
+
+async function ensureMarketplaceSeed(headers: Record<string, string>, gatewayId: string): Promise<void> {
+  const marketplaceProbe = await fetch(
+    `${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/marketplace?gateway_id=${encodeURIComponent(gatewayId)}&limit=1`,
+    { headers },
+  );
+  if (!marketplaceProbe.ok) return;
+  const existingCards = (await marketplaceProbe.json()) as unknown;
+  if (Array.isArray(existingCards) && existingCards.length > 0) return;
+
+  const packsRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/packs`, { headers });
+  if (!packsRes.ok) return;
+  const packs = (await packsRes.json()) as Array<{ id?: string; source_url?: string }>;
+  const existingPack = packs.find((p) => p?.source_url?.trim().toLowerCase() === DEFAULT_SKILL_PACK_URL);
+
+  let packId = existingPack?.id?.trim() ?? "";
+  if (!packId) {
+    const createPackRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/packs`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        source_url: DEFAULT_SKILL_PACK_URL,
+        name: "OpenClaw Skills",
+        description: "Official OpenClaw skills pack",
+        branch: "main",
+      }),
+    });
+    if (createPackRes.ok) {
+      const created = (await createPackRes.json()) as { id?: string };
+      packId = created.id?.trim() ?? "";
+    }
+  }
+
+  if (!packId) return;
+  await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/skills/packs/${encodeURIComponent(packId)}/sync`, {
+    method: "POST",
+    headers,
+  });
+}
 
 function readMissionControlEnv(): Record<string, string> {
   const candidates = [
@@ -109,10 +159,13 @@ router.post("/mission-control/ensure-gateway", async (req, res) => {
     const listPayload = await listRes.json();
     const existingGatewayId = extractGatewayId(listPayload);
     if (existingGatewayId) {
+      try {
+        await ensureMarketplaceSeed(proxyHeaders, existingGatewayId);
+      } catch {}
       return res.json({ gatewayId: existingGatewayId, created: false });
     }
 
-    const gatewayUrl = (process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005").trim();
+    const gatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
     const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
     const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
 
@@ -139,6 +192,10 @@ router.post("/mission-control/ensure-gateway", async (req, res) => {
     if (!created?.id) {
       return res.status(502).json({ error: "Mission Control gateway created but no ID returned" });
     }
+
+    try {
+      await ensureMarketplaceSeed(proxyHeaders, created.id);
+    } catch {}
 
     return res.json({ gatewayId: created.id, created: true });
   } catch (error) {
