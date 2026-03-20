@@ -321,16 +321,19 @@ export function Dashboard() {
       setClawHubLoading(true);
       setClawHubError("");
       try {
-        const gatewayRes = await fetch(`${BASE_URL}/mc-api/api/v1/gateways?limit=1`, {
+        const gatewayRes = await fetch(`${BASE_URL}/api/mission-control/ensure-gateway`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify({ name: user.name }),
         });
         if (!gatewayRes.ok) {
           throw new Error("Unable to load gateway");
         }
-        const gatewayData = (await gatewayRes.json()) as { items?: Array<{ id?: string }> };
-        const firstGatewayId = gatewayData.items?.[0]?.id?.trim() ?? "";
+        const gatewayData = (await gatewayRes.json()) as { gatewayId?: string };
+        const firstGatewayId = gatewayData.gatewayId?.trim() ?? "";
         if (!firstGatewayId) {
-          throw new Error("No gateway found. Open Mission Control and create a gateway first.");
+          throw new Error("No gateway available for this workspace.");
         }
         setClawHubGatewayId(firstGatewayId);
 

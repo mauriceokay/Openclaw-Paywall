@@ -5,6 +5,7 @@ import { getSessionEmail } from "../sessionAuth";
 import { trackUsageEvent } from "../usageTracking";
 
 const router = Router();
+const MISSION_CONTROL_BACKEND_URL = (process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001").replace(/\/+$/, "");
 
 function readMissionControlEnv(): Record<string, string> {
   const candidates = [
@@ -65,6 +66,85 @@ router.get("/mission-control/launch", async (req, res) => {
     authMode,
     localAuthToken: localAuthToken || null,
   });
+});
+
+router.post("/mission-control/ensure-gateway", async (req, res) => {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  const sessionName = (
+    (typeof req.body?.name === "string" ? req.body.name : "")
+    || sessionEmail.split("@")[0]
+    || "OpenClaw User"
+  ).trim();
+
+  const proxyHeaders: Record<string, string> = {
+    "x-oc-user-email": sessionEmail,
+    "x-oc-user-name": sessionName,
+    "content-type": "application/json",
+  };
+
+  const extractGatewayId = (payload: unknown): string | null => {
+    if (!payload || typeof payload !== "object") return null;
+    if (Array.isArray(payload)) {
+      const first = payload[0] as { id?: unknown } | undefined;
+      return typeof first?.id === "string" ? first.id : null;
+    }
+    const asPage = payload as { items?: Array<{ id?: unknown }> };
+    const first = asPage.items?.[0];
+    return typeof first?.id === "string" ? first.id : null;
+  };
+
+  try {
+    const listRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways?limit=1&offset=0`, {
+      headers: proxyHeaders,
+    });
+
+    if (!listRes.ok) {
+      return res.status(502).json({ error: "Failed to list Mission Control gateways" });
+    }
+
+    const listPayload = await listRes.json();
+    const existingGatewayId = extractGatewayId(listPayload);
+    if (existingGatewayId) {
+      return res.json({ gatewayId: existingGatewayId, created: false });
+    }
+
+    const gatewayUrl = (process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005").trim();
+    const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
+    const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
+
+    const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
+      method: "POST",
+      headers: proxyHeaders,
+      body: JSON.stringify({
+        name: "OpenClaw Gateway",
+        url: gatewayUrl,
+        token: gatewayToken,
+        workspace_root: workspaceRoot,
+        allow_insecure_tls: false,
+        disable_device_pairing: false,
+      }),
+    });
+
+    if (!createRes.ok) {
+      const raw = await createRes.text();
+      const detail = raw.slice(0, 500);
+      return res.status(502).json({ error: "Failed to create Mission Control gateway", detail });
+    }
+
+    const created = (await createRes.json()) as { id?: string };
+    if (!created?.id) {
+      return res.status(502).json({ error: "Mission Control gateway created but no ID returned" });
+    }
+
+    return res.json({ gatewayId: created.id, created: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res.status(502).json({ error: "Mission Control gateway bootstrap failed", detail: message });
+  }
 });
 
 export default router;
