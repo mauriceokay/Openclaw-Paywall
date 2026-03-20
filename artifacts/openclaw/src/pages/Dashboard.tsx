@@ -58,6 +58,14 @@ function getValidModel(provider: Provider): string {
   return PROVIDER_MODELS[provider][0];
 }
 
+function getWorkspaceSlug(email: string): string {
+  return btoa(email.toLowerCase())
+    .replace(/=+$/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .slice(0, 12);
+}
+
 export function Dashboard() {
   const { user, signOut } = useAuth();
   const { t, locale } = useLanguage();
@@ -286,10 +294,10 @@ export function Dashboard() {
       }
 
       preloadOpenClawControlUi(launch.launchUrl);
-      navigate("/openclaw");
+      navigate(`/openclaw/${getWorkspaceSlug(user.email)}`);
     } catch (err) {
       console.error("[dashboard] failed to open control ui:", err);
-      navigate("/openclaw");
+      navigate(`/openclaw/${getWorkspaceSlug(user.email)}`);
     } finally {
       setOpeningInstance(false);
     }
@@ -419,12 +427,7 @@ export function Dashboard() {
   useEffect(() => {
     if (!user?.email) return;
     if (location !== "/dashboard") return;
-    const encoded = btoa(user.email.toLowerCase())
-      .replace(/=+$/g, "")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .slice(0, 12);
-    navigate(`/dashboard/${encoded}`);
+    navigate(`/dashboard/${getWorkspaceSlug(user.email)}`);
   }, [location, navigate, user?.email]);
 
   const handleSignOut = async () => {

@@ -43,6 +43,7 @@ function Router() {
     <Switch>
       {/* Full-screen route — no navbar/footer */}
       <Route path="/openclaw" component={OpenClawApp} />
+      <Route path="/openclaw/:workspaceId" component={OpenClawApp} />
       <Route path="/mission-control-app" component={MissionControlApp} />
 
       {/* Standard layout routes */}

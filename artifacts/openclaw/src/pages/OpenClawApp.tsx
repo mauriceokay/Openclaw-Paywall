@@ -33,6 +33,14 @@ function normalizeGatewayTokenScope(gatewayUrl: string): string {
   }
 }
 
+function getWorkspaceSlug(email: string): string {
+  return btoa(email.toLowerCase())
+    .replace(/=+$/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .slice(0, 12);
+}
+
 function preloadOpenClawControlUi(launchUrl?: string) {
   const defaultGatewayUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/gateway`;
   let gatewayUrl = defaultGatewayUrl;
@@ -93,7 +101,7 @@ function useRelativeTime(date: Date | null) {
 
 export function OpenClawApp() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [provisionState, setProvisionState] = useState<ProvisionState>("idle");
   const [provisionError, setProvisionError] = useState<string | null>(null);
   const [instanceUrl, setInstanceUrl] = useState<string | null>(null);
@@ -114,6 +122,12 @@ export function OpenClawApp() {
       }
     }, 80);
   }, [navigate]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    if (location !== "/openclaw") return;
+    navigate(`/openclaw/${getWorkspaceSlug(user.email)}`);
+  }, [location, navigate, user?.email]);
 
   const { data: status, isLoading: statusLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["subscription-status", user?.email],
