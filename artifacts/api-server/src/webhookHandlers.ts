@@ -55,8 +55,15 @@ export class WebhookHandlers {
       );
     }
 
-    const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature);
+    try {
+      const sync = await getStripeSync();
+      await sync.processWebhook(payload, signature);
+    } catch (err: any) {
+      console.warn(
+        "[webhook] stripe-replit-sync unavailable, continuing with direct Stripe handling:",
+        err?.message || String(err),
+      );
+    }
 
     try {
       const stripe = await getUncachableStripeClient();

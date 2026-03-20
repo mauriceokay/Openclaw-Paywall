@@ -97,6 +97,18 @@ async function initStripe() {
     await runMigrations({ databaseUrl, schema: "stripe" });
     console.log("Stripe schema ready");
 
+    const { pool } = await import("@workspace/db");
+    const syncAccounts = await pool.query(
+      `SELECT to_regclass('stripe.accounts')::text AS table_name`,
+    );
+    const hasStripeAccountsTable = Boolean(syncAccounts.rows[0]?.table_name);
+    if (!hasStripeAccountsTable) {
+      console.warn(
+        "[stripe] stripe-replit-sync tables not present (missing stripe.accounts); skipping managed webhook sync.",
+      );
+      return;
+    }
+
     const stripeSync = await getStripeSync();
 
     console.log("Setting up managed webhook...");
