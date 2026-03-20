@@ -6,19 +6,42 @@ import { LogOut, User, MoreVertical, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useQuery } from "@tanstack/react-query";
 
 export function Navbar() {
   const [location] = useLocation();
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
+  const { data: subscriptionStatus } = useQuery<{ hasActiveSubscription?: boolean; planName?: string | null }>({
+    queryKey: ["navbar-subscription-status", user?.email],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (user?.email) params.set("email", user.email);
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${BASE_URL}/api/subscription/status${suffix}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch subscription status");
+      return (await res.json()) as { hasActiveSubscription?: boolean; planName?: string | null };
+    },
+    enabled: Boolean(user?.email),
+    retry: false,
+  });
+
+  const hasActivePlan = Boolean(
+    subscriptionStatus?.hasActiveSubscription ||
+    (subscriptionStatus?.planName && subscriptionStatus.planName.trim().length > 0)
+  );
 
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.blog, href: "/blog" },
-    { label: t.nav.pricing, href: "/pricing" },
     { label: t.nav.dashboard, href: "/dashboard" },
   ];
+  if (!hasActivePlan) {
+    navLinks.splice(2, 0, { label: t.nav.pricing, href: "/pricing" });
+  }
 
   return (
     <header className="relative md:fixed md:top-0 md:inset-x-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">

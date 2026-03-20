@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,9 +24,12 @@ import NotFound from "@/pages/not-found";
 const queryClient = new QueryClient();
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const hideNavbar = location.startsWith("/dashboard");
+
   return (
     <div className="flex flex-col min-h-screen selection:bg-primary/30 selection:text-white">
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <main className="flex-1">
         {children}
       </main>
