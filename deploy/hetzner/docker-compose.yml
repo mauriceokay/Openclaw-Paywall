@@ -32,6 +32,7 @@ services:
     restart: unless-stopped
     environment:
       OPENCLAW_GATEWAY_PORT: 3005
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       NODE_OPTIONS: --max-old-space-size=1536
     volumes:
       - openclaw_config:/root/.openclaw
@@ -116,6 +117,7 @@ services:
       AI_INTEGRATIONS_ANTHROPIC_BASE_URL: ${AI_INTEGRATIONS_ANTHROPIC_BASE_URL:-https://api.anthropic.com}
       AI_INTEGRATIONS_ANTHROPIC_API_KEY: ${AI_INTEGRATIONS_ANTHROPIC_API_KEY:-sk-ant-not-configured}
       OPENCLAW_GATEWAY_URL: http://gateway:3005
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       MISSION_CONTROL_BACKEND_URL: http://mc-backend:8000
       MISSION_CONTROL_FRONTEND_URL: http://mc-frontend:3000
       MISSION_CONTROL_AUTH_MODE: proxy
