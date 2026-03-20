@@ -12,6 +12,7 @@ import { trackUsageEvent } from "./usageTracking";
 
 const app: Express = express();
 const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
+const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
 const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001";
 const MISSION_CONTROL_FRONTEND_URL = process.env.MISSION_CONTROL_FRONTEND_URL ?? "http://127.0.0.1:3002";
 
@@ -50,6 +51,13 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   target: GATEWAY_URL,
   changeOrigin: true,
   pathRewrite: { "^/api/gateway": "" },
+  on: {
+    proxyReq: (proxyReq) => {
+      if (GATEWAY_TOKEN) {
+        proxyReq.setHeader("authorization", `Bearer ${GATEWAY_TOKEN}`);
+      }
+    },
+  },
 });
 
 app.use("/api/gateway", cookieParser(), async (req, _res, next) => {

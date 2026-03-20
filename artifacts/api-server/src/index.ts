@@ -6,6 +6,7 @@ import { verifySessionToken } from "./sessionAuth";
 import app from "./app";
 import { isDbEnabled } from "./localDev";
 const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
+const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
 
 const rawPort = process.env["PORT"];
 
@@ -126,6 +127,13 @@ const wsProxy = createProxyMiddleware({
   target: GATEWAY_URL,
   changeOrigin: true,
   pathRewrite: { "^/api/gateway": "" },
+  on: {
+    proxyReqWs: (proxyReq) => {
+      if (GATEWAY_TOKEN) {
+        proxyReq.setHeader("authorization", `Bearer ${GATEWAY_TOKEN}`);
+      }
+    },
+  },
 });
 
 server.on("upgrade", async (req, socket, head) => {
