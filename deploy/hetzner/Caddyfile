@@ -1,4 +1,7 @@
 :80 {
   encode zstd gzip
+  handle_path /api/deploy {
+    reverse_proxy deploy-hook:9000
+  }
   reverse_proxy app:8080
 }

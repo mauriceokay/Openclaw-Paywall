@@ -73,3 +73,35 @@ git pull
 cd deploy/hetzner
 docker compose --env-file .env up -d --build
 ```
+
+## Deploy via API webhook
+
+This stack now includes a protected webhook endpoint:
+- `POST https://<DOMAIN>/api/deploy`
+
+### Configure
+
+In `deploy/hetzner/.env`, set:
+- `DEPLOY_WEBHOOK_SECRET` to a long random string
+- optional: `DEPLOY_GIT_REMOTE` (default `origin`)
+- optional: `DEPLOY_GIT_BRANCH` (default `master`)
+
+Then rebuild once:
+
+```bash
+cd Openclaw-Paywall/deploy/hetzner
+docker compose --env-file .env up -d --build
+```
+
+### Trigger update
+
+```bash
+curl -X POST "https://<DOMAIN>/api/deploy" \
+  -H "X-Deploy-Token: <DEPLOY_WEBHOOK_SECRET>" \
+  -H "Content-Type: application/json" \
+  -d '{"ref":"refs/heads/master"}'
+```
+
+If token is valid, the webhook runs:
+1. `git pull origin master`
+2. `docker compose --env-file .env up -d --build --remove-orphans`

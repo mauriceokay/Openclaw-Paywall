@@ -13,6 +13,7 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+      - deploy-hook
 
   app-db:
     image: postgres:16-alpine
@@ -125,6 +126,19 @@ services:
       - mc-frontend
     volumes:
       - openclaw_config:/root/.openclaw
+
+  deploy-hook:
+    build:
+      context: ../..
+      dockerfile: deploy/hetzner/Dockerfile.deploy-hook
+    restart: unless-stopped
+    environment:
+      DEPLOY_WEBHOOK_SECRET: ${DEPLOY_WEBHOOK_SECRET}
+      DEPLOY_GIT_BRANCH: ${DEPLOY_GIT_BRANCH:-master}
+      DEPLOY_GIT_REMOTE: ${DEPLOY_GIT_REMOTE:-origin}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../..:/workspace
 
 volumes:
   app_db_data:
