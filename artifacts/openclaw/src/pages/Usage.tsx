@@ -66,6 +66,7 @@ const EVENT_LABELS: Record<string, string> = {
   gateway_toggle: "Gateway Toggles",
   settings_sync: "Settings Syncs",
   whatsapp_qr_start: "WhatsApp QR Starts",
+  paperclip_open: "Paperclip Opens",
 };
 
 export function Usage() {

@@ -678,17 +678,17 @@ export function Dashboard() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold font-display mb-1">Paperclip</h2>
-                <p className="text-sm text-muted-foreground">Open-source local AI apps and automation workspace</p>
+                <p className="text-sm text-muted-foreground">Integrated orchestration workspace running inside your stack</p>
               </div>
             </div>
             <Button
               size="lg"
               variant="outline"
               className="h-14 px-8 text-lg font-bold border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-200 rounded-xl group shrink-0"
-              onClick={() => window.open("https://github.com/paperclipai/paperclip", "_blank", "noopener,noreferrer")}
+              onClick={() => navigate("/paperclip-app")}
             >
               <PaperclipIcon className="w-5 h-5 mr-2" />
-              Open Paperclip
+              Open Workspace
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>

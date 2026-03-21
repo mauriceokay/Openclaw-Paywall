@@ -15,6 +15,7 @@ const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005"
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
 const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001";
 const MISSION_CONTROL_FRONTEND_URL = process.env.MISSION_CONTROL_FRONTEND_URL ?? "http://127.0.0.1:3002";
+const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", gatewayUrl: GATEWAY_URL });
@@ -128,6 +129,27 @@ const mcFrontendProxy = createProxyMiddleware<express.Request, express.Response>
 });
 
 app.use("/mission-control", mcFrontendProxy);
+
+const paperclipProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: PAPERCLIP_URL,
+  changeOrigin: true,
+  ws: true,
+  selfHandleResponse: true,
+  pathRewrite: { "^/paperclip": "" },
+  on: {
+    proxyRes: responseInterceptor(async (responseBuffer, _proxyRes, _req, expressRes) => {
+      stripIframeHeaders(expressRes as express.Response);
+      return responseBuffer;
+    }),
+  },
+});
+
+app.use("/paperclip", cookieParser(), (req, res, next) => {
+  if (!getSessionEmail(req)) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  return next();
+}, paperclipProxy);
 
 function stripIframeHeaders(res: express.Response) {
   res.removeHeader("x-frame-options");
@@ -251,7 +273,7 @@ if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { maxAge: "1h" }));
 
   app.use((req, res, next) => {
-    if ((req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api")) {
+    if ((req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api") && !req.path.startsWith("/paperclip")) {
       return res.sendFile(path.join(frontendDist, "index.html"));
     }
     next();
