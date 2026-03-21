@@ -3,7 +3,11 @@
   handle_path /api/deploy {
     reverse_proxy deploy-hook:9000
   }
-  reverse_proxy app:8080
+  reverse_proxy app:8080 {
+    transport http {
+      versions 1.1
+    }
+  }
 }
 
 :443 {
@@ -12,5 +16,9 @@
   handle_path /api/deploy {
     reverse_proxy deploy-hook:9000
   }
-  reverse_proxy app:8080
+  reverse_proxy app:8080 {
+    transport http {
+      versions 1.1
+    }
+  }
 }
