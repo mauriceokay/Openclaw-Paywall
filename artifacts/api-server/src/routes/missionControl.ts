@@ -110,25 +110,35 @@ async function ensureGatewayForUser(
 
   const configuredGatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
   const fallbackGatewayUrl = "ws://gateway:3005";
-  const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
+  const configuredGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
   const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
-  const createGateway = async (url: string): Promise<{ id: string }> => {
+  const createGateway = async ({
+    url,
+    token,
+    disableDevicePairing,
+  }: {
+    url: string;
+    token: string | null;
+    disableDevicePairing: boolean;
+  }): Promise<{ id: string }> => {
     const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
       method: "POST",
       headers: proxyHeaders,
       body: JSON.stringify({
         name: "OpenClaw Gateway",
         url,
-        token: gatewayToken,
+        token,
         workspace_root: workspaceRoot,
         allow_insecure_tls: false,
-        disable_device_pairing: false,
+        disable_device_pairing: disableDevicePairing,
       }),
     });
 
     if (!createRes.ok) {
       const detail = (await createRes.text()).slice(0, 500);
-      throw new Error(`Failed to create Mission Control gateway (${url}): ${detail || createRes.status}`);
+      throw new Error(
+        `Failed to create Mission Control gateway (${url}, disableDevicePairing=${disableDevicePairing}, token=${token ? "set" : "empty"}): ${detail || createRes.status}`,
+      );
     }
 
     const created = (await createRes.json()) as { id?: string };
@@ -138,23 +148,42 @@ async function ensureGatewayForUser(
     return { id: created.id };
   };
 
+  const attempts: Array<{ url: string; token: string | null; disableDevicePairing: boolean }> = [];
+  const seenAttempts = new Set<string>();
+  const addAttempt = (url: string, token: string | null, disableDevicePairing: boolean) => {
+    const key = `${url}|${token ?? ""}|${disableDevicePairing ? "1" : "0"}`;
+    if (seenAttempts.has(key)) return;
+    seenAttempts.add(key);
+    attempts.push({ url, token, disableDevicePairing });
+  };
+
+  // Prefer control-ui style authentication first in hosted environments where
+  // device pairing can be disabled and browser/device identity is not required.
+  addAttempt(configuredGatewayUrl, configuredGatewayToken, true);
+  addAttempt(configuredGatewayUrl, null, true);
+  addAttempt(configuredGatewayUrl, configuredGatewayToken, false);
+  addAttempt(configuredGatewayUrl, null, false);
+  if (configuredGatewayUrl !== fallbackGatewayUrl) {
+    addAttempt(fallbackGatewayUrl, configuredGatewayToken, true);
+    addAttempt(fallbackGatewayUrl, null, true);
+    addAttempt(fallbackGatewayUrl, configuredGatewayToken, false);
+    addAttempt(fallbackGatewayUrl, null, false);
+  }
+
   let createdId = "";
-  let firstError: Error | null = null;
-  try {
-    const created = await createGateway(configuredGatewayUrl);
-    createdId = created.id;
-  } catch (err) {
-    firstError = err instanceof Error ? err : new Error("Unknown gateway create error");
-    if (configuredGatewayUrl !== fallbackGatewayUrl) {
-      const fallbackCreated = await createGateway(fallbackGatewayUrl);
-      createdId = fallbackCreated.id;
-    } else {
-      throw firstError;
+  let lastError: Error | null = null;
+  for (const attempt of attempts) {
+    try {
+      const created = await createGateway(attempt);
+      createdId = created.id;
+      break;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error("Unknown gateway create error");
     }
   }
 
   if (!createdId) {
-    throw firstError ?? new Error("Mission Control gateway bootstrap failed");
+    throw lastError ?? new Error("Mission Control gateway bootstrap failed");
   }
 
   await ensureMarketplaceSeed(proxyHeaders, createdId);
