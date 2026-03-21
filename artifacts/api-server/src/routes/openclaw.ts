@@ -419,7 +419,9 @@ router.get("/launch", async (req, res) => {
     return res.status(401).json({ error: "Authentication required" });
   }
 
-  const protocol = req.protocol === "https" ? "wss" : "ws";
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const isHttps = req.protocol === "https" || forwardedProto === "https";
+  const protocol = isHttps ? "wss" : "ws";
   const host = req.get("host");
   const hasHost = Boolean(host && host.trim());
 
