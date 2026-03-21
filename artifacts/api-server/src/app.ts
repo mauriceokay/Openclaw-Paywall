@@ -97,8 +97,40 @@ app.use("/api/gateway", cookieParser(), async (req, _res, next) => {
 // Fallback: some local routes can land on /chat without the /api/gateway prefix.
 // Redirecting keeps the control UI reachable instead of showing a proxy failure.
 app.get("/chat", (req, res) => {
-  const suffix = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-  res.redirect(302, `/api/gateway/chat${suffix}`);
+  const rawQuery = req.url.includes("?") ? req.url.slice(req.url.indexOf("?") + 1) : "";
+  const params = new URLSearchParams(rawQuery);
+
+  const appUrl = process.env.APP_URL?.trim();
+  let defaultGatewayUrl: string | null = null;
+  if (appUrl) {
+    try {
+      const parsed = new URL(appUrl);
+      const wsProto = parsed.protocol === "https:" ? "wss:" : "ws:";
+      defaultGatewayUrl = `${wsProto}//${parsed.host}/api/gateway`;
+    } catch {}
+  }
+  if (!defaultGatewayUrl) {
+    const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+    const isHttps = req.protocol === "https" || forwardedProto === "https";
+    const proto = isHttps ? "wss" : "ws";
+    const host = req.get("host");
+    if (host?.trim()) {
+      defaultGatewayUrl = `${proto}://${host}/api/gateway`;
+    }
+  }
+
+  const currentGatewayUrl = params.get("gatewayUrl");
+  if (!currentGatewayUrl && defaultGatewayUrl) {
+    params.set("gatewayUrl", defaultGatewayUrl);
+  } else if (currentGatewayUrl?.startsWith("ws://")) {
+    const shouldForceSecureWs = appUrl?.startsWith("https://") || req.protocol === "https";
+    if (shouldForceSecureWs) {
+      params.set("gatewayUrl", currentGatewayUrl.replace(/^ws:\/\//i, "wss://"));
+    }
+  }
+
+  const suffix = params.toString();
+  res.redirect(302, `/api/gateway/chat${suffix ? `?${suffix}` : ""}`);
 });
 
 // Inject verified user identity for proxy auth mode.
