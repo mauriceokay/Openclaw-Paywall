@@ -20,6 +20,24 @@ const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "
 const MISSION_CONTROL_FRONTEND_URL = process.env.MISSION_CONTROL_FRONTEND_URL ?? "http://127.0.0.1:3002";
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
 
+function resolvePublicGatewayWsUrl(req: express.Request): string | null {
+  const appUrl = process.env.APP_URL?.trim();
+  if (appUrl) {
+    try {
+      const parsed = new URL(appUrl);
+      const wsProto = parsed.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProto}//${parsed.host}/api/gateway`;
+    } catch {}
+  }
+
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const isHttps = req.protocol === "https" || forwardedProto === "https";
+  const wsProto = isHttps ? "wss" : "ws";
+  const host = req.get("host");
+  if (!host?.trim()) return null;
+  return `${wsProto}://${host}/api/gateway`;
+}
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", gatewayUrl: GATEWAY_URL });
 });
@@ -84,8 +102,19 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   },
 });
 
-app.use("/api/gateway", cookieParser(), async (req, _res, next) => {
+app.use("/api/gateway", cookieParser(), async (req, res, next) => {
   if (req.method === "GET" && req.path === "/chat") {
+    const incomingGatewayUrl = typeof req.query.gatewayUrl === "string" ? req.query.gatewayUrl.trim() : "";
+    if (!incomingGatewayUrl) {
+      const gatewayUrl = resolvePublicGatewayWsUrl(req);
+      if (gatewayUrl) {
+        const nextParams = new URLSearchParams(req.query as Record<string, string>);
+        nextParams.set("gatewayUrl", gatewayUrl);
+        const tokenHash = GATEWAY_TOKEN ? `#token=${encodeURIComponent(GATEWAY_TOKEN)}` : "";
+        return res.redirect(302, `/api/gateway/chat?${nextParams.toString()}${tokenHash}`);
+      }
+    }
+
     const sessionEmail = getSessionEmail(req);
     if (sessionEmail) {
       await trackUsageEvent(sessionEmail, "terminal_open", { source: "gateway_chat_route" });
