@@ -437,7 +437,7 @@ export function Dashboard() {
 
   useEffect(() => {
     if (!user?.email) return;
-    if (location !== "/dashboard") return;
+    if (!/^\/dashboard\/?$/.test(location)) return;
     navigate(`/dashboard/${getWorkspaceSlug(user.email)}`);
   }, [location, navigate, user?.email]);
 

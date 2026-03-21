@@ -125,7 +125,7 @@ export function OpenClawApp() {
 
   useEffect(() => {
     if (!user?.email) return;
-    if (location !== "/openclaw") return;
+    if (!/^\/openclaw\/?$/.test(location)) return;
     navigate(`/openclaw/${getWorkspaceSlug(user.email)}`);
   }, [location, navigate, user?.email]);
 
