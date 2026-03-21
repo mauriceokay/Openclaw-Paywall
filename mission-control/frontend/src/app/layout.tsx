@@ -40,7 +40,23 @@ const displayFont = DM_Serif_Display({
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  var stored = localStorage.getItem("mc_theme");
+                  var systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  var theme = stored === "dark" || stored === "light" ? stored : (systemDark ? "dark" : "light");
+                  document.documentElement.setAttribute("data-theme", theme);
+                } catch (_) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${bodyFont.variable} ${headingFont.variable} ${displayFont.variable} min-h-screen bg-app text-strong antialiased`}
       >

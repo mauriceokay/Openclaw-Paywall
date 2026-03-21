@@ -14,6 +14,7 @@ import {
 } from "@/api/generated/users/users";
 import { BrandMark } from "@/components/atoms/BrandMark";
 import { OrgSwitcher } from "@/components/organisms/OrgSwitcher";
+import { ThemeToggle } from "@/components/organisms/ThemeToggle";
 import { UserMenu } from "@/components/organisms/UserMenu";
 import { isOnboardingComplete } from "@/lib/onboarding";
 
@@ -118,6 +119,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </SignedIn>
           <SignedIn>
             <div className="ml-auto flex items-center gap-3 px-4 md:px-6">
+              <ThemeToggle />
               <div className="hidden text-right lg:block">
                 <p className="text-sm font-semibold text-slate-900">
                   {displayName}

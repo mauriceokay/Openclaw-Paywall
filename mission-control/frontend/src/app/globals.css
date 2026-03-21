@@ -25,6 +25,29 @@
     0 1px 2px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.06);
 }
 
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --surface: #111a2b;
+  --surface-muted: #172236;
+  --surface-strong: #1f2c43;
+  --border: #2a3953;
+  --border-strong: #3a4d6d;
+  --text: #e2e8f0;
+  --text-muted: #9fb0c9;
+  --text-quiet: #7c92b3;
+  --accent: #60a5fa;
+  --accent-strong: #3b82f6;
+  --accent-soft: rgba(96, 165, 250, 0.18);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-panel:
+    0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 body {
   @apply font-body;
   background: var(--bg);
@@ -129,6 +152,42 @@ body {
 
 .landing-page {
   font-family: var(--font-body), sans-serif;
+}
+
+/* Dark mode bridge for existing slate/blue utility-heavy layouts */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-white\/95,
+[data-theme="dark"] .bg-white\/70 {
+  background-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+
+[data-theme="dark"] .bg-slate-100 {
+  background-color: var(--surface-muted) !important;
+}
+
+[data-theme="dark"] .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+[data-theme="dark"] .border-slate-200 {
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-slate-700,
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-slate-400 {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .text-blue-800 {
+  color: #bfdbfe !important;
 }
 
 /* Landing (Enterprise) */
