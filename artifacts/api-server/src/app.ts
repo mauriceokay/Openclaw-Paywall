@@ -190,11 +190,20 @@ function isPaperclipFallbackPath(pathname: string): boolean {
   return !reserved.has(first);
 }
 
+function isPaperclipRootFromEmbeddedFlow(req: express.Request): boolean {
+  if (req.path !== "/") return false;
+  const referer = typeof req.headers.referer === "string" ? req.headers.referer : "";
+  const fromPaperclipRoute = referer.includes("/paperclip") || referer.includes("/paperclip-app");
+  const forcedByQuery = req.query.paperclip === "1";
+  return fromPaperclipRoute || forcedByQuery;
+}
+
 app.use(cookieParser(), (req, res, next) => {
   if (req.method !== "GET" && req.method !== "HEAD") {
     return next();
   }
-  if (!isPaperclipFallbackPath(req.path)) {
+  const shouldUseFallback = isPaperclipFallbackPath(req.path) || isPaperclipRootFromEmbeddedFlow(req);
+  if (!shouldUseFallback) {
     return next();
   }
   if (!getSessionEmail(req)) {

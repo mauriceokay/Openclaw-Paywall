@@ -15,7 +15,7 @@ router.get("/paperclip/launch", async (req, res) => {
   });
 
   return res.json({
-    launchUrl: "/paperclip",
+    launchUrl: "/paperclip?paperclip=1",
   });
 });
 
