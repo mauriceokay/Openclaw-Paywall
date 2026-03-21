@@ -11,6 +11,7 @@ import {
   Zap,
   BarChart2,
   Power,
+  Paperclip as PaperclipIcon,
   Rocket,
   Puzzle,
   Lock,
@@ -661,6 +662,36 @@ export function Dashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+        </motion.div>
+
+        {/* Paperclip */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08, type: "spring" }}
+          className="mb-6 md:mb-10"
+        >
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-card/30 p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/15 flex items-center justify-center shrink-0">
+                <PaperclipIcon className="w-8 h-8 text-cyan-300" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-display mb-1">Paperclip</h2>
+                <p className="text-sm text-muted-foreground">Open-source local AI apps and automation workspace</p>
+              </div>
+            </div>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-14 px-8 text-lg font-bold border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-200 rounded-xl group shrink-0"
+              onClick={() => window.open("https://github.com/paperclipai/paperclip", "_blank", "noopener,noreferrer")}
+            >
+              <PaperclipIcon className="w-5 h-5 mr-2" />
+              Open Paperclip
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </motion.div>
 
         {/* Mission Control */}
