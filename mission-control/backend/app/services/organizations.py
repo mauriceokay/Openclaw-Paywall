@@ -58,6 +58,11 @@ DEFAULT_INSTALLER_SKILL_PACKS = (
         "ai-marketing-skills",
         "Marketing frameworks that AI actually executes. Use for Claude Code, OpenClaw, etc.",
     ),
+    (
+        "karpathy/autoresearch",
+        "autoresearch",
+        "Automated research workflows and prompts for deep technical and product investigations.",
+    ),
 )
 ADMIN_ROLES = {"owner", "admin"}
 ROLE_RANK = {"member": 0, "admin": 1, "owner": 2}

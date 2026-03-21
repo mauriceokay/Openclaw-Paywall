@@ -264,7 +264,7 @@ async def test_ensure_member_for_user_creates_personal_org_and_owner(
         for item in [*session.added, *[record for batch in session.added_all for record in batch]]
         if isinstance(item, SkillPack)
     ]
-    assert len(skill_packs) == 2
+    assert len(skill_packs) == 3
     pack_sources = {pack.source_url: pack.description for pack in skill_packs}
     assert (
         pack_sources["https://github.com/sickn33/antigravity-awesome-skills"]
@@ -276,11 +276,16 @@ async def test_ensure_member_for_user_creates_personal_org_and_owner(
         pack_sources["https://github.com/BrianRWagner/ai-marketing-skills"]
         == "Marketing frameworks that AI actually executes. Use for Claude Code, OpenClaw, etc."
     )
-    assert session.committed == 3
+    assert (
+        pack_sources["https://github.com/karpathy/autoresearch"]
+        == "Automated research workflows and prompts for deep technical and product investigations."
+    )
+    assert session.committed == 4
     assert len(session.added_all) == 0
     assert {pack.source_url for pack in skill_packs} == {
         "https://github.com/sickn33/antigravity-awesome-skills",
         "https://github.com/BrianRWagner/ai-marketing-skills",
+        "https://github.com/karpathy/autoresearch",
     }
 
 
@@ -318,9 +323,12 @@ async def test_ensure_member_for_user_skips_already_existing_default_pack_by_sou
     assert out.role == "owner"
     assert out.organization_id == user.active_organization_id
     skill_packs = [item for item in session.added if isinstance(item, SkillPack)]
-    assert len(skill_packs) == 1
-    assert skill_packs[0].source_url == "https://github.com/BrianRWagner/ai-marketing-skills"
-    assert session.committed == 2
+    assert len(skill_packs) == 2
+    assert {pack.source_url for pack in skill_packs} == {
+        "https://github.com/BrianRWagner/ai-marketing-skills",
+        "https://github.com/karpathy/autoresearch",
+    }
+    assert session.committed == 3
     assert len(session.added_all) == 0
 
 
