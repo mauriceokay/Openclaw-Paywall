@@ -11,13 +11,19 @@ getlobster.org {
   @gateway path /api/gateway /api/gateway/*
   handle @gateway {
     uri strip_prefix /api/gateway
-    reverse_proxy gateway:3005
+    reverse_proxy gateway:3005 {
+      header_down -X-Frame-Options
+      header_down -Content-Security-Policy
+    }
   }
 
   @paperclip path /paperclip /paperclip/*
   handle @paperclip {
     uri strip_prefix /paperclip
-    reverse_proxy paperclip:3100
+    reverse_proxy paperclip:3100 {
+      header_down -X-Frame-Options
+      header_down -Content-Security-Policy
+    }
   }
 
   reverse_proxy app:8080 {
