@@ -73,7 +73,7 @@ router.use(
   "/gateway",
   createProxyMiddleware({
     target: GATEWAY_URL,
-    changeOrigin: true,
+    changeOrigin: false,
     pathRewrite: { "^/api/gateway": "" },
   }) as any,
 );

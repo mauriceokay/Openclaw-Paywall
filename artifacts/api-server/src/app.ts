@@ -53,7 +53,7 @@ app.post(
 
 const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
-  changeOrigin: true,
+  changeOrigin: false,
   ws: true,
   selfHandleResponse: true,
   pathRewrite: (incomingPath) => {
