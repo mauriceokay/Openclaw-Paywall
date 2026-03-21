@@ -222,6 +222,14 @@ const mcFrontendProxy = createProxyMiddleware<express.Request, express.Response>
 
 app.use("/mission-control", mcFrontendProxy);
 
+function rewritePaperclipHtml(html: string): string {
+  return html
+    .replace(/(["'])\/assets\//g, "$1/paperclip/assets/")
+    .replace(/(["'])\/site\.webmanifest(["'])/g, "$1/paperclip/site.webmanifest$2")
+    .replace(/(["'])\/favicon([^"']*)(["'])/g, "$1/paperclip/favicon$2$3")
+    .replace(/(["'])\/apple-touch-icon([^"']*)(["'])/g, "$1/paperclip/apple-touch-icon$2$3");
+}
+
 const paperclipProxy = createProxyMiddleware<express.Request, express.Response>({
   target: PAPERCLIP_URL,
   changeOrigin: true,
@@ -229,8 +237,12 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
   selfHandleResponse: true,
   pathRewrite: { "^/paperclip": "" },
   on: {
-    proxyRes: responseInterceptor(async (responseBuffer, _proxyRes, _req, expressRes) => {
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
+      const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+      if (contentType.includes("text/html")) {
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+      }
       return responseBuffer;
     }),
   },
@@ -249,8 +261,12 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
   ws: true,
   selfHandleResponse: true,
   on: {
-    proxyRes: responseInterceptor(async (responseBuffer, _proxyRes, _req, expressRes) => {
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
+      const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+      if (contentType.includes("text/html")) {
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+      }
       return responseBuffer;
     }),
   },
