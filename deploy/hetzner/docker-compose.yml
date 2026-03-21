@@ -107,7 +107,7 @@ services:
       HOST: 0.0.0.0
       PORT: 3100
       PAPERCLIP_HOME: /paperclip-data
-      PAPERCLIP_DEPLOYMENT_MODE: private
+      PAPERCLIP_DEPLOYMENT_MODE: authenticated
     volumes:
       - paperclip_data:/paperclip-data
 
