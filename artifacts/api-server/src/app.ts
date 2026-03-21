@@ -235,7 +235,11 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
   changeOrigin: true,
   ws: true,
   selfHandleResponse: true,
-  pathRewrite: { "^/paperclip": "" },
+  pathRewrite: (incomingPath) => {
+    const rewritten = incomingPath.replace(/^\/paperclip/, "") || "/";
+    if (rewritten === "/health") return "/api/health";
+    return rewritten;
+  },
   on: {
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
@@ -260,6 +264,11 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
   changeOrigin: true,
   ws: true,
   selfHandleResponse: true,
+  pathRewrite: (incomingPath) => {
+    const rewritten = incomingPath.replace(/^\/paperclip/, "") || "/";
+    if (rewritten === "/health") return "/api/health";
+    return rewritten;
+  },
   on: {
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
