@@ -11,6 +11,9 @@ import { getLocalAgent, isDbEnabled } from "./localDev";
 import { trackUsageEvent } from "./usageTracking";
 
 const app: Express = express();
+// Respect X-Forwarded-* headers from Caddy/edge proxy so req.protocol is accurate
+// (required for generating wss:// gateway URLs on HTTPS domains).
+app.set("trust proxy", 1);
 const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
 const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001";
