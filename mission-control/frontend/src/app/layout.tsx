@@ -40,7 +40,7 @@ const displayFont = DM_Serif_Display({
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -48,8 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               (function () {
                 try {
                   var stored = localStorage.getItem("mc_theme");
-                  var systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-                  var theme = stored === "dark" || stored === "light" ? stored : (systemDark ? "dark" : "light");
+                  var theme = stored === "dark" || stored === "light" ? stored : "dark";
                   document.documentElement.setAttribute("data-theme", theme);
                 } catch (_) {}
               })();
