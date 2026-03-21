@@ -108,35 +108,57 @@ async function ensureGatewayForUser(
     return { gatewayId: existingGatewayId, created: false, proxyHeaders };
   }
 
-  const gatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
+  const configuredGatewayUrl = toGatewayWsUrl(process.env.OPENCLAW_GATEWAY_URL ?? "ws://gateway:3005");
+  const fallbackGatewayUrl = "ws://gateway:3005";
   const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || null;
   const workspaceRoot = (process.env.OPENCLAW_GATEWAY_WORKSPACE_ROOT ?? "~/.openclaw").trim();
+  const createGateway = async (url: string): Promise<{ id: string }> => {
+    const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
+      method: "POST",
+      headers: proxyHeaders,
+      body: JSON.stringify({
+        name: "OpenClaw Gateway",
+        url,
+        token: gatewayToken,
+        workspace_root: workspaceRoot,
+        allow_insecure_tls: false,
+        disable_device_pairing: false,
+      }),
+    });
 
-  const createRes = await fetch(`${MISSION_CONTROL_BACKEND_URL}/api/v1/gateways`, {
-    method: "POST",
-    headers: proxyHeaders,
-    body: JSON.stringify({
-      name: "OpenClaw Gateway",
-      url: gatewayUrl,
-      token: gatewayToken,
-      workspace_root: workspaceRoot,
-      allow_insecure_tls: false,
-      disable_device_pairing: false,
-    }),
-  });
+    if (!createRes.ok) {
+      const detail = (await createRes.text()).slice(0, 500);
+      throw new Error(`Failed to create Mission Control gateway (${url}): ${detail || createRes.status}`);
+    }
 
-  if (!createRes.ok) {
-    const detail = (await createRes.text()).slice(0, 500);
-    throw new Error(`Failed to create Mission Control gateway: ${detail || createRes.status}`);
+    const created = (await createRes.json()) as { id?: string };
+    if (!created?.id) {
+      throw new Error(`Mission Control gateway created with ${url} but no ID returned`);
+    }
+    return { id: created.id };
+  };
+
+  let createdId = "";
+  let firstError: Error | null = null;
+  try {
+    const created = await createGateway(configuredGatewayUrl);
+    createdId = created.id;
+  } catch (err) {
+    firstError = err instanceof Error ? err : new Error("Unknown gateway create error");
+    if (configuredGatewayUrl !== fallbackGatewayUrl) {
+      const fallbackCreated = await createGateway(fallbackGatewayUrl);
+      createdId = fallbackCreated.id;
+    } else {
+      throw firstError;
+    }
   }
 
-  const created = (await createRes.json()) as { id?: string };
-  if (!created?.id) {
-    throw new Error("Mission Control gateway created but no ID returned");
+  if (!createdId) {
+    throw firstError ?? new Error("Mission Control gateway bootstrap failed");
   }
 
-  await ensureMarketplaceSeed(proxyHeaders, created.id);
-  return { gatewayId: created.id, created: true, proxyHeaders };
+  await ensureMarketplaceSeed(proxyHeaders, createdId);
+  return { gatewayId: createdId, created: true, proxyHeaders };
 }
 
 function readMissionControlEnv(): Record<string, string> {
