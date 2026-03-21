@@ -18,6 +18,7 @@ const PROVIDER_MULTIPLIERS: Record<string, number> = {
   openai: 1.5,
   gemini: 1.5,
   qwen: 1.5,
+  moonshot: 1.5,
 };
 
 function getProviderMultiplier(): number {

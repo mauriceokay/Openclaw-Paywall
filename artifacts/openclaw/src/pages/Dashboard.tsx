@@ -42,6 +42,7 @@ const PROVIDER_MODELS = {
   anthropic: ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5"],
   gemini: ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"],
   qwen: ["qwen-max", "qwen-plus", "qwen-turbo", "qwen2.5-72b-instruct"],
+  moonshot: ["kimi-k2-0711-preview", "kimi-k2-turbo-preview", "moonshot-v1-128k"],
 } as const;
 
 type Provider = keyof typeof PROVIDER_MODELS;
@@ -50,6 +51,7 @@ const PROVIDER_LABELS: Record<Provider, string> = {
   anthropic: "Anthropic",
   gemini: "Gemini",
   qwen: "Qwen",
+  moonshot: "Moonshot (Kimi)",
 };
 type DashboardSubscriptionStatus = SubscriptionStatus & { _billingBlocked?: boolean };
 type MarketplaceSkill = {
@@ -809,7 +811,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex gap-2">
-                {(["openai", "anthropic", "gemini", "qwen"] as const).map((p) => (
+                {(["openai", "anthropic", "gemini", "qwen", "moonshot"] as const).map((p) => (
                   <button
                     key={p}
                     type="button"

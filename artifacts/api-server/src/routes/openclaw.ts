@@ -81,6 +81,8 @@ function getProviderBaseUrl(provider: string): string {
       return "https://generativelanguage.googleapis.com/v1beta";
     case "qwen":
       return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
+    case "moonshot":
+      return "https://api.moonshot.ai/v1";
     case "anthropic":
     default:
       return "https://api.anthropic.com";
