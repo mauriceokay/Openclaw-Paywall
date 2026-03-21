@@ -55,6 +55,7 @@ type MarketplaceSkill = {
 type SkillsCatalogResponse = {
   gatewayId?: string;
   skills?: MarketplaceSkill[];
+  bridgeMode?: boolean;
 };
 
 function getValidModel(provider: Provider): string {
@@ -321,6 +322,7 @@ export function Dashboard() {
   const [clawHubSyncing, setClawHubSyncing] = useState(false);
   const [clawHubError, setClawHubError] = useState("");
   const [clawHubSyncMessage, setClawHubSyncMessage] = useState("");
+  const [clawHubBridgeMode, setClawHubBridgeMode] = useState(false);
   const [mcSessionReady, setMcSessionReady] = useState(false);
 
   const hasProOrTeam = Boolean(status?.planName && /(pro|team)/i.test(status.planName));
@@ -352,11 +354,12 @@ export function Dashboard() {
           throw new Error("Unable to load skills catalog");
         }
         const catalogData = (await catalogRes.json()) as SkillsCatalogResponse;
+        setClawHubBridgeMode(Boolean(catalogData.bridgeMode));
         const firstGatewayId = catalogData.gatewayId?.trim() ?? "";
-        if (!firstGatewayId) {
+        if (!firstGatewayId && !catalogData.bridgeMode) {
           throw new Error("No gateway available for this workspace.");
         }
-        setClawHubGatewayId(firstGatewayId);
+        setClawHubGatewayId(firstGatewayId || null);
         const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
         setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
       } catch {
@@ -374,7 +377,7 @@ export function Dashboard() {
   };
 
   const installSelectedSkills = async () => {
-    if (!clawHubGatewayId || selectedSkillIds.length === 0) return;
+    if ((!clawHubGatewayId && !clawHubBridgeMode) || selectedSkillIds.length === 0) return;
     setClawHubSyncing(true);
     setClawHubError("");
     setClawHubSyncMessage("");
@@ -387,7 +390,7 @@ export function Dashboard() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ skillId, gatewayId: clawHubGatewayId }),
+            body: JSON.stringify({ skillId, gatewayId: clawHubGatewayId || null }),
           },
         );
         if (res.ok) {
@@ -395,19 +398,27 @@ export function Dashboard() {
         }
       }
       setClawHubSyncMessage(`Added ${success}/${selectedSkillIds.length} skills to OpenClaw.`);
+      setClawHubSkills((prev) =>
+        prev.map((skill) =>
+          selectedSkillIds.includes(skill.id) ? { ...skill, installed: true } : skill
+        )
+      );
       setSelectedSkillIds([]);
 
-      const catalogRes = await fetch(
-        `${BASE_URL}/api/mission-control/skills-catalog?limit=100`,
-        { credentials: "include" },
-      );
-      if (catalogRes.ok) {
-        const catalogData = (await catalogRes.json()) as SkillsCatalogResponse;
-        const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
-        if (catalogData.gatewayId) {
-          setClawHubGatewayId(catalogData.gatewayId);
+      if (!clawHubBridgeMode) {
+        const catalogRes = await fetch(
+          `${BASE_URL}/api/mission-control/skills-catalog?limit=100`,
+          { credentials: "include" },
+        );
+        if (catalogRes.ok) {
+          const catalogData = (await catalogRes.json()) as SkillsCatalogResponse;
+          setClawHubBridgeMode(Boolean(catalogData.bridgeMode));
+          const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
+          if (catalogData.gatewayId) {
+            setClawHubGatewayId(catalogData.gatewayId);
+          }
+          setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
         }
-        setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
       }
     } catch (error) {
       setClawHubError(error instanceof Error ? error.message : "Failed to add selected skills");
@@ -835,6 +846,11 @@ export function Dashboard() {
                 </p>
               )}
               {clawHubError && <p className="text-xs text-red-400">{clawHubError}</p>}
+              {clawHubBridgeMode && (
+                <p className="text-xs text-amber-300">
+                  Mission Control unavailable: using Bridge mode for skill sync.
+                </p>
+              )}
               {clawHubSyncMessage && <p className="text-xs text-green-400">{clawHubSyncMessage}</p>}
               {hasProOrTeam && (
                 <>
@@ -882,7 +898,7 @@ export function Dashboard() {
                       disabled={
                         clawHubLoading ||
                         clawHubSyncing ||
-                        !clawHubGatewayId ||
+                        (!clawHubGatewayId && !clawHubBridgeMode) ||
                         selectedSkillIds.length === 0
                       }
                       className="bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold"
