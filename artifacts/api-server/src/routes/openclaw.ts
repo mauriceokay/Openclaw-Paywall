@@ -79,6 +79,8 @@ function getProviderBaseUrl(provider: string): string {
       return "https://api.openai.com/v1";
     case "gemini":
       return "https://generativelanguage.googleapis.com/v1beta";
+    case "qwen":
+      return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
     case "anthropic":
     default:
       return "https://api.anthropic.com";

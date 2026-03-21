@@ -383,6 +383,7 @@ const PROVIDER_FEE_MULTIPLIERS: Record<string, number> = {
   anthropic: 0.5,
   openai: 1.5,
   gemini: 1.5,
+  qwen: 1.5,
 };
 const BASE_RATE_PER_MESSAGE = 0.01; // USD per message before multiplier
 

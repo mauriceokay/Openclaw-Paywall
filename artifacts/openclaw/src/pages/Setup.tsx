@@ -16,9 +16,16 @@ const PROVIDER_MODELS = {
   openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
   anthropic: ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-3-5"],
   gemini: ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-flash"],
+  qwen: ["qwen-max", "qwen-plus", "qwen-turbo", "qwen2.5-72b-instruct"],
 } as const;
 
 type Provider = keyof typeof PROVIDER_MODELS;
+const PROVIDER_LABELS: Record<Provider, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  gemini: "Gemini",
+  qwen: "Qwen",
+};
 
 interface PlatformConfig {
   id: string;
@@ -189,6 +196,7 @@ export function Setup() {
     openai: "sk-...",
     anthropic: "sk-ant-...",
     gemini: "AIza...",
+    qwen: "sk-qwen-...",
   };
 
   const handleConnectPlatform = async (platform: PlatformConfig) => {
@@ -711,7 +719,7 @@ export function Setup() {
                       <div className="space-y-2">
                         <Label>{s.providerLabel}</Label>
                         <div className="flex gap-2">
-                          {(["openai", "anthropic", "gemini"] as const).map((p) => (
+                          {(["openai", "anthropic", "gemini", "qwen"] as const).map((p) => (
                             <button
                               key={p}
                               type="button"
@@ -729,7 +737,7 @@ export function Setup() {
                                   : "border-white/10 text-muted-foreground hover:border-white/30"
                               }`}
                             >
-                              {p === "openai" ? "OpenAI" : p === "anthropic" ? "Anthropic" : "Gemini"}
+                              {PROVIDER_LABELS[p]}
                             </button>
                           ))}
                         </div>
