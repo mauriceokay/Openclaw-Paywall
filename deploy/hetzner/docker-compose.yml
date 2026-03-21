@@ -102,14 +102,18 @@ services:
     image: node:22-bookworm-slim
     restart: unless-stopped
     working_dir: /paperclip
-    command: ["sh", "-lc", "mkdir -p /paperclip-data && chown -R node:node /paperclip-data && su node -s /bin/sh -c 'npx -y paperclipai onboard --yes && npx -y paperclipai run'"]
+    user: "node"
+    command: ["sh", "-lc", "npx -y paperclipai onboard --yes && npx -y paperclipai run"]
     environment:
       HOST: 0.0.0.0
       PORT: 3100
       PAPERCLIP_HOME: /paperclip-data
       PAPERCLIP_DEPLOYMENT_MODE: authenticated
+      DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/${APP_DB_NAME}
     volumes:
       - paperclip_data:/paperclip-data
+    depends_on:
+      - app-db
 
   app:
     build:
