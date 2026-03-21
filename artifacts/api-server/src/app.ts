@@ -90,7 +90,31 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
         let html = responseBuffer.toString("utf8");
-        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>`;
+        const tokenScript = `
+<script>
+  (function() {
+    var token = ${JSON.stringify(GATEWAY_TOKEN ?? "")};
+    if (!token) return;
+    var params = new URLSearchParams(window.location.search);
+    var gatewayUrl = params.get("gatewayUrl");
+    if (!gatewayUrl) {
+      gatewayUrl =
+        (window.location.protocol === "https:" ? "wss" : "ws") +
+        "://" +
+        window.location.host +
+        "/api/gateway";
+    }
+    try {
+      var parsed = new URL(gatewayUrl, window.location.href);
+      var pathname = parsed.pathname === "/" ? "" : (parsed.pathname.replace(/\\/+$/, "") || parsed.pathname);
+      var scope = parsed.protocol + "//" + parsed.host + pathname;
+      sessionStorage.setItem("openclaw.control.token.v1:" + scope, token);
+    } catch (_err) {
+      sessionStorage.setItem("openclaw.control.token.v1:default", token);
+    }
+  })();
+</script>`;
+        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>${tokenScript}`;
         html = html.includes("<head>")
           ? html.replace("<head>", `<head>${injection}`)
           : `${injection}${html}`;
