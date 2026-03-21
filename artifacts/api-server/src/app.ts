@@ -151,6 +151,58 @@ app.use("/paperclip", cookieParser(), (req, res, next) => {
   return next();
 }, paperclipProxy);
 
+const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: PAPERCLIP_URL,
+  changeOrigin: true,
+  ws: true,
+  selfHandleResponse: true,
+  on: {
+    proxyRes: responseInterceptor(async (responseBuffer, _proxyRes, _req, expressRes) => {
+      stripIframeHeaders(expressRes as express.Response);
+      return responseBuffer;
+    }),
+  },
+});
+
+function isPaperclipFallbackPath(pathname: string): boolean {
+  const first = pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+  if (!first) return false;
+  if (first.startsWith("api")) return false;
+
+  const reserved = new Set([
+    "health",
+    "mission-control",
+    "mc-api",
+    "paperclip",
+    "openclaw",
+    "dashboard",
+    "pricing",
+    "setup",
+    "signup",
+    "sign-in",
+    "blog",
+    "usage",
+    "subscription",
+    "assets",
+    "favicon.ico",
+  ]);
+
+  return !reserved.has(first);
+}
+
+app.use(cookieParser(), (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return next();
+  }
+  if (!isPaperclipFallbackPath(req.path)) {
+    return next();
+  }
+  if (!getSessionEmail(req)) {
+    return next();
+  }
+  return paperclipPassthroughProxy(req, res, next);
+});
+
 function stripIframeHeaders(res: express.Response) {
   res.removeHeader("x-frame-options");
   const csp = res.getHeader("content-security-policy");
