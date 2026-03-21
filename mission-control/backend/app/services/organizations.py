@@ -278,6 +278,36 @@ async def _fetch_existing_default_pack_sources(
     }
 
 
+async def _ensure_default_skill_packs_for_org(
+    session: AsyncSession,
+    *,
+    org_id: UUID,
+) -> None:
+    """Ensure all default installer skill packs exist for an organization."""
+    if not isinstance(session, AsyncSession):
+        return
+
+    now = utcnow()
+    default_skill_packs = _get_default_skill_pack_records(org_id=org_id, now=now)
+    existing_pack_urls = await _fetch_existing_default_pack_sources(session, org_id)
+    normalized_existing_pack_urls = {
+        _normalize_skill_pack_source_url(existing_pack_source)
+        for existing_pack_source in existing_pack_urls
+    }
+
+    for pack in default_skill_packs:
+        normalized_source_url = _normalize_skill_pack_source_url(pack.source_url)
+        if normalized_source_url in normalized_existing_pack_urls:
+            continue
+        session.add(pack)
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+        finally:
+            normalized_existing_pack_urls.add(normalized_source_url)
+
+
 async def ensure_member_for_user(
     session: AsyncSession,
     user: User,
@@ -285,6 +315,7 @@ async def ensure_member_for_user(
     """Ensure a user has some membership, creating one if necessary."""
     existing = await get_active_membership(session, user)
     if existing is not None:
+        await _ensure_default_skill_packs_for_org(session, org_id=existing.organization_id)
         return existing
 
     # Serialize first-time provisioning per user to avoid concurrent duplicate org/member creation.
@@ -298,12 +329,18 @@ async def ensure_member_for_user(
             user.active_organization_id = existing_member.organization_id
             session.add(user)
             await session.commit()
+        await _ensure_default_skill_packs_for_org(session, org_id=existing_member.organization_id)
         return existing_member
 
     if user.email:
         invite = await _find_pending_invite(session, user.email)
         if invite is not None:
-            return await accept_invite(session, invite, user)
+            accepted_member = await accept_invite(session, invite, user)
+            await _ensure_default_skill_packs_for_org(
+                session,
+                org_id=accepted_member.organization_id,
+            )
+            return accepted_member
 
     now = utcnow()
     org = Organization(name=DEFAULT_ORG_NAME, created_at=now, updated_at=now)
