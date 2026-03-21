@@ -51,6 +51,7 @@ app.post(
 const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
   changeOrigin: true,
+  ws: true,
   selfHandleResponse: true,
   pathRewrite: (incomingPath) => {
     const rewritten = incomingPath.replace(/^\/api\/gateway/, "");
