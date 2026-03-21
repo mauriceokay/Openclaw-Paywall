@@ -52,7 +52,10 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   target: GATEWAY_URL,
   changeOrigin: true,
   selfHandleResponse: true,
-  pathRewrite: { "^/api/gateway": "" },
+  pathRewrite: (incomingPath) => {
+    const rewritten = incomingPath.replace(/^\/api\/gateway/, "");
+    return rewritten.length > 0 ? rewritten : "/";
+  },
   on: {
     proxyReq: (proxyReq) => {
       if (GATEWAY_TOKEN) {
