@@ -103,12 +103,18 @@ services:
     restart: unless-stopped
     working_dir: /paperclip
     user: "node"
-    command: ["sh", "-lc", "npx -y paperclipai onboard --yes && npx -y paperclipai run"]
+    command:
+      [
+        "sh",
+        "-lc",
+        "npx -y paperclipai onboard --yes && npx -y paperclipai allowed-hostname getlobster.org && npx -y paperclipai allowed-hostname www.getlobster.org && npx -y paperclipai allowed-hostname 178.156.231.45 && npx -y paperclipai run",
+      ]
     environment:
       HOST: 0.0.0.0
       PORT: 3100
       PAPERCLIP_HOME: /paperclip-data
       PAPERCLIP_DEPLOYMENT_MODE: authenticated
+      BETTER_AUTH_BASE_URL: ${APP_URL}/paperclip
       DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/paperclip
     volumes:
       - paperclip_data:/paperclip-data

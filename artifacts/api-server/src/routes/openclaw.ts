@@ -21,6 +21,24 @@ const WHATSAPP_QR_OUT_PATH = path.join(process.cwd(), ".wa-login.out.log");
 const WHATSAPP_QR_ERR_PATH = path.join(process.cwd(), ".wa-login.err.log");
 const CHANNEL_OPERATION_TIMEOUT_MS = 45_000;
 
+function getPublicGatewayWsUrl(req: import("express").Request): string | null {
+  const appUrl = process.env.APP_URL?.trim();
+  if (appUrl) {
+    try {
+      const parsed = new URL(appUrl);
+      const wsProto = parsed.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProto}//${parsed.host}/api/gateway`;
+    } catch {}
+  }
+
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const isHttps = req.protocol === "https" || forwardedProto === "https";
+  const protocol = isHttps ? "wss" : "ws";
+  const host = req.get("host");
+  if (!host?.trim()) return null;
+  return `${protocol}://${host}/api/gateway`;
+}
+
 function getSharedGatewayInstanceUrl(): string | null {
   const raw = process.env.OPENCLAW_GATEWAY_URL?.trim();
   if (!raw) return null;
@@ -419,19 +437,13 @@ router.get("/launch", async (req, res) => {
     return res.status(401).json({ error: "Authentication required" });
   }
 
-  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
-  const isHttps = req.protocol === "https" || forwardedProto === "https";
-  const protocol = isHttps ? "wss" : "ws";
-  const host = req.get("host");
-  const hasHost = Boolean(host && host.trim());
+  const publicGatewayWsUrl = getPublicGatewayWsUrl(req);
 
   if (!isDbEnabled()) {
     const agent = getLocalAgent(sessionEmail) ?? provisionLocalAgent(sessionEmail, getLocalInstanceUrl());
     const token = getLocalGatewayToken();
     const queryParams = new URLSearchParams();
-    if (hasHost) {
-      queryParams.set("gatewayUrl", `${protocol}://${host}/api/gateway`);
-    }
+    if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
     if (token) {
       hashParams.set("token", token);
@@ -456,9 +468,7 @@ router.get("/launch", async (req, res) => {
   if (sharedGateway) {
     const token = getSharedGatewayToken();
     const queryParams = new URLSearchParams();
-    if (hasHost) {
-      queryParams.set("gatewayUrl", `${protocol}://${host}/api/gateway`);
-    }
+    if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
     if (token) {
       hashParams.set("token", token);
