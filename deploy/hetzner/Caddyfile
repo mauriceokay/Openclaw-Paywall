@@ -7,10 +7,10 @@ getlobster.org {
   handle_path /api/deploy {
     reverse_proxy deploy-hook:9000
   }
-  handle /api/gateway* {
+  handle_path /api/gateway* {
     reverse_proxy gateway:3005
   }
-  handle /paperclip* {
+  handle_path /paperclip* {
     reverse_proxy paperclip:3100
   }
   reverse_proxy app:8080 {
