@@ -36,7 +36,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { SEOHead } from "@/components/SEOHead";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
-const NEMOCLAW_URL = "https://github.com/NVIDIA/NemoClaw";
 
 const PROVIDER_MODELS = {
   openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
@@ -634,10 +633,10 @@ export function Dashboard() {
                     type="button"
                     variant="outline"
                     className="h-11 px-6 border-white/15 hover:bg-white/5 rounded-xl group shrink-0"
-                    onClick={() => window.open(NEMOCLAW_URL, "_blank", "noopener,noreferrer")}
+                    onClick={() => navigate("/nemoclaw-app")}
                   >
                     <Puzzle className="w-4 h-4 mr-2 text-cyan-300" />
-                    NemoClaw (NVIDIA)
+                    Open NemoClaw
                   </Button>
                 </div>
               </motion.div>

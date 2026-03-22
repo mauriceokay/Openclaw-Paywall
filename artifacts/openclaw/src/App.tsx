@@ -16,6 +16,7 @@ import { SignIn } from "@/pages/SignIn";
 import { OpenClawApp } from "@/pages/OpenClawApp";
 import { MissionControlApp } from "@/pages/MissionControlApp";
 import { PaperclipApp } from "@/pages/PaperclipApp";
+import { NemoClawApp } from "@/pages/NemoClawApp";
 import { Blog } from "@/pages/Blog";
 import { BlogPost } from "@/pages/BlogPost";
 import { Usage } from "@/pages/Usage";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/openclaw/:workspaceId" component={OpenClawApp} />
       <Route path="/mission-control-app" component={MissionControlApp} />
       <Route path="/paperclip-app" component={PaperclipApp} />
+      <Route path="/nemoclaw-app" component={NemoClawApp} />
 
       {/* Standard layout routes */}
       <Route>
