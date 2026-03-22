@@ -36,6 +36,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { SEOHead } from "@/components/SEOHead";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+const NEMOCLAW_URL = "https://github.com/NVIDIA/NemoClaw";
 
 const PROVIDER_MODELS = {
   openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
@@ -614,20 +615,31 @@ export function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <Button
-                  size="lg"
-                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
-                  onClick={openControlUiDirect}
-                  disabled={openingInstance}
-                >
-                  {openingInstance ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
-                    <Zap className="w-5 h-5 mr-2" />
-                  )}
-                  {d.openInstance}
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                  <Button
+                    size="lg"
+                    className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white rounded-xl shadow-lg group shrink-0"
+                    onClick={openControlUiDirect}
+                    disabled={openingInstance}
+                  >
+                    {openingInstance ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Zap className="w-5 h-5 mr-2" />
+                    )}
+                    {d.openInstance}
+                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 px-6 border-white/15 hover:bg-white/5 rounded-xl group shrink-0"
+                    onClick={() => window.open(NEMOCLAW_URL, "_blank", "noopener,noreferrer")}
+                  >
+                    <Puzzle className="w-4 h-4 mr-2 text-cyan-300" />
+                    NemoClaw (NVIDIA)
+                  </Button>
+                </div>
               </motion.div>
             ) : (
               <motion.div
