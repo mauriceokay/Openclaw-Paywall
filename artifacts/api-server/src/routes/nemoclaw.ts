@@ -11,6 +11,17 @@ type CliResult = {
   stderr: string;
 };
 
+function outputIndicatesGatewayReady(stdout: string, stderr: string): boolean {
+  const text = `${stdout}\n${stderr}`.toLowerCase();
+  return (
+    text.includes("gateway nemoclaw ready") ||
+    text.includes("✓ gateway ready") ||
+    text.includes("name: nemoclaw") ||
+    text.includes("active gateway set to 'nemoclaw'") ||
+    text.includes('active gateway set to "nemoclaw"')
+  );
+}
+
 function runCli(
   command: string,
   args: string[],
@@ -137,6 +148,10 @@ echo "Patched NemoClaw gateway port to 18080."
   return runShell(patchScript, 30_000);
 }
 
+async function getOpenShellGatewayInfo(): Promise<CliResult> {
+  return runCli("openshell", ["gateway", "info"], 20_000);
+}
+
 async function getNemoStatus() {
   const version = await runCli("nemoclaw", ["--version"], 20_000);
   if (!version.ok) {
@@ -150,12 +165,18 @@ async function getNemoStatus() {
   }
 
   const sandboxStatus = await runCli("nemoclaw", ["my-assistant", "status"], 45_000);
+  const gatewayInfo = await getOpenShellGatewayInfo();
+  const gatewayReady = gatewayInfo.ok && outputIndicatesGatewayReady(gatewayInfo.stdout, gatewayInfo.stderr);
+  const ready = sandboxStatus.ok || gatewayReady;
+  const output = [sandboxStatus.stdout, gatewayInfo.stdout].filter(Boolean).join("\n").trim();
+  const error = [sandboxStatus.stderr, gatewayInfo.stderr].filter(Boolean).join("\n").trim();
+
   return {
     installed: true,
-    ready: sandboxStatus.ok,
+    ready,
     version: (version.stdout || version.stderr || "").trim() || null,
-    output: `${(sandboxStatus.stdout || "").trim()}`.trim(),
-    error: sandboxStatus.ok ? "" : (sandboxStatus.stderr || sandboxStatus.stdout || "").trim(),
+    output,
+    error: ready ? "" : (error || output),
   };
 }
 
@@ -201,11 +222,14 @@ router.post("/nemoclaw/onboard", async (req, res) => {
       NVIDIA_API_KEY: process.env.NVIDIA_API_KEY ?? "",
     },
   );
+  const recoveredReady = !onboard.ok && outputIndicatesGatewayReady(onboard.stdout, onboard.stderr);
   return res.json({
-    ok: onboard.ok,
-    code: onboard.code,
+    ok: onboard.ok || recoveredReady,
+    code: onboard.ok || recoveredReady ? 0 : onboard.code,
     stdout: `${install.stdout}\n${portPatch.stdout}\n${onboard.stdout}`,
-    stderr: onboard.stderr,
+    stderr: recoveredReady
+      ? `${onboard.stderr}\nRecovered: gateway is ready; treating onboarding as successful.`
+      : onboard.stderr,
   });
 });
 
@@ -235,11 +259,14 @@ router.post("/nemoclaw/start", async (req, res) => {
   }
 
   const result = await runCli("nemoclaw", ["start"], 120_000);
+  const recoveredReady = !result.ok && outputIndicatesGatewayReady(result.stdout, result.stderr);
   return res.json({
-    ok: result.ok,
-    code: result.code,
+    ok: result.ok || recoveredReady,
+    code: result.ok || recoveredReady ? 0 : result.code,
     stdout: `${install.stdout}\n${portPatch.stdout}\n${result.stdout}`,
-    stderr: result.stderr,
+    stderr: recoveredReady
+      ? `${result.stderr}\nRecovered: gateway is ready; treating start as successful.`
+      : result.stderr,
   });
 });
 
