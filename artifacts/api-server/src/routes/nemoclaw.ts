@@ -122,6 +122,21 @@ nemoclaw --version
   return runShell(installScript, 1_200_000);
 }
 
+async function patchNemoClawGatewayPort(): Promise<CliResult> {
+  const patchScript = `
+set -euo pipefail
+ONBOARD_JS="/tmp/nemoclaw-source/bin/lib/onboard.js"
+if [ ! -f "$ONBOARD_JS" ]; then
+  echo "NemoClaw onboard source not found for patch; skipping port patch."
+  exit 0
+fi
+sed -i 's/{ port: 8080, label: "OpenShell gateway" }/{ port: 18080, label: "OpenShell gateway" }/' "$ONBOARD_JS"
+sed -i 's/const gwArgs = \\["--name", "nemoclaw"\\];/const gwArgs = ["--name", "nemoclaw", "--port", "18080"];/' "$ONBOARD_JS"
+echo "Patched NemoClaw gateway port to 18080."
+`;
+  return runShell(patchScript, 30_000);
+}
+
 async function getNemoStatus() {
   const version = await runCli("nemoclaw", ["--version"], 20_000);
   if (!version.ok) {
@@ -165,6 +180,16 @@ router.post("/nemoclaw/onboard", async (req, res) => {
       step: "install",
     });
   }
+  const portPatch = await patchNemoClawGatewayPort();
+  if (!portPatch.ok) {
+    return res.status(500).json({
+      ok: false,
+      code: portPatch.code,
+      stdout: `${install.stdout}\n${portPatch.stdout}`,
+      stderr: portPatch.stderr,
+      step: "port_patch",
+    });
+  }
 
   // Non-interactive quick onboarding. If upstream requires API key prompts,
   // the output is returned so the UI can guide the user.
@@ -179,7 +204,7 @@ router.post("/nemoclaw/onboard", async (req, res) => {
   return res.json({
     ok: onboard.ok,
     code: onboard.code,
-    stdout: `${install.stdout}\n${onboard.stdout}`,
+    stdout: `${install.stdout}\n${portPatch.stdout}\n${onboard.stdout}`,
     stderr: onboard.stderr,
   });
 });
@@ -198,12 +223,22 @@ router.post("/nemoclaw/start", async (req, res) => {
       step: "install",
     });
   }
+  const portPatch = await patchNemoClawGatewayPort();
+  if (!portPatch.ok) {
+    return res.status(500).json({
+      ok: false,
+      code: portPatch.code,
+      stdout: `${install.stdout}\n${portPatch.stdout}`,
+      stderr: portPatch.stderr,
+      step: "port_patch",
+    });
+  }
 
   const result = await runCli("nemoclaw", ["start"], 120_000);
   return res.json({
     ok: result.ok,
     code: result.code,
-    stdout: `${install.stdout}\n${result.stdout}`,
+    stdout: `${install.stdout}\n${portPatch.stdout}\n${result.stdout}`,
     stderr: result.stderr,
   });
 });
