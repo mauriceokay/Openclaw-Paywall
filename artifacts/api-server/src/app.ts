@@ -329,6 +329,15 @@ app.use(cookieParser(), (req, res, next) => {
   return paperclipPassthroughProxy(req, res, next);
 });
 
+// Paperclip frontend sometimes calls /api/health from a /paperclip origin.
+// Bridge that call to the Paperclip backend so embedded mode doesn't 404.
+app.get("/api/health", cookieParser(), (req, res, next) => {
+  const referer = typeof req.headers.referer === "string" ? req.headers.referer : "";
+  if (!referer.includes("/paperclip")) return next();
+  if (!getSessionEmail(req)) return res.status(401).json({ error: "Authentication required" });
+  return paperclipPassthroughProxy(req, res, next);
+});
+
 function stripIframeHeaders(res: express.Response) {
   res.removeHeader("x-frame-options");
   const csp = res.getHeader("content-security-policy");
