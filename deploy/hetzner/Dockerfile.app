@@ -21,7 +21,7 @@ FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends git ca-certificates docker.io \
+  && apt-get install -y --no-install-recommends git ca-certificates docker.io curl \
   && npm install -g openclaw@latest \
   && npm install -g nemoclaw \
   && rm -rf /var/lib/apt/lists/*
