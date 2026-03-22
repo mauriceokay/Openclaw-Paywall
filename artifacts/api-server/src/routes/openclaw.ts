@@ -47,6 +47,13 @@ function getSharedGatewayInstanceUrl(): string | null {
 }
 
 function getOpenClawCliPath(): string {
+  const explicitPath = process.env.OPENCLAW_CLI_PATH?.trim();
+  if (explicitPath) return explicitPath;
+
+  if (process.platform !== "win32") {
+    return "openclaw";
+  }
+
   const appData = process.env.APPDATA;
   if (appData?.trim()) {
     return path.join(appData, "npm", "openclaw.cmd");
