@@ -1,4 +1,10 @@
 import { getStripeSync, getUncachableStripeClient } from "./stripeClient";
+import { isDbEnabled } from "./localDev";
+
+const AFFILIATE_COMMISSION_RATE = Math.min(
+  0.9,
+  Math.max(0, Number(process.env.AFFILIATE_COMMISSION_RATE ?? "0.20")),
+);
 
 async function provisionOnActiveSubscription(customerId: string) {
   try {
@@ -81,6 +87,78 @@ export class WebhookHandlers {
         const subscription = event.data.object as any;
         if (subscription.status === "active" || subscription.status === "trialing") {
           await provisionOnActiveSubscription(subscription.customer as string);
+        }
+      }
+
+      if (event.type === "invoice.paid" && isDbEnabled()) {
+        const invoice = event.data.object as any;
+        const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+        const invoiceId = typeof invoice.id === "string" ? invoice.id : null;
+        const subscriptionId =
+          typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription?.id ?? null;
+        const amountPaid = Number(invoice.amount_paid ?? 0);
+        const currency = String(invoice.currency || "usd").toLowerCase();
+
+        if (customerId && invoiceId && amountPaid > 0) {
+          try {
+            const stripe = await getUncachableStripeClient();
+            const customer = await stripe.customers.retrieve(customerId);
+            const customerEmail =
+              !customer.deleted && "email" in customer && customer.email
+                ? customer.email.trim().toLowerCase()
+                : null;
+
+            if (customerEmail) {
+              const { pool } = await import("@workspace/db");
+              const attribution = await pool.query(
+                `
+                  SELECT affiliate_email, referred_email
+                  FROM app.referral_attributions
+                  WHERE stripe_customer_id = $1 OR referred_email = $2
+                  ORDER BY created_at ASC
+                  LIMIT 1
+                `,
+                [customerId, customerEmail],
+              );
+
+              const affiliateEmail = String(attribution.rows[0]?.affiliate_email || "").trim().toLowerCase();
+              const referredEmail = String(attribution.rows[0]?.referred_email || customerEmail).trim().toLowerCase();
+              if (affiliateEmail && affiliateEmail !== referredEmail) {
+                const commissionCents = Math.floor(amountPaid * AFFILIATE_COMMISSION_RATE);
+                if (commissionCents > 0) {
+                  await pool.query(
+                    `
+                      INSERT INTO app.affiliate_commissions (
+                        affiliate_email,
+                        referred_email,
+                        stripe_customer_id,
+                        stripe_subscription_id,
+                        stripe_invoice_id,
+                        amount_cents,
+                        currency,
+                        status
+                      )
+                      VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
+                      ON CONFLICT (stripe_invoice_id) DO NOTHING
+                    `,
+                    [
+                      affiliateEmail,
+                      referredEmail,
+                      customerId,
+                      subscriptionId,
+                      invoiceId,
+                      commissionCents,
+                      currency,
+                    ],
+                  );
+                }
+              }
+            }
+          } catch (err: any) {
+            console.log("[webhook] affiliate commission note:", err?.message || err);
+          }
         }
       }
     } catch (err: any) {

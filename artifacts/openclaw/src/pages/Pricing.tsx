@@ -9,7 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { useListProducts, createCheckout } from "@workspace/api-client-react";
+import { useListProducts } from "@workspace/api-client-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { SEOHead } from "@/components/SEOHead";
@@ -158,7 +158,18 @@ export function Pricing() {
         return;
       }
       const mockUserId = `usr_${Math.random().toString(36).slice(2, 9)}`;
-      const data = await createCheckout({ priceId, userId: mockUserId, email: user.email });
+      const affiliateCode = localStorage.getItem("oc_affiliate_ref") || undefined;
+      const checkoutResponse = await fetch("/api/subscription/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ priceId, userId: mockUserId, email: user.email, affiliateCode }),
+      });
+      if (!checkoutResponse.ok) {
+        const payload = (await checkoutResponse.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Failed to create checkout");
+      }
+      const data = (await checkoutResponse.json()) as { clientSecret: string };
       setClientSecret(data.clientSecret);
       setStep("checkout");
     } catch (err: any) {

@@ -17,6 +17,9 @@ import {
   Lock,
   User,
   LogOut,
+  Copy,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -66,6 +69,17 @@ type SkillsCatalogResponse = {
   gatewayId?: string;
   skills?: MarketplaceSkill[];
   bridgeMode?: boolean;
+};
+
+type AffiliateDashboardData = {
+  code: string;
+  link: string;
+  stripeAccountId: string | null;
+  referrals: number;
+  commissionsCount: number;
+  pendingCents: number;
+  paidCents: number;
+  totalCents: number;
 };
 
 function getValidModel(provider: Provider): string {
@@ -334,8 +348,57 @@ export function Dashboard() {
   const [clawHubSyncMessage, setClawHubSyncMessage] = useState("");
   const [clawHubBridgeMode, setClawHubBridgeMode] = useState(false);
   const [mcSessionReady, setMcSessionReady] = useState(false);
+  const [copiedAffiliateLink, setCopiedAffiliateLink] = useState(false);
+  const [affiliateConnectBusy, setAffiliateConnectBusy] = useState(false);
+  const [affiliateError, setAffiliateError] = useState("");
+
+  const { data: affiliateData } = useQuery<AffiliateDashboardData>({
+    queryKey: ["affiliate-dashboard", user?.email],
+    enabled: !!user?.email,
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/api/affiliate/me`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load affiliate dashboard");
+      return (await res.json()) as AffiliateDashboardData;
+    },
+    retry: false,
+  });
 
   const hasProOrTeam = Boolean(status?.planName && /(pro|team)/i.test(status.planName));
+
+  const formatCents = (amountCents: number) => `$${(amountCents / 100).toFixed(2)}`;
+
+  async function copyAffiliateLink() {
+    if (!affiliateData?.link) return;
+    try {
+      await navigator.clipboard.writeText(affiliateData.link);
+      setCopiedAffiliateLink(true);
+      window.setTimeout(() => setCopiedAffiliateLink(false), 1500);
+    } catch {
+      setAffiliateError("Could not copy affiliate link.");
+    }
+  }
+
+  async function connectAffiliatePayouts() {
+    setAffiliateConnectBusy(true);
+    setAffiliateError("");
+    try {
+      const res = await fetch(`${BASE_URL}/api/affiliate/connect-account`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Could not start Stripe Connect onboarding");
+      }
+      const payload = (await res.json()) as { url?: string };
+      if (!payload.url) throw new Error("Missing onboarding URL");
+      window.location.href = payload.url;
+    } catch (err) {
+      setAffiliateError(err instanceof Error ? err.message : "Could not connect payouts");
+    } finally {
+      setAffiliateConnectBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (!user?.email) return;
@@ -871,6 +934,69 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15, type: "spring" }}
+          className="mb-6 md:mb-10"
+        >
+          <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-300" />
+                Affiliate Program
+              </CardTitle>
+              <CardDescription>Invite users and earn recurring commission.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {affiliateData ? (
+                <>
+                  <div className="grid md:grid-cols-4 gap-3">
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="text-xs text-muted-foreground">Referrals</div>
+                      <div className="text-lg font-semibold">{affiliateData.referrals}</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="text-xs text-muted-foreground">Pending</div>
+                      <div className="text-lg font-semibold">{formatCents(affiliateData.pendingCents)}</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="text-xs text-muted-foreground">Paid</div>
+                      <div className="text-lg font-semibold">{formatCents(affiliateData.paidCents)}</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div className="text-xs text-muted-foreground">Total</div>
+                      <div className="text-lg font-semibold">{formatCents(affiliateData.totalCents)}</div>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Your referral link</div>
+                    <div className="text-xs md:text-sm break-all">{affiliateData.link}</div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={copyAffiliateLink}>
+                      <Copy className="w-4 h-4 mr-1" />
+                      {copiedAffiliateLink ? "Copied" : "Copy Link"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-semibold"
+                      onClick={connectAffiliatePayouts}
+                      disabled={affiliateConnectBusy}
+                    >
+                      <Wallet className="w-4 h-4 mr-1" />
+                      {affiliateData.stripeAccountId ? "Manage Payouts" : "Connect Payouts"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Affiliate profile loads after sign-in.</p>
+              )}
+              {affiliateError && <p className="text-xs text-red-400">{affiliateError}</p>}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}

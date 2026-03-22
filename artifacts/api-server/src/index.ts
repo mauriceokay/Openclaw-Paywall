@@ -75,8 +75,45 @@ async function ensureSchema() {
         metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS app.affiliates (
+        id BIGSERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        code TEXT UNIQUE NOT NULL,
+        stripe_account_id TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS app.referral_attributions (
+        id BIGSERIAL PRIMARY KEY,
+        affiliate_email TEXT NOT NULL,
+        referred_email TEXT UNIQUE NOT NULL,
+        stripe_customer_id TEXT UNIQUE,
+        source_code TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS app.affiliate_commissions (
+        id BIGSERIAL PRIMARY KEY,
+        affiliate_email TEXT NOT NULL,
+        referred_email TEXT NOT NULL,
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT,
+        stripe_invoice_id TEXT UNIQUE,
+        amount_cents INTEGER NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'usd',
+        status TEXT NOT NULL DEFAULT 'pending',
+        stripe_transfer_id TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        paid_at TIMESTAMPTZ
+      );
       CREATE INDEX IF NOT EXISTS usage_events_email_created_idx
         ON app.usage_events (email, created_at DESC);
+      CREATE INDEX IF NOT EXISTS affiliates_code_idx
+        ON app.affiliates (code);
+      CREATE INDEX IF NOT EXISTS referral_attributions_affiliate_email_idx
+        ON app.referral_attributions (affiliate_email);
+      CREATE INDEX IF NOT EXISTS affiliate_commissions_affiliate_status_idx
+        ON app.affiliate_commissions (affiliate_email, status, created_at DESC);
     `);
     console.log("Database schema ready");
   } catch (error) {

@@ -9,6 +9,7 @@ import usersRouter from "./users";
 import { isDbEnabled } from "../localDev";
 import openclawRouter from "./openclaw";
 import nemoclawRouter from "./nemoclaw";
+import affiliateRouter from "./affiliate";
 
 const router: IRouter = Router();
 
@@ -19,6 +20,7 @@ router.use(missionControlRouter);
 router.use(paperclipRouter);
 router.use(usersRouter);
 router.use(subscriptionRouter);
+router.use(affiliateRouter);
 router.use("/openclaw", openclawRouter);
 router.use(nemoclawRouter);
 

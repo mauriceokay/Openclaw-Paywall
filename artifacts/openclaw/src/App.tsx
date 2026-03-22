@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
@@ -74,6 +75,17 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rawRef = params.get("ref");
+    if (!rawRef) return;
+
+    const normalized = rawRef.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+    if (normalized.length < 4) return;
+    localStorage.setItem("oc_affiliate_ref", normalized);
+    document.cookie = `oc_aff_ref=${encodeURIComponent(normalized)}; Path=/; Max-Age=${60 * 60 * 24 * 90}; SameSite=Lax`;
+  }, []);
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>

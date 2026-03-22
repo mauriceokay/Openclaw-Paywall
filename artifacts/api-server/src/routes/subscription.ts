@@ -16,10 +16,53 @@ const router: IRouter = Router();
 const UNPAID_BLOCK_THRESHOLD_CENTS = 1500;
 const PAYG_PRICE_PER_1K_TOKENS_USD = Number(process.env.PAYG_PRICE_PER_1K_TOKENS_USD ?? "0.01");
 const PAYG_BILLING_TOKEN_UNIT = Number(process.env.PAYG_BILLING_TOKEN_UNIT ?? "1000");
+const AFFILIATE_COOKIE_NAME = "oc_aff_ref";
 
 function sendBillingBlocked(res: Response) {
   res.setHeader("x-oc-billing-blocked", "1");
   return res.json(GetSubscriptionStatusResponse.parse({ hasActiveSubscription: false }));
+}
+
+function normalizeAffiliateCode(input: string): string {
+  return input.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+}
+
+async function maybeStoreAffiliateAttribution(
+  referredEmail: string,
+  stripeCustomerId: string,
+  req: Request,
+  explicitCode?: string,
+) {
+  if (!isDbEnabled()) return;
+
+  const rawCodeFromCookie = (req as any).cookies?.[AFFILIATE_COOKIE_NAME];
+  const normalizedCode = normalizeAffiliateCode(explicitCode || rawCodeFromCookie || "");
+  if (!normalizedCode) return;
+
+  try {
+    const { pool } = await import("@workspace/db");
+    const affiliateResult = await pool.query(
+      `SELECT email, code FROM app.affiliates WHERE code = $1 LIMIT 1`,
+      [normalizedCode],
+    );
+    const affiliateEmail = String(affiliateResult.rows[0]?.email || "").trim().toLowerCase();
+    const normalizedReferred = referredEmail.trim().toLowerCase();
+    if (!affiliateEmail || affiliateEmail === normalizedReferred) return;
+
+    await pool.query(
+      `
+        INSERT INTO app.referral_attributions (affiliate_email, referred_email, stripe_customer_id, source_code)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (referred_email)
+        DO UPDATE SET
+          stripe_customer_id = COALESCE(app.referral_attributions.stripe_customer_id, EXCLUDED.stripe_customer_id),
+          updated_at = NOW()
+      `,
+      [affiliateEmail, normalizedReferred, stripeCustomerId, normalizedCode],
+    );
+  } catch (err: any) {
+    console.warn("[affiliate] attribution skipped:", err?.message || err);
+  }
 }
 
 async function isBlockedByOutstandingInvoices(customerId: string): Promise<boolean> {
@@ -291,7 +334,7 @@ router.post("/subscription/local-activate", async (req, res) => {
 
 router.post("/subscription/checkout", async (req, res) => {
   try {
-    const { priceId, userId, email } = req.body;
+    const { priceId, userId, email, affiliateCode } = req.body;
 
     if (!priceId || !email) {
       return res.status(400).json({ error: "priceId and email are required" });
@@ -335,7 +378,13 @@ router.post("/subscription/checkout", async (req, res) => {
       mode: "subscription",
       ui_mode: "embedded",
       return_url: returnUrl.toString(),
+      metadata: {
+        affiliateCode: typeof affiliateCode === "string" ? normalizeAffiliateCode(affiliateCode) : "",
+        userId: userId || email,
+      },
     });
+
+    await maybeStoreAffiliateAttribution(email, customerId, req, affiliateCode);
 
     return res.json(CreateCheckoutResponse.parse({ clientSecret: session.client_secret }));
   } catch (err: any) {
