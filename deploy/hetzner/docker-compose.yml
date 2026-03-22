@@ -107,11 +107,12 @@ services:
       [
         "sh",
         "-lc",
-        "npx -y paperclipai onboard --yes && npx -y paperclipai allowed-hostname getlobster.org && npx -y paperclipai allowed-hostname www.getlobster.org && npx -y paperclipai allowed-hostname 178.156.231.45 && npx -y paperclipai run",
+        "npx -y paperclipai onboard --yes && npx -y paperclipai allowed-hostname getlobster.org && npx -y paperclipai allowed-hostname www.getlobster.org && npx -y paperclipai allowed-hostname 178.156.231.45 && INVITE_URL=$(npx -y paperclipai auth bootstrap-ceo --force --expires-hours 720 --base-url ${APP_URL}/paperclip | sed -n 's/.*Invite URL: //p' | tail -n 1 | tr -d '\\r') && if [ -n \"$INVITE_URL\" ]; then echo \"$INVITE_URL\" > /paperclip-data/bootstrap_invite_url.txt; fi && npx -y paperclipai run",
       ]
     environment:
       HOST: 0.0.0.0
       PORT: 3100
+      APP_URL: ${APP_URL}
       PAPERCLIP_HOME: /paperclip-data
       PAPERCLIP_DEPLOYMENT_MODE: authenticated
       BETTER_AUTH_BASE_URL: ${APP_URL}/paperclip
@@ -146,6 +147,7 @@ services:
       MISSION_CONTROL_AUTH_MODE: proxy
       MISSION_CONTROL_TOKEN: ${MISSION_CONTROL_TOKEN}
       PAPERCLIP_URL: http://paperclip:3100
+      PAPERCLIP_BOOTSTRAP_INVITE_FILE: /paperclip-data/bootstrap_invite_url.txt
     depends_on:
       - app-db
       - gateway
@@ -154,6 +156,7 @@ services:
       - paperclip
     volumes:
       - openclaw_config:/root/.openclaw
+      - paperclip_data:/paperclip-data:ro
 
   deploy-hook:
     build:
