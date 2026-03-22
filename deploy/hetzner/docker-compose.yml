@@ -157,6 +157,7 @@ services:
       - paperclip
     volumes:
       - openclaw_config:/root/.openclaw
+      - nemoclaw_data:/root/.nemoclaw
       - paperclip_data:/paperclip-data:ro
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -177,6 +178,7 @@ volumes:
   app_db_data:
   mc_db_data:
   openclaw_config:
+  nemoclaw_data:
   paperclip_data:
   caddy_data:
   caddy_config:

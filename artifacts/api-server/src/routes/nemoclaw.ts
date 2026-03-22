@@ -11,11 +11,16 @@ type CliResult = {
   stderr: string;
 };
 
-function runCli(command: string, args: string[], timeoutMs = 120_000): Promise<CliResult> {
+function runCli(
+  command: string,
+  args: string[],
+  timeoutMs = 120_000,
+  envOverrides: Record<string, string> = {},
+): Promise<CliResult> {
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       windowsHide: true,
-      env: process.env,
+      env: { ...process.env, ...envOverrides },
       shell: false,
     });
 
@@ -163,7 +168,14 @@ router.post("/nemoclaw/onboard", async (req, res) => {
 
   // Non-interactive quick onboarding. If upstream requires API key prompts,
   // the output is returned so the UI can guide the user.
-  const onboard = await runCli("nemoclaw", ["onboard", "--non-interactive"], 600_000);
+  const onboard = await runCli(
+    "nemoclaw",
+    ["onboard", "--non-interactive"],
+    600_000,
+    {
+      NVIDIA_API_KEY: process.env.NVIDIA_API_KEY ?? "",
+    },
+  );
   return res.json({
     ok: onboard.ok,
     code: onboard.code,
