@@ -148,6 +148,7 @@ services:
       MISSION_CONTROL_TOKEN: ${MISSION_CONTROL_TOKEN}
       PAPERCLIP_URL: http://paperclip:3100
       PAPERCLIP_BOOTSTRAP_INVITE_FILE: /paperclip-data/bootstrap_invite_url.txt
+      PAPERCLIP_BOOTSTRAP_INVITE_URL: ${PAPERCLIP_BOOTSTRAP_INVITE_URL:-}
     depends_on:
       - app-db
       - gateway

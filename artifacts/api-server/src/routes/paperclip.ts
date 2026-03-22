@@ -7,6 +7,7 @@ const router = Router();
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
 const PAPERCLIP_BOOTSTRAP_INVITE_FILE =
   process.env.PAPERCLIP_BOOTSTRAP_INVITE_FILE ?? "/paperclip-data/bootstrap_invite_url.txt";
+const PAPERCLIP_BOOTSTRAP_INVITE_URL = process.env.PAPERCLIP_BOOTSTRAP_INVITE_URL?.trim() || null;
 
 function toAppRelativePaperclipUrl(url: string): string | null {
   try {
@@ -31,6 +32,11 @@ async function resolvePaperclipLaunchUrl(): Promise<string> {
     };
 
     if (payload.bootstrapStatus === "bootstrap_pending" && payload.bootstrapInviteActive) {
+      const envRelative = PAPERCLIP_BOOTSTRAP_INVITE_URL
+        ? toAppRelativePaperclipUrl(PAPERCLIP_BOOTSTRAP_INVITE_URL)
+        : null;
+      if (envRelative) return envRelative;
+
       if (existsSync(PAPERCLIP_BOOTSTRAP_INVITE_FILE)) {
         const inviteUrl = readFileSync(PAPERCLIP_BOOTSTRAP_INVITE_FILE, "utf8").trim();
         const relative = toAppRelativePaperclipUrl(inviteUrl);
