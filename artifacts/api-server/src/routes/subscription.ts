@@ -595,4 +595,11 @@ router.get("/subscription/usage", async (req, res) => {
   }
 });
 
+// Backward compatibility for older frontend bundles that still call /api/usage.
+router.get("/usage", (req, res) => {
+  const query = new URLSearchParams(req.query as Record<string, string>).toString();
+  const suffix = query ? `?${query}` : "";
+  return res.redirect(307, `/api/subscription/usage${suffix}`);
+});
+
 export default router;
