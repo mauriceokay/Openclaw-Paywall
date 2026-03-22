@@ -149,6 +149,7 @@ services:
       PAPERCLIP_URL: http://paperclip:3100
       PAPERCLIP_BOOTSTRAP_INVITE_FILE: /paperclip-data/bootstrap_invite_url.txt
       PAPERCLIP_BOOTSTRAP_INVITE_URL: ${PAPERCLIP_BOOTSTRAP_INVITE_URL:-}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
     depends_on:
       - app-db
       - gateway
