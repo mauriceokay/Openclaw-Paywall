@@ -107,7 +107,7 @@ services:
       [
         "sh",
         "-lc",
-        "npx -y paperclipai onboard --yes && npx -y paperclipai allowed-hostname getlobster.org && npx -y paperclipai allowed-hostname www.getlobster.org && npx -y paperclipai allowed-hostname 178.156.231.45 && npx -y paperclipai auth bootstrap-ceo --force --expires-hours 720 --base-url ${APP_URL}/paperclip 2>&1 | tee /tmp/paperclip-bootstrap.log | grep -Eo 'https://[^ ]+/paperclip/invite/[^ ]+' | tail -n 1 | tr -d '\\r' > /paperclip-data/bootstrap_invite_url.txt || true && npx -y paperclipai run",
+        "npx -y paperclipai onboard --yes || true; npx -y paperclipai allowed-hostname getlobster.org || true; npx -y paperclipai allowed-hostname www.getlobster.org || true; npx -y paperclipai allowed-hostname 178.156.231.45 || true; npx -y paperclipai auth bootstrap-ceo --force --expires-hours 720 --base-url ${APP_URL}/paperclip 2>&1 | sed -n 's/.*Invite URL: //p' | tail -n 1 | tr -d '\\r' > /paperclip-data/bootstrap_invite_url.txt || true; npx -y paperclipai run",
       ]
     environment:
       HOST: 0.0.0.0
