@@ -884,7 +884,7 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
                 {(["openai", "anthropic", "gemini", "qwen", "moonshot"] as const).map((p) => (
                   <button
                     key={p}
@@ -899,7 +899,7 @@ export function Dashboard() {
                       setSelectedModel(newModel);
                       localStorage.setItem("oc_api_model", newModel);
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                    className={`w-full px-3 py-1.5 rounded-lg text-xs font-medium border transition-all text-center break-words ${
                       selectedProvider === p
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-white/10 text-muted-foreground hover:border-white/30"

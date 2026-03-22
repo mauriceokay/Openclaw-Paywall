@@ -721,7 +721,7 @@ export function Setup() {
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
                         <Label>{s.providerLabel}</Label>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
                           {(["openai", "anthropic", "gemini", "qwen", "moonshot"] as const).map((p) => (
                             <button
                               key={p}
@@ -734,7 +734,7 @@ export function Setup() {
                                   : PROVIDER_MODELS[p][0];
                                 setSelectedModel(newModel);
                               }}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all capitalize ${
+                              className={`w-full px-4 py-2 rounded-lg text-sm font-medium border transition-all text-center break-words ${
                                 provider === p
                                   ? "border-primary bg-primary/10 text-primary"
                                   : "border-white/10 text-muted-foreground hover:border-white/30"
