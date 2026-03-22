@@ -5,7 +5,7 @@ Disallow: /app
 Disallow: /api/
 Disallow: /api/hook/
 
-Sitemap: https://openclaw.cloud/sitemap.xml
+Sitemap: https://getlobster.org/sitemap.xml
 
 # Block AI training crawlers
 User-agent: GPTBot

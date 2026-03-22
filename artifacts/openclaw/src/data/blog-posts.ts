@@ -975,7 +975,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "ol",
         items: [
-          "Go to openclaw.cloud and sign up",
+          "Go to getlobster.org and sign up",
           "Your OpenClaw instance is provisioned automatically",
           "Click to enable your first integration (Telegram, Discord, WhatsApp, etc.)",
           "Paste your bot token or complete the OAuth flow",
@@ -2790,7 +2790,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "OpenClaw Cloud removes the need to choose between power and simplicity. Get the full OpenClaw feature set — voice, memory, 20+ channels, automations, Skills — in a managed instance that takes 2 minutes to set up. Sign up at openclaw.cloud.",
+          "OpenClaw Cloud removes the need to choose between power and simplicity. Get the full OpenClaw feature set — voice, memory, 20+ channels, automations, Skills — in a managed instance that takes 2 minutes to set up. Sign up at getlobster.org.",
       },
       {
         type: "h2",
@@ -3062,7 +3062,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "If NemoClaw's limitations have been frustrating you, OpenClaw Cloud is the fastest path forward. No setup, no server management — just connect your channels and start talking to your AI. Sign up at openclaw.cloud.",
+          "If NemoClaw's limitations have been frustrating you, OpenClaw Cloud is the fastest path forward. No setup, no server management — just connect your channels and start talking to your AI. Sign up at getlobster.org.",
       },
       {
         type: "h2",
@@ -3477,7 +3477,7 @@ export const blogPosts: BlogPost[] = [
       {
         type: "callout",
         content:
-          "OpenClaw Cloud includes the full Skills platform. Install web search, calendar access, and a growing library of community skills in one click — no npm, no config files. Sign up at openclaw.cloud and give your AI real-world knowledge.",
+          "OpenClaw Cloud includes the full Skills platform. Install web search, calendar access, and a growing library of community skills in one click — no npm, no config files. Sign up at getlobster.org and give your AI real-world knowledge.",
       },
       {
         type: "faq",

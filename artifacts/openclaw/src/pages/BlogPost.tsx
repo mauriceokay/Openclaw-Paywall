@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { type BlogSection } from "@/data/blog-posts";
 import { getBlogPostForLocale, getRelatedPostsForLocale } from "@/data/blog-index";
 import { useLanguage } from "@/context/LanguageContext";
+import { SITE_URL } from "@/lib/site";
 import NotFound from "@/pages/not-found";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -153,8 +154,6 @@ export function BlogPost() {
     month: "long",
     day: "numeric",
   });
-
-  const SITE_URL = "https://openclaw.cloud";
 
   // Collect all FAQ sections across the post
   const faqSections = post.content.filter((s) => s.type === "faq" && s.faqs?.length);

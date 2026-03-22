@@ -5,6 +5,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Clock, Tag, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { getBlogPostsForLocale } from "@/data/blog-index";
+import { SITE_URL } from "@/lib/site";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Guides: "text-blue-400 bg-blue-400/10",
@@ -33,8 +34,6 @@ export function Blog() {
 
   const featured = posts[0];
   const rest = posts.slice(1);
-
-  const SITE_URL = "https://openclaw.cloud";
 
   // WebSite schema — enables Google Sitelinks Searchbox
   const websiteSchema = {

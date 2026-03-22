@@ -456,8 +456,25 @@ const frontendDist = frontendDistCandidates.find((candidate) => existsSync(candi
 if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { maxAge: "1h" }));
 
+  app.get(["/sitemap.xml", "/robots.txt"], (req, res, next) => {
+    const filePath = path.join(frontendDist, req.path.replace(/^\//, ""));
+    if (existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+    return next();
+  });
+
   app.use((req, res, next) => {
-    if ((req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api/") && !req.path.startsWith("/health") && !req.path.startsWith("/mission-control") && !req.path.startsWith("/mc-api") && !req.path.startsWith("/paperclip")) {
+    const isSpaRoute =
+      (req.method === "GET" || req.method === "HEAD") &&
+      path.extname(req.path) === "" &&
+      !req.path.startsWith("/api/") &&
+      !req.path.startsWith("/health") &&
+      !req.path.startsWith("/mission-control") &&
+      !req.path.startsWith("/mc-api") &&
+      !req.path.startsWith("/paperclip");
+
+    if (isSpaRoute) {
       return res.sendFile(path.join(frontendDist, "index.html"));
     }
     next();

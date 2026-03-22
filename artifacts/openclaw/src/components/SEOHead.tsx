@@ -1,8 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import type { LocaleCode } from "@/i18n";
+import { OG_IMAGE, SITE_URL } from "@/lib/site";
 
-const SITE_URL = "https://openclaw.cloud";
-const OG_IMAGE = `${SITE_URL}/opengraph.jpg`;
 const OG_IMAGE_ALT = "OpenClaw Cloud — Self-Hosted Personal AI Assistant";
 const SITE_NAME = "OpenClaw Cloud";
 const TWITTER_HANDLE = "@openclaw_ai";
