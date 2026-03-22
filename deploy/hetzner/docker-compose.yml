@@ -158,6 +158,7 @@ services:
     volumes:
       - openclaw_config:/root/.openclaw
       - paperclip_data:/paperclip-data:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
   deploy-hook:
     build:
