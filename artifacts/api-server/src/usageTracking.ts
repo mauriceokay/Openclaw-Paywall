@@ -5,7 +5,8 @@ export type UsageEventType =
   | "mission_control_open"
   | "gateway_toggle"
   | "settings_sync"
-  | "whatsapp_qr_start";
+  | "whatsapp_qr_start"
+  | "token_usage";
 
 type UsageEventMetadata = Record<string, unknown>;
 
@@ -21,6 +22,13 @@ type UsageEventSummary = {
   recent: Array<{ type: UsageEventType; createdAt: string }>;
 };
 
+export type TokenUsageSummary = {
+  totalTokens: number;
+  weightedTokens: number;
+  estimatedCostUsd: number;
+  byProvider: Record<string, { events: number; totalTokens: number; weightedTokens: number; estimatedCostUsd: number }>;
+};
+
 const localEvents = new Map<string, UsageEvent[]>();
 const dedupeState = new Map<string, number>();
 const LOCAL_EVENT_LIMIT_PER_USER = 500;
@@ -31,6 +39,9 @@ function normalizeEmail(email: string): string {
 }
 
 function shouldSkipByDedupe(email: string, type: UsageEventType): boolean {
+  // Token usage events are high-frequency billing records and must not be deduped.
+  if (type === "token_usage") return false;
+
   const key = `${email}:${type}`;
   const now = Date.now();
   const previous = dedupeState.get(key);
@@ -147,5 +158,100 @@ export async function getUsageEventSummary(email: string): Promise<UsageEventSum
   } catch (err) {
     console.error("[usage-tracking] failed to read DB events:", err);
     return { total: 0, byType: {}, recent: [] };
+  }
+}
+
+export async function getTokenUsageSummary(email: string): Promise<TokenUsageSummary> {
+  const normalizedEmail = normalizeEmail(email);
+  const empty: TokenUsageSummary = {
+    totalTokens: 0,
+    weightedTokens: 0,
+    estimatedCostUsd: 0,
+    byProvider: {},
+  };
+
+  if (!normalizedEmail) {
+    return empty;
+  }
+
+  if (!isDbEnabled()) {
+    const events = localEvents.get(normalizedEmail) ?? [];
+    const byProvider: TokenUsageSummary["byProvider"] = {};
+
+    for (const event of events) {
+      if (event.type !== "token_usage") continue;
+      const provider = String(event.metadata.provider ?? "unknown").trim().toLowerCase() || "unknown";
+      const totalTokens = Number(event.metadata.totalTokens ?? 0);
+      const weightedTokens = Number(event.metadata.weightedTokens ?? 0);
+      const estimatedCostUsd = Number(event.metadata.estimatedCostUsd ?? 0);
+
+      if (!byProvider[provider]) {
+        byProvider[provider] = { events: 0, totalTokens: 0, weightedTokens: 0, estimatedCostUsd: 0 };
+      }
+      byProvider[provider].events += 1;
+      byProvider[provider].totalTokens += Number.isFinite(totalTokens) ? totalTokens : 0;
+      byProvider[provider].weightedTokens += Number.isFinite(weightedTokens) ? weightedTokens : 0;
+      byProvider[provider].estimatedCostUsd += Number.isFinite(estimatedCostUsd) ? estimatedCostUsd : 0;
+    }
+
+    return {
+      totalTokens: Object.values(byProvider).reduce((sum, item) => sum + item.totalTokens, 0),
+      weightedTokens: Object.values(byProvider).reduce((sum, item) => sum + item.weightedTokens, 0),
+      estimatedCostUsd: Number(
+        Object.values(byProvider).reduce((sum, item) => sum + item.estimatedCostUsd, 0).toFixed(6),
+      ),
+      byProvider,
+    };
+  }
+
+  try {
+    const { pool } = await import("@workspace/db");
+    const result = await pool.query(
+      `SELECT
+         COALESCE(metadata->>'provider', 'unknown') AS provider,
+         COUNT(*)::int AS events,
+         COALESCE(SUM((metadata->>'totalTokens')::numeric), 0) AS total_tokens,
+         COALESCE(SUM((metadata->>'weightedTokens')::numeric), 0) AS weighted_tokens,
+         COALESCE(SUM((metadata->>'estimatedCostUsd')::numeric), 0) AS estimated_cost_usd
+       FROM app.usage_events
+       WHERE email = $1
+         AND type = 'token_usage'
+         AND created_at >= NOW() - INTERVAL '30 days'
+       GROUP BY 1`,
+      [normalizedEmail],
+    );
+
+    const byProvider: TokenUsageSummary["byProvider"] = {};
+    for (const row of result.rows as Array<{
+      provider: string;
+      events: number | string;
+      total_tokens: number | string;
+      weighted_tokens: number | string;
+      estimated_cost_usd: number | string;
+    }>) {
+      const provider = String(row.provider || "unknown").toLowerCase();
+      const events = Number(row.events ?? 0);
+      const totalTokens = Number(row.total_tokens ?? 0);
+      const weightedTokens = Number(row.weighted_tokens ?? 0);
+      const estimatedCostUsd = Number(row.estimated_cost_usd ?? 0);
+      byProvider[provider] = {
+        events: Number.isFinite(events) ? events : 0,
+        totalTokens: Number.isFinite(totalTokens) ? totalTokens : 0,
+        weightedTokens: Number.isFinite(weightedTokens) ? weightedTokens : 0,
+        estimatedCostUsd: Number.isFinite(estimatedCostUsd) ? estimatedCostUsd : 0,
+      };
+    }
+
+    return {
+      totalTokens: Object.values(byProvider).reduce((sum, item) => sum + item.totalTokens, 0),
+      weightedTokens: Object.values(byProvider).reduce((sum, item) => sum + item.weightedTokens, 0),
+      estimatedCostUsd: Number(
+        Object.values(byProvider).reduce((sum, item) => sum + item.estimatedCostUsd, 0).toFixed(6),
+      ),
+      byProvider,
+    };
+  } catch (err) {
+    console.error("[usage-tracking] failed to read token usage summary:", err);
+    return empty;
   }
 }

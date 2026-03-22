@@ -12,9 +12,9 @@ const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 // Base rate per AI message in USD before provider multiplier
 const BASE_RATE_PER_MESSAGE = 0.01;
 
-// Anthropic models get a 0.5x fee; all other providers get 1.5x
+// All supported providers currently use a 1.5x PAYG multiplier.
 const PROVIDER_MULTIPLIERS: Record<string, number> = {
-  anthropic: 0.5,
+  anthropic: 1.5,
   openai: 1.5,
   gemini: 1.5,
   qwen: 1.5,
@@ -68,6 +68,7 @@ const EVENT_LABELS: Record<string, string> = {
   settings_sync: "Settings Syncs",
   whatsapp_qr_start: "WhatsApp QR Starts",
   paperclip_open: "Paperclip Opens",
+  token_usage: "Token Usage Reports",
 };
 
 export function Usage() {

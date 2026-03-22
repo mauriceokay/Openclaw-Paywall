@@ -3,7 +3,7 @@ import { storage } from "../storage";
 import { getUncachableStripeClient } from "../stripeClient";
 import { getSessionEmail } from "../sessionAuth";
 import { activateLocalSubscription, getLocalSubscription, isDbEnabled } from "../localDev";
-import { getUsageEventSummary } from "../usageTracking";
+import { getTokenUsageSummary, getUsageEventSummary, trackUsageEvent } from "../usageTracking";
 import { inferPlanTierFromSubscriptionItem, planTierToPlanName } from "../planTier";
 import {
   CreateCheckoutResponse,
@@ -14,6 +14,8 @@ import {
 
 const router: IRouter = Router();
 const UNPAID_BLOCK_THRESHOLD_CENTS = 1500;
+const PAYG_PRICE_PER_1K_TOKENS_USD = Number(process.env.PAYG_PRICE_PER_1K_TOKENS_USD ?? "0.01");
+const PAYG_BILLING_TOKEN_UNIT = Number(process.env.PAYG_BILLING_TOKEN_UNIT ?? "1000");
 
 function sendBillingBlocked(res: Response) {
   res.setHeader("x-oc-billing-blocked", "1");
@@ -377,16 +379,101 @@ router.post("/subscription/portal", async (req, res) => {
   }
 });
 
-// Fee multipliers per AI provider — Anthropic gets a 0.5x discount,
-// all other providers (OpenAI, Gemini, etc.) get a 1.5x surcharge.
+// Fee multipliers per AI provider; all supported providers use a 1.5x PAYG multiplier.
 const PROVIDER_FEE_MULTIPLIERS: Record<string, number> = {
-  anthropic: 0.5,
+  anthropic: 1.5,
   openai: 1.5,
   gemini: 1.5,
   qwen: 1.5,
   moonshot: 1.5,
 };
 const BASE_RATE_PER_MESSAGE = 0.01; // USD per message before multiplier
+
+router.post("/subscription/usage/token", async (req, res) => {
+  try {
+    const sessionEmail = getSessionEmail(req);
+    if (!sessionEmail) return res.status(401).json({ error: "Authentication required" });
+
+    const provider = String(req.body?.provider ?? "anthropic").trim().toLowerCase() || "anthropic";
+    const model = String(req.body?.model ?? "").trim() || null;
+    const inputTokens = Math.max(0, Number(req.body?.inputTokens ?? 0));
+    const outputTokens = Math.max(0, Number(req.body?.outputTokens ?? 0));
+    const cacheReadTokens = Math.max(0, Number(req.body?.cacheReadTokens ?? 0));
+    const cacheWriteTokens = Math.max(0, Number(req.body?.cacheWriteTokens ?? 0));
+
+    const totalTokens = Math.floor(inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens);
+    if (!Number.isFinite(totalTokens) || totalTokens <= 0) {
+      return res.status(400).json({ error: "Token usage is required" });
+    }
+
+    if (!isDbEnabled()) {
+      return res.status(400).json({ error: "Token usage billing requires database mode" });
+    }
+
+    const customer = await storage.getCustomerByEmail(sessionEmail);
+    if (!customer) {
+      return res.status(404).json({ error: "No customer found for this email" });
+    }
+
+    const blocked = await isBlockedByOutstandingInvoices(customer.id);
+    if (blocked) {
+      return res.status(402).json({ error: "Account is blocked due to unpaid balance >= $15" });
+    }
+
+    const sub = await storage.getSubscriptionByCustomerId(customer.id);
+    if (!sub) {
+      return res.status(404).json({ error: "No active subscription" });
+    }
+
+    const feeMultiplier = PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5;
+    const weightedTokens = Math.ceil(totalTokens * feeMultiplier);
+    const estimatedCostUsd = Number(((weightedTokens / 1000) * PAYG_PRICE_PER_1K_TOKENS_USD).toFixed(6));
+    const billingUnits = Math.max(1, Math.ceil(weightedTokens / Math.max(1, PAYG_BILLING_TOKEN_UNIT)));
+
+    const stripe = await getUncachableStripeClient();
+    const fullSub = await stripe.subscriptions.retrieve(sub.id, {
+      expand: ["items.data.price"],
+    });
+
+    const meteredItem = fullSub.items.data.find((item: any) => item?.price?.recurring?.usage_type === "metered");
+    if (meteredItem) {
+      await (stripe.subscriptionItems as any).createUsageRecord(meteredItem.id, {
+        quantity: billingUnits,
+        timestamp: Math.floor(Date.now() / 1000),
+        action: "increment",
+      });
+    }
+
+    await trackUsageEvent(sessionEmail, "token_usage", {
+      provider,
+      model,
+      inputTokens,
+      outputTokens,
+      cacheReadTokens,
+      cacheWriteTokens,
+      totalTokens,
+      weightedTokens,
+      estimatedCostUsd,
+      billingUnits,
+      meteredRecorded: Boolean(meteredItem),
+    });
+
+    return res.json({
+      ok: true,
+      meteredRecorded: Boolean(meteredItem),
+      provider,
+      model,
+      totalTokens,
+      weightedTokens,
+      billingUnits,
+      feeMultiplier,
+      estimatedCostUsd,
+    });
+  } catch (err: any) {
+    console.error("Error recording token usage:", err);
+    return res.status(500).json({ error: err?.message || "Failed to record token usage" });
+  }
+});
 
 router.get("/subscription/usage", async (req, res) => {
   try {
@@ -395,6 +482,7 @@ router.get("/subscription/usage", async (req, res) => {
     const email = sessionEmail;
     const provider = (req.query.provider as string | undefined)?.toLowerCase() ?? "anthropic";
     const trackedEvents = await getUsageEventSummary(email);
+    const tokenUsage = await getTokenUsageSummary(email);
 
     if (!isDbEnabled()) {
       return res.json({
@@ -407,8 +495,10 @@ router.get("/subscription/usage", async (req, res) => {
         monthlyAmount: null,
         usageItems: [],
         trackedEvents,
+        tokenUsage,
         feeMultiplier: PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5,
         ratePerMessage: BASE_RATE_PER_MESSAGE * (PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5),
+        ratePer1kTokens: PAYG_PRICE_PER_1K_TOKENS_USD * (PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5),
         provider,
       });
     }
@@ -473,6 +563,15 @@ router.get("/subscription/usage", async (req, res) => {
 
     const feeMultiplier = PROVIDER_FEE_MULTIPLIERS[provider] ?? 1.5;
     const ratePerMessage = BASE_RATE_PER_MESSAGE * feeMultiplier;
+    const ratePer1kTokens = PAYG_PRICE_PER_1K_TOKENS_USD * feeMultiplier;
+
+    if (tokenUsage.weightedTokens > 0) {
+      usageItems.unshift({
+        metric: "AI Tokens (weighted)",
+        totalUsage: tokenUsage.weightedTokens,
+        unit: "tokens",
+      });
+    }
 
     return res.json({
       subscriptionId: sub.id,
@@ -484,8 +583,10 @@ router.get("/subscription/usage", async (req, res) => {
       monthlyAmount: unitAmount ? unitAmount / 100 : null,
       usageItems,
       trackedEvents,
+      tokenUsage,
       feeMultiplier,
       ratePerMessage,
+      ratePer1kTokens,
       provider,
     });
   } catch (err: any) {
