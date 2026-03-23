@@ -49,6 +49,11 @@ cfg.gateway.controlUi = cfg.gateway.controlUi || {};
 cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
+cfg.gateway.auth = cfg.gateway.auth || {};
+cfg.gateway.auth.mode = "none";
+if ("token" in cfg.gateway.auth) {
+  delete cfg.gateway.auth.token;
+}
 
 // Repair commonly broken provider config so gateway does not crash-loop.
 cfg.models = cfg.models || {};

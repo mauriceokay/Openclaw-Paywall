@@ -77,7 +77,10 @@ function getLocalGatewayToken(): string | null {
 
 function getSharedGatewayToken(): string | null {
   const token = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
-  return token || null;
+  if (!token) return null;
+  // Ignore legacy static auth tokens that do not include Control UI scopes.
+  if (/^[a-f0-9]{64}$/i.test(token)) return null;
+  return token;
 }
 
 function getLocalOpenClawConfigPath(): string {

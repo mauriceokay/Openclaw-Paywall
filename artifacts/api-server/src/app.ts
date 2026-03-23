@@ -15,7 +15,15 @@ const app: Express = express();
 // (required for generating wss:// gateway URLs on HTTPS domains).
 app.set("trust proxy", 1);
 const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
-const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
+function resolveGatewayToken(raw: string | undefined): string | null {
+  const token = raw?.trim();
+  if (!token) return null;
+  // Legacy static gateway auth tokens (64-char hex) do not carry operator scopes
+  // and cause the Control UI to fail with "missing scope: operator.read".
+  if (/^[a-f0-9]{64}$/i.test(token)) return null;
+  return token;
+}
+const GATEWAY_TOKEN = resolveGatewayToken(process.env.OPENCLAW_GATEWAY_TOKEN);
 const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001";
 const MISSION_CONTROL_FRONTEND_URL = process.env.MISSION_CONTROL_FRONTEND_URL ?? "http://127.0.0.1:3002";
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
