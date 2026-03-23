@@ -114,9 +114,7 @@ async function paperclipAuthRequest(
   })();
   const appProtocol = appOrigin.startsWith("https://") ? "https" : "http";
 
-  const publicPaperclipBase = `${APP_URL.replace(/\/+$/, "")}/paperclip`;
-
-  return fetch(`${publicPaperclipBase}${path}`, {
+  return fetch(`${PAPERCLIP_URL}${path}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
