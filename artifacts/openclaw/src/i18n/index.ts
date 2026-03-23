@@ -69,8 +69,30 @@ export function saveLocale(code: LocaleCode) {
   } catch {}
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function mergeWithFallback<T>(base: T, override: unknown): T {
+  if (Array.isArray(base)) {
+    return (Array.isArray(override) ? override : base) as T;
+  }
+  if (isPlainObject(base)) {
+    const out: Record<string, unknown> = { ...base };
+    const src = isPlainObject(override) ? override : {};
+    for (const key of Object.keys(base as Record<string, unknown>)) {
+      out[key] = mergeWithFallback(
+        (base as Record<string, unknown>)[key],
+        src[key],
+      );
+    }
+    return out as T;
+  }
+  return (override ?? base) as T;
+}
+
 export function getTranslations(code: LocaleCode): Locale {
-  return translations[code] as unknown as Locale;
+  return mergeWithFallback(en, translations[code]);
 }
 
 export function isRTL(code: LocaleCode) {

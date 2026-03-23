@@ -357,7 +357,7 @@ export function Dashboard() {
     enabled: !!user?.email,
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}/api/affiliate/me`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load affiliate dashboard");
+      if (!res.ok) throw new Error(d.affiliateLoadError);
       return (await res.json()) as AffiliateDashboardData;
     },
     retry: false,
@@ -374,7 +374,7 @@ export function Dashboard() {
       setCopiedAffiliateLink(true);
       window.setTimeout(() => setCopiedAffiliateLink(false), 1500);
     } catch {
-      setAffiliateError("Could not copy affiliate link.");
+      setAffiliateError(d.affiliateCopyError);
     }
   }
 
@@ -388,13 +388,13 @@ export function Dashboard() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error || "Could not start Stripe Connect onboarding");
+        throw new Error(payload.error || d.affiliateConnectOnboardingError);
       }
       const payload = (await res.json()) as { url?: string };
-      if (!payload.url) throw new Error("Missing onboarding URL");
+      if (!payload.url) throw new Error(d.affiliateMissingOnboardingUrl);
       window.location.href = payload.url;
     } catch (err) {
-      setAffiliateError(err instanceof Error ? err.message : "Could not connect payouts");
+      setAffiliateError(err instanceof Error ? err.message : d.affiliateConnectPayoutsError);
     } finally {
       setAffiliateConnectBusy(false);
     }
@@ -436,7 +436,7 @@ export function Dashboard() {
         const skillsData = Array.isArray(catalogData.skills) ? catalogData.skills : [];
         setClawHubSkills(Array.isArray(skillsData) ? skillsData : []);
       } catch {
-        setClawHubError("Could not load skills catalog from Mission Control.");
+        setClawHubError(d.clawHubLoadError);
       } finally {
         setClawHubLoading(false);
       }
@@ -470,7 +470,7 @@ export function Dashboard() {
           success += 1;
         }
       }
-      setClawHubSyncMessage(`Added ${success}/${selectedSkillIds.length} skills to OpenClaw.`);
+      setClawHubSyncMessage(`${d.clawHubAddedPrefix} ${success}/${selectedSkillIds.length} ${d.clawHubAddedSuffix}`);
       setClawHubSkills((prev) =>
         prev.map((skill) =>
           selectedSkillIds.includes(skill.id) ? { ...skill, installed: true } : skill
@@ -494,7 +494,7 @@ export function Dashboard() {
         }
       }
     } catch (error) {
-      setClawHubError(error instanceof Error ? error.message : "Failed to add selected skills");
+      setClawHubError(error instanceof Error ? error.message : d.clawHubAddSelectedError);
     } finally {
       setClawHubSyncing(false);
     }
@@ -699,7 +699,7 @@ export function Dashboard() {
                     onClick={() => navigate("/nemoclaw-app")}
                   >
                     <Puzzle className="w-4 h-4 mr-2 text-cyan-300" />
-                    Open NemoClaw
+                    {d.openNemoClaw}
                   </Button>
                 </div>
               </motion.div>
@@ -718,7 +718,7 @@ export function Dashboard() {
                     <h2 className="text-2xl font-bold font-display mb-1 text-muted-foreground">{d.instanceTitle}</h2>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span className="w-2 h-2 rounded-full bg-white/20 inline-block" />
-                      Gateway is turned off
+                      {d.gatewayOff}
                     </div>
                   </div>
                 </div>
@@ -733,7 +733,7 @@ export function Dashboard() {
                     ? <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     : <Power className="w-5 h-5 mr-2 text-green-500" />
                   }
-                  Turn Gateway On
+                  {d.turnGatewayOn}
                 </Button>
               </motion.div>
             )}
@@ -753,8 +753,8 @@ export function Dashboard() {
                 <PaperclipIcon className="w-8 h-8 text-cyan-300" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-display mb-1">Paperclip</h2>
-                <p className="text-sm text-muted-foreground">Integrated orchestration workspace running inside your stack</p>
+                <h2 className="text-2xl font-bold font-display mb-1">{d.paperclipTitle}</h2>
+                <p className="text-sm text-muted-foreground">{d.paperclipDesc}</p>
               </div>
             </div>
             <Button
@@ -764,7 +764,7 @@ export function Dashboard() {
               onClick={() => navigate("/paperclip-app")}
             >
               <PaperclipIcon className="w-5 h-5 mr-2" />
-              Open Workspace
+              {d.openWorkspace}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -783,8 +783,8 @@ export function Dashboard() {
                 <Rocket className="w-8 h-8 text-violet-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-display mb-1">Mission Control</h2>
-                <p className="text-sm text-muted-foreground">Manage agents, tasks, boards, and gateway orchestration</p>
+                <h2 className="text-2xl font-bold font-display mb-1">{d.missionControlTitle}</h2>
+                <p className="text-sm text-muted-foreground">{d.missionControlDesc}</p>
               </div>
             </div>
             <Button
@@ -794,7 +794,7 @@ export function Dashboard() {
               onClick={() => navigate("/mission-control-app")}
             >
               <Rocket className="w-5 h-5 mr-2" />
-              Open Dashboard
+              {d.openDashboard}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -840,19 +840,19 @@ export function Dashboard() {
                   )}
                 </AnimatePresence>
                 <span className={gatewayEnabled ? "text-foreground" : "text-muted-foreground"}>
-                  {gatewayLoading ? "…" : gatewayEnabled ? d.gatewayOnlineLabel : "Offline"}
+                  {gatewayLoading ? "…" : gatewayEnabled ? d.gatewayOnlineLabel : d.gatewayOfflineLabel}
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
-                  {gatewayEnabled ? d.listeningOn : "All channels paused"}
+                  {gatewayEnabled ? d.listeningOn : d.allChannelsPaused}
                 </div>
                 <button
                   onClick={() => !toggling && toggleMutation.mutate(!gatewayEnabled)}
                   disabled={toggling || gatewayLoading}
-                  aria-label={gatewayEnabled ? "Turn gateway off" : "Turn gateway on"}
+                  aria-label={gatewayEnabled ? d.turnGatewayOff : d.turnGatewayOn}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:cursor-not-allowed ${
                     gatewayEnabled ? "bg-green-500" : "bg-white/15"
                   }`}
@@ -945,39 +945,39 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Users className="w-5 h-5 text-emerald-300" />
-                Affiliate Program
+                {d.affiliateProgramTitle}
               </CardTitle>
-              <CardDescription>Invite users and earn recurring commission.</CardDescription>
+              <CardDescription>{d.affiliateProgramDesc}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {affiliateData ? (
                 <>
                   <div className="grid md:grid-cols-4 gap-3">
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                      <div className="text-xs text-muted-foreground">Referrals</div>
+                      <div className="text-xs text-muted-foreground">{d.affiliateReferrals}</div>
                       <div className="text-lg font-semibold">{affiliateData.referrals}</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                      <div className="text-xs text-muted-foreground">Pending</div>
+                      <div className="text-xs text-muted-foreground">{d.affiliatePending}</div>
                       <div className="text-lg font-semibold">{formatCents(affiliateData.pendingCents)}</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                      <div className="text-xs text-muted-foreground">Paid</div>
+                      <div className="text-xs text-muted-foreground">{d.affiliatePaid}</div>
                       <div className="text-lg font-semibold">{formatCents(affiliateData.paidCents)}</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                      <div className="text-xs text-muted-foreground">Total</div>
+                      <div className="text-xs text-muted-foreground">{d.affiliateTotal}</div>
                       <div className="text-lg font-semibold">{formatCents(affiliateData.totalCents)}</div>
                     </div>
                   </div>
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <div className="text-xs text-muted-foreground mb-1">Your referral link</div>
+                    <div className="text-xs text-muted-foreground mb-1">{d.affiliateYourLink}</div>
                     <div className="text-xs md:text-sm break-all">{affiliateData.link}</div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button size="sm" variant="outline" onClick={copyAffiliateLink}>
                       <Copy className="w-4 h-4 mr-1" />
-                      {copiedAffiliateLink ? "Copied" : "Copy Link"}
+                      {copiedAffiliateLink ? d.affiliateCopied : d.affiliateCopyLink}
                     </Button>
                     <Button
                       size="sm"
@@ -986,12 +986,12 @@ export function Dashboard() {
                       disabled={affiliateConnectBusy}
                     >
                       <Wallet className="w-4 h-4 mr-1" />
-                      {affiliateData.stripeAccountId ? "Manage Payouts" : "Connect Payouts"}
+                      {affiliateData.stripeAccountId ? d.affiliateManagePayouts : d.affiliateConnectPayouts}
                     </Button>
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Affiliate profile loads after sign-in.</p>
+                <p className="text-sm text-muted-foreground">{d.affiliateLoadsAfterSignIn}</p>
               )}
               {affiliateError && <p className="text-xs text-red-400">{affiliateError}</p>}
             </CardContent>
@@ -1008,24 +1008,24 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Puzzle className="w-5 h-5 text-orange-300" />
-                ClawHub Skills
+                {d.clawHubTitle}
                 <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 text-xs">
-                  Pro / Team
+                  {d.clawHubProTeam}
                 </Badge>
               </CardTitle>
-              <CardDescription>Add skills to OpenClaw through ClawHub.</CardDescription>
+              <CardDescription>{d.clawHubDesc}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {!hasProOrTeam && (
                 <p className="text-xs text-orange-300 flex items-center gap-1">
                   <Lock className="w-3.5 h-3.5" />
-                  Upgrade to Pro or Team to add skills.
+                  {d.clawHubUpgrade}
                 </p>
               )}
               {clawHubError && <p className="text-xs text-red-400">{clawHubError}</p>}
               {clawHubBridgeMode && (
                 <p className="text-xs text-amber-300">
-                  Mission Control unavailable: using Bridge mode for skill sync.
+                  {d.clawHubBridgeMode}
                 </p>
               )}
               {clawHubSyncMessage && <p className="text-xs text-green-400">{clawHubSyncMessage}</p>}
@@ -1033,10 +1033,10 @@ export function Dashboard() {
                 <>
                   <div className="max-h-64 overflow-auto rounded-lg border border-white/10 bg-black/20 p-2 space-y-1.5">
                     {clawHubLoading ? (
-                      <p className="text-xs text-muted-foreground px-2 py-1">Loading skills...</p>
+                      <p className="text-xs text-muted-foreground px-2 py-1">{d.clawHubLoadingSkills}</p>
                     ) : clawHubSkills.length === 0 ? (
                       <p className="text-xs text-muted-foreground px-2 py-1">
-                        No skills available yet.
+                        {d.clawHubNoSkills}
                       </p>
                     ) : (
                       clawHubSkills.map((skill) => (
@@ -1055,7 +1055,7 @@ export function Dashboard() {
                             <span className="text-sm font-medium text-foreground">
                               {skill.name}
                               {skill.installed ? (
-                                <span className="ml-2 text-xs text-green-400">(Installed)</span>
+                                <span className="ml-2 text-xs text-green-400">({d.clawHubInstalled})</span>
                               ) : null}
                             </span>
                             {skill.description ? (
@@ -1081,7 +1081,7 @@ export function Dashboard() {
                       className="bg-gradient-to-r from-primary to-[#F09819] hover:opacity-90 text-white font-semibold"
                     >
                       <Puzzle className="w-4 h-4 mr-1" />
-                      {clawHubSyncing ? "Adding..." : "Add Selected Skills"}
+                      {clawHubSyncing ? d.clawHubAdding : d.clawHubAddSelected}
                     </Button>
                   </div>
                 </>

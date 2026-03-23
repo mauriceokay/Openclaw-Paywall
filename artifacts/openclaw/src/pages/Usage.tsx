@@ -6,6 +6,7 @@ import { ArrowLeft, BarChart2, Calendar, CreditCard, Zap, Loader2, AlertCircle }
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
@@ -73,6 +74,8 @@ const EVENT_LABELS: Record<string, string> = {
 
 export function Usage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const u = t.usage;
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -103,22 +106,22 @@ export function Usage() {
         <Link href="/dashboard">
           <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            Back to Dashboard
+            {u.backToDashboard}
           </button>
         </Link>
 
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-1 flex items-center gap-3">
             <BarChart2 className="w-7 h-7 text-primary" />
-            Usage
+            {u.title}
           </h1>
-          <p className="text-muted-foreground text-sm">Your pay-as-you-go usage for the current billing period.</p>
+          <p className="text-muted-foreground text-sm">{u.subtitle}</p>
         </div>
 
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-            <p>Loading usage data...</p>
+            <p>{u.loading}</p>
           </div>
         )}
 
@@ -126,9 +129,9 @@ export function Usage() {
           <Card className="bg-destructive/5 border-destructive/20 p-6 flex items-start gap-4">
             <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-destructive">Could not load usage</p>
+              <p className="font-semibold text-destructive">{u.loadErrorTitle}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Make sure you have an active subscription. If the issue persists, contact support.
+                {u.loadErrorDesc}
               </p>
             </div>
           </Card>
@@ -149,9 +152,9 @@ export function Usage() {
                 <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
                   <CardHeader className="pb-2">
                     <CardDescription className="flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5" /> Current Plan
+                      <CreditCard className="w-3.5 h-3.5" /> {u.currentPlan}
                     </CardDescription>
-                    <CardTitle className="text-2xl text-primary">{data.planName || "Active Plan"}</CardTitle>
+                    <CardTitle className="text-2xl text-primary">{data.planName || u.activePlan}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2 text-sm">
@@ -167,7 +170,7 @@ export function Usage() {
                 <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
                   <CardHeader className="pb-2">
                     <CardDescription className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" /> Billing Period
+                      <Calendar className="w-3.5 h-3.5" /> {u.billingPeriod}
                     </CardDescription>
                     <CardTitle className="text-lg font-semibold">
                       {fmt(data.periodStart)} - {fmt(data.periodEnd)}
@@ -193,9 +196,9 @@ export function Usage() {
                 <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
                   <CardHeader>
                     <CardDescription className="flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-primary" /> Pay-As-You-Go Usage
+                        <Zap className="w-3.5 h-3.5 text-primary" /> {u.paygUsage}
                     </CardDescription>
-                    <CardTitle>This billing period</CardTitle>
+                    <CardTitle>{u.thisPeriod}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-5">
                     {data.usageItems.map((item, i) => {
@@ -232,18 +235,18 @@ export function Usage() {
                 <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
                   <CardHeader>
                     <CardDescription className="flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-primary" /> Pay-As-You-Go Usage
+                        <Zap className="w-3.5 h-3.5 text-primary" /> {u.paygUsage}
                     </CardDescription>
-                    <CardTitle>This billing period</CardTitle>
+                    <CardTitle>{u.thisPeriod}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
                         <Zap className="w-7 h-7 text-primary" />
                       </div>
-                      <p className="font-semibold mb-1">No metered usage yet</p>
+                      <p className="font-semibold mb-1">{u.noMeteredUsage}</p>
                       <p className="text-sm text-muted-foreground max-w-xs">
-                        Usage will appear here once you start using OpenClaw via your connected channels.
+                        {u.noMeteredUsageDesc}
                       </p>
                     </div>
                   </CardContent>
@@ -255,7 +258,7 @@ export function Usage() {
                   <CardDescription className="flex items-center gap-1.5">
                     <BarChart2 className="w-3.5 h-3.5 text-primary" /> Product Activity (last 30 days)
                   </CardDescription>
-                  <CardTitle>OpenClaw + Terminal Tracking</CardTitle>
+                  <CardTitle>{u.trackingTitle}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {data.trackedEvents?.total ? (
@@ -274,7 +277,7 @@ export function Usage() {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      No tracked activity yet. Open OpenClaw or Mission Control to start tracking usage events.
+                      {u.noTrackedActivity}
                     </p>
                   )}
                 </CardContent>
@@ -284,7 +287,7 @@ export function Usage() {
                 <Link href="/dashboard">
                   <Button variant="outline" className="border-white/10 hover:bg-white/5">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
+                    {u.backToDashboard}
                   </Button>
                 </Link>
               </div>

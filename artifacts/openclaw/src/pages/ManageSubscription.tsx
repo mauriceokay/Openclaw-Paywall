@@ -9,6 +9,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useCreatePortalSession, type SubscriptionStatus, type CreatePortalSessionMutationError } from "@workspace/api-client-react";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
@@ -20,6 +21,8 @@ function fmt(date: string | null | undefined) {
 
 export function ManageSubscription() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const m = t.manageSubscription;
   const [, navigate] = useLocation();
   const [portalError, setPortalError] = useState<string | null>(null);
   const portalMutation = useCreatePortalSession();
@@ -52,7 +55,7 @@ export function ManageSubscription() {
       {
         onSuccess: (data) => window.open(data.url, "_blank", "noopener,noreferrer"),
         onError: (err: CreatePortalSessionMutationError) => {
-          setPortalError(err?.data?.error ?? "Could not open billing portal. Please try again.");
+          setPortalError(err?.data?.error ?? m.portalError);
         },
       }
     );
@@ -61,18 +64,18 @@ export function ManageSubscription() {
   const actions = [
     {
       icon: CreditCard,
-      label: "Update Payment Method",
-      desc: "Change your credit or debit card on file.",
+      label: m.updatePaymentMethod,
+      desc: m.updatePaymentMethodDesc,
     },
     {
       icon: RefreshCcw,
-      label: "Change Plan",
-      desc: "Upgrade or downgrade your subscription tier.",
+      label: m.changePlan,
+      desc: m.changePlanDesc,
     },
     {
       icon: XCircle,
-      label: "Cancel Subscription",
-      desc: "Cancel at end of current billing period.",
+      label: m.cancelSubscription,
+      desc: m.cancelSubscriptionDesc,
       danger: true,
     },
   ];
@@ -85,22 +88,22 @@ export function ManageSubscription() {
         <Link href="/dashboard">
           <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            Back to Dashboard
+            {m.backToDashboard}
           </button>
         </Link>
 
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold mb-1 flex items-center gap-3">
             <Settings className="w-7 h-7 text-primary" />
-            Manage Subscription
+            {m.title}
           </h1>
-          <p className="text-muted-foreground text-sm">View and manage your OpenClaw subscription.</p>
+          <p className="text-muted-foreground text-sm">{m.subtitle}</p>
         </div>
 
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-            <p>Loading subscription…</p>
+            <p>{m.loading}</p>
           </div>
         )}
 
@@ -108,8 +111,8 @@ export function ManageSubscription() {
           <Card className="bg-destructive/5 border-destructive/20 p-6 flex items-start gap-4">
             <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-destructive">Could not load subscription</p>
-              <p className="text-sm text-muted-foreground mt-1">Please refresh the page or contact support.</p>
+              <p className="font-semibold text-destructive">{m.loadErrorTitle}</p>
+              <p className="text-sm text-muted-foreground mt-1">{m.loadErrorDesc}</p>
             </div>
           </Card>
         )}
@@ -127,9 +130,9 @@ export function ManageSubscription() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <CardDescription>Current plan</CardDescription>
+                    <CardDescription>{m.currentPlan}</CardDescription>
                     <CardTitle className="text-2xl text-primary mt-0.5">
-                      {status.planName || "Active Plan"}
+                      {status.planName || m.activePlan}
                     </CardTitle>
                   </div>
                   <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full mt-1 ${
@@ -138,7 +141,7 @@ export function ManageSubscription() {
                       : "bg-yellow-500/15 text-yellow-400"
                   }`}>
                     <CheckCircle2 className="w-3 h-3" />
-                    {status.status ?? "active"}
+                    {status.status ?? m.active}
                   </span>
                 </div>
               </CardHeader>
@@ -147,15 +150,15 @@ export function ManageSubscription() {
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="w-4 h-4 shrink-0" />
                     {status.cancelAtPeriodEnd
-                      ? <span>Cancels on <span className="text-foreground font-medium">{fmt(status.currentPeriodEnd)}</span></span>
-                      : <span>Renews on <span className="text-foreground font-medium">{fmt(status.currentPeriodEnd)}</span></span>
+                      ? <span>{m.cancelsOn} <span className="text-foreground font-medium">{fmt(status.currentPeriodEnd)}</span></span>
+                      : <span>{m.renewsOn} <span className="text-foreground font-medium">{fmt(status.currentPeriodEnd)}</span></span>
                     }
                   </div>
                 )}
                 {status.cancelAtPeriodEnd && (
                   <div className="flex items-center gap-2 text-yellow-400 bg-yellow-500/10 rounded-lg px-3 py-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    Your subscription is set to cancel at the end of this period.
+                    {m.cancelAtPeriodEndNotice}
                   </div>
                 )}
               </CardContent>
@@ -164,8 +167,8 @@ export function ManageSubscription() {
             {/* Actions */}
             <Card className="bg-card/40 border-white/5 backdrop-blur-lg">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Billing Actions</CardTitle>
-                <CardDescription>Changes are handled securely via Stripe.</CardDescription>
+                <CardTitle className="text-base">{m.billingActions}</CardTitle>
+                <CardDescription>{m.billingActionsDesc}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 {actions.map((action, i) => {
@@ -208,7 +211,7 @@ export function ManageSubscription() {
               <Link href="/dashboard">
                 <Button variant="outline" className="border-white/10 hover:bg-white/5">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
+                  {m.backToDashboard}
                 </Button>
               </Link>
             </div>

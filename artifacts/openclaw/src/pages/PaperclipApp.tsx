@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
@@ -12,6 +13,8 @@ type LaunchConfig = {
 
 export function PaperclipApp() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const p = t.paperclipApp;
   const [, navigate] = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [frameSrc, setFrameSrc] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export function PaperclipApp() {
     })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Paperclip launch is not available");
+          throw new Error(p.launchNotAvailable);
         }
         return res.json() as Promise<LaunchConfig>;
       })
@@ -49,8 +52,8 @@ export function PaperclipApp() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Unable to open Paperclip";
-        setError(message);
+        const fallback = err instanceof Error ? err.message : p.unableToOpen;
+        setError(fallback);
       });
 
     return () => {
@@ -63,10 +66,10 @@ export function PaperclipApp() {
       <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
         <div className="text-center max-w-md px-6">
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Paperclip unavailable</h2>
+          <h2 className="text-2xl font-bold mb-2">{p.unavailableTitle}</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => navigate("/dashboard")} variant="outline">
-            Back to Dashboard
+            {p.backToDashboard}
           </Button>
         </div>
       </div>
@@ -84,7 +87,7 @@ export function PaperclipApp() {
             className="border-white/20 bg-background/80 backdrop-blur hover:bg-background"
           >
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Back to Dashboard
+            {p.backToDashboard}
           </Button>
         </div>
         <iframe
@@ -101,7 +104,7 @@ export function PaperclipApp() {
     <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-muted-foreground">Opening Paperclip...</p>
+        <p className="text-muted-foreground">{p.opening}</p>
       </div>
     </div>
   );

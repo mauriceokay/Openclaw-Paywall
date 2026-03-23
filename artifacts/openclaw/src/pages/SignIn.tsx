@@ -2,9 +2,12 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function SignIn() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const s = t.auth;
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -17,8 +20,8 @@ export function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-mesh px-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-5">
-          <h1 className="text-3xl font-display font-bold mb-2 text-gradient">Welcome back</h1>
-          <p className="text-muted-foreground">Sign in to access your OpenClaw workspace.</p>
+          <h1 className="text-3xl font-display font-bold mb-2 text-gradient">{s.signInTitle}</h1>
+          <p className="text-muted-foreground">{s.signInDesc}</p>
         </div>
         <div className="flex justify-center">
           <ClerkSignIn
@@ -39,10 +42,9 @@ export function SignIn() {
           />
         </div>
         <p className="text-xs text-muted-foreground text-center mt-4">
-          New here? <Link href="/signup" className="text-primary">Create account</Link>
+          {s.newHere} <Link href="/signup" className="text-primary">{s.createAccount}</Link>
         </p>
       </div>
     </div>
   );
 }
-
