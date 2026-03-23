@@ -24,6 +24,221 @@ const GATEWAY_TOKEN = resolveGatewayToken(process.env.OPENCLAW_GATEWAY_TOKEN);
 const MISSION_CONTROL_BACKEND_URL = process.env.MISSION_CONTROL_BACKEND_URL ?? "http://127.0.0.1:8001";
 const MISSION_CONTROL_FRONTEND_URL = process.env.MISSION_CONTROL_FRONTEND_URL ?? "http://127.0.0.1:3002";
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
+const SUPPORTED_EMBED_LOCALES = new Set(["en", "de", "fr", "it", "pl", "ja", "ko", "ar", "ms", "zh-CN", "zh-TW"]);
+
+function normalizeEmbeddedLocale(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  if (!value) return "en";
+
+  if (SUPPORTED_EMBED_LOCALES.has(value)) return value;
+
+  const lower = value.toLowerCase();
+  if (lower.startsWith("zh-cn") || lower === "zh" || lower === "zh-hans") return "zh-CN";
+  if (lower.startsWith("zh-tw") || lower.startsWith("zh-hk") || lower === "zh-hant") return "zh-TW";
+  if (lower.startsWith("ja")) return "ja";
+  if (lower.startsWith("ko")) return "ko";
+  if (lower.startsWith("de")) return "de";
+  if (lower.startsWith("fr")) return "fr";
+  if (lower.startsWith("it")) return "it";
+  if (lower.startsWith("pl")) return "pl";
+  if (lower.startsWith("ar")) return "ar";
+  if (lower.startsWith("ms")) return "ms";
+  return "en";
+}
+
+function resolveEmbeddedLocale(req: express.Request): string {
+  const fromQuery = typeof req.query.oc_lang === "string" ? req.query.oc_lang : null;
+  const fromCookie = typeof req.cookies?.oc_locale === "string" ? req.cookies.oc_locale : null;
+  const fromHeader = req.get("accept-language")?.split(",")[0] ?? null;
+  return normalizeEmbeddedLocale(fromQuery ?? fromCookie ?? fromHeader);
+}
+
+function setLocaleHeaders(proxyReq: { setHeader: (name: string, value: string) => void }, req: express.Request): void {
+  const locale = resolveEmbeddedLocale(req);
+  proxyReq.setHeader("accept-language", locale);
+  proxyReq.setHeader("x-oc-locale", locale);
+}
+
+function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip"): string {
+  const openClawTranslations: Record<string, Record<string, string>> = {
+    de: {
+      "Gateway Dashboard": "Gateway-Dashboard",
+      "WebSocket URL": "WebSocket-URL",
+      "Password (not stored)": "Passwort (nicht gespeichert)",
+      optional: "optional",
+      Connect: "Verbinden",
+      "How to connect": "So verbindest du dich",
+      "Read the docs \u2192": "Dokumentation lesen \u2192",
+    },
+    fr: {
+      "Gateway Dashboard": "Tableau de bord Gateway",
+      "WebSocket URL": "URL WebSocket",
+      "Password (not stored)": "Mot de passe (non enregistr\u00e9)",
+      optional: "optionnel",
+      Connect: "Se connecter",
+      "How to connect": "Comment se connecter",
+      "Read the docs \u2192": "Lire la documentation \u2192",
+    },
+    it: {
+      "Gateway Dashboard": "Dashboard Gateway",
+      "WebSocket URL": "URL WebSocket",
+      "Password (not stored)": "Password (non salvata)",
+      optional: "opzionale",
+      Connect: "Connetti",
+      "How to connect": "Come connettersi",
+      "Read the docs \u2192": "Leggi la documentazione \u2192",
+    },
+    pl: {
+      "Gateway Dashboard": "Panel bramy",
+      "WebSocket URL": "Adres WebSocket",
+      "Password (not stored)": "Has\u0142o (niezapisywane)",
+      optional: "opcjonalne",
+      Connect: "Po\u0142\u0105cz",
+      "How to connect": "Jak si\u0119 po\u0142\u0105czy\u0107",
+      "Read the docs \u2192": "Przeczytaj dokumentacj\u0119 \u2192",
+    },
+    ja: {
+      "Gateway Dashboard": "\u30b2\u30fc\u30c8\u30a6\u30a7\u30a4\u30c0\u30c3\u30b7\u30e5\u30dc\u30fc\u30c9",
+      "WebSocket URL": "WebSocket URL",
+      "Password (not stored)": "\u30d1\u30b9\u30ef\u30fc\u30c9\uff08\u4fdd\u5b58\u3055\u308c\u307e\u305b\u3093\uff09",
+      optional: "\u4efb\u610f",
+      Connect: "\u63a5\u7d9a",
+      "How to connect": "\u63a5\u7d9a\u65b9\u6cd5",
+      "Read the docs \u2192": "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8\u3092\u8aad\u3080 \u2192",
+    },
+    ko: {
+      "Gateway Dashboard": "\uac8c\uc774\ud2b8\uc6e8\uc774 \ub300\uc2dc\ubcf4\ub4dc",
+      "WebSocket URL": "WebSocket URL",
+      "Password (not stored)": "\ube44\ubc00\ubc88\ud638 (\uc800\uc7a5\ub418\uc9c0 \uc54a\uc74c)",
+      optional: "\uc120\ud0dd",
+      Connect: "\uc5f0\uacb0",
+      "How to connect": "\uc5f0\uacb0 \ubc29\ubc95",
+      "Read the docs \u2192": "\ubb38\uc11c \ubcf4\uae30 \u2192",
+    },
+  };
+
+  const paperclipTranslations: Record<string, Record<string, string>> = {
+    de: {
+      "Sign in to Paperclip": "Bei Paperclip anmelden",
+      "Use your email and password to access this instance.": "Nutze deine E-Mail und dein Passwort, um auf diese Instanz zuzugreifen.",
+      Email: "E-Mail",
+      Password: "Passwort",
+      "Sign In": "Anmelden",
+      "Need an account? Create one": "Noch kein Konto? Konto erstellen",
+      "Create one": "Konto erstellen",
+      "Instance setup required": "Instanz-Einrichtung erforderlich",
+    },
+    fr: {
+      "Sign in to Paperclip": "Connexion \u00e0 Paperclip",
+      "Use your email and password to access this instance.": "Utilisez votre e-mail et votre mot de passe pour acc\u00e9der \u00e0 cette instance.",
+      Email: "E-mail",
+      Password: "Mot de passe",
+      "Sign In": "Se connecter",
+      "Need an account? Create one": "Besoin d'un compte ? Cr\u00e9ez-en un",
+      "Create one": "Cr\u00e9er un compte",
+      "Instance setup required": "Configuration de l'instance requise",
+    },
+    it: {
+      "Sign in to Paperclip": "Accedi a Paperclip",
+      "Use your email and password to access this instance.": "Usa email e password per accedere a questa istanza.",
+      Email: "Email",
+      Password: "Password",
+      "Sign In": "Accedi",
+      "Need an account? Create one": "Hai bisogno di un account? Creane uno",
+      "Create one": "Crea account",
+      "Instance setup required": "Configurazione istanza richiesta",
+    },
+    pl: {
+      "Sign in to Paperclip": "Zaloguj si\u0119 do Paperclip",
+      "Use your email and password to access this instance.": "U\u017cyj e-maila i has\u0142a, aby uzyska\u0107 dost\u0119p do tej instancji.",
+      Email: "E-mail",
+      Password: "Has\u0142o",
+      "Sign In": "Zaloguj si\u0119",
+      "Need an account? Create one": "Potrzebujesz konta? Utw\u00f3rz je",
+      "Create one": "Utw\u00f3rz konto",
+      "Instance setup required": "Wymagana konfiguracja instancji",
+    },
+    ja: {
+      "Sign in to Paperclip": "Paperclip \u306b\u30b5\u30a4\u30f3\u30a4\u30f3",
+      "Use your email and password to access this instance.": "\u3053\u306e\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u306b\u30a2\u30af\u30bb\u30b9\u3059\u308b\u306b\u306f\u3001\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9\u3068\u30d1\u30b9\u30ef\u30fc\u30c9\u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+      Email: "\u30e1\u30fc\u30eb",
+      Password: "\u30d1\u30b9\u30ef\u30fc\u30c9",
+      "Sign In": "\u30b5\u30a4\u30f3\u30a4\u30f3",
+      "Need an account? Create one": "\u30a2\u30ab\u30a6\u30f3\u30c8\u304c\u5fc5\u8981\u3067\u3059\u304b\uff1f\u4f5c\u6210\u3059\u308b",
+      "Create one": "\u4f5c\u6210\u3059\u308b",
+      "Instance setup required": "\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u306e\u30bb\u30c3\u30c8\u30a2\u30c3\u30d7\u304c\u5fc5\u8981\u3067\u3059",
+    },
+    ko: {
+      "Sign in to Paperclip": "Paperclip\uc5d0 \ub85c\uadf8\uc778",
+      "Use your email and password to access this instance.": "\uc774 \uc778\uc2a4\ud134\uc2a4\uc5d0 \uc811\uadfc\ud558\ub824\uba74 \uc774\uba54\uc77c\uacfc \ube44\ubc00\ubc88\ud638\ub97c \uc0ac\uc6a9\ud558\uc138\uc694.",
+      Email: "\uc774\uba54\uc77c",
+      Password: "\ube44\ubc00\ubc88\ud638",
+      "Sign In": "\ub85c\uadf8\uc778",
+      "Need an account? Create one": "\uacc4\uc815\uc774 \ud544\uc694\ud55c\uac00\uc694? \ub9cc\ub4e4\uae30",
+      "Create one": "\uacc4\uc815 \ub9cc\ub4e4\uae30",
+      "Instance setup required": "\uc778\uc2a4\ud134\uc2a4 \uc124\uc815\uc774 \ud544\uc694\ud569\ub2c8\ub2e4",
+    },
+  };
+
+  const selected = target === "paperclip" ? paperclipTranslations[locale] ?? {} : openClawTranslations[locale] ?? {};
+
+  const script = `
+<script>
+  (function() {
+    try {
+      var locale = ${JSON.stringify(locale)};
+      var target = ${JSON.stringify(target)};
+      var translations = ${JSON.stringify(selected)};
+      document.documentElement.lang = locale;
+
+      if (target === "openclaw") {
+        var keys = ["openclaw.locale", "openclaw.control.locale", "openclaw.control.language", "oc.locale"];
+        keys.forEach(function(k) { try { localStorage.setItem(k, locale); } catch (_e) {} });
+        try {
+          var raw = localStorage.getItem("openclaw.control.settings.v1");
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            parsed.locale = locale;
+            parsed.lang = locale;
+            parsed.language = locale;
+            localStorage.setItem("openclaw.control.settings.v1", JSON.stringify(parsed));
+          }
+        } catch (_err) {}
+      }
+
+      if (!translations || Object.keys(translations).length === 0) return;
+
+      var replace = function() {
+        try {
+          var nodes = document.querySelectorAll("body *");
+          nodes.forEach(function(node) {
+            if (!node) return;
+            if (node.childElementCount === 0) {
+              var text = (node.textContent || "").trim();
+              if (text && translations[text]) node.textContent = translations[text];
+            }
+            var aria = node.getAttribute && node.getAttribute("aria-label");
+            if (aria && translations[aria]) node.setAttribute("aria-label", translations[aria]);
+            if (node instanceof HTMLInputElement) {
+              var ph = (node.placeholder || "").trim();
+              if (ph && translations[ph]) node.placeholder = translations[ph];
+              var value = (node.value || "").trim();
+              if (value && translations[value]) node.value = translations[value];
+            }
+          });
+        } catch (_err) {}
+      };
+
+      replace();
+      var observer = new MutationObserver(function() { replace(); });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      window.setTimeout(function() { try { observer.disconnect(); } catch (_e) {} }, 30000);
+    } catch (_err) {}
+  })();
+</script>`;
+
+  return script;
+}
 
 function resolvePublicGatewayWsUrl(req: express.Request): string | null {
   const appUrl = process.env.APP_URL?.trim();
@@ -84,17 +299,19 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
     return rewritten.length > 0 ? rewritten : "/";
   },
   on: {
-    proxyReq: (proxyReq) => {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
       if (GATEWAY_TOKEN) {
         proxyReq.setHeader("authorization", `Bearer ${GATEWAY_TOKEN}`);
       }
     },
-    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
 
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
         let html = responseBuffer.toString("utf8");
+        const locale = resolveEmbeddedLocale(req);
         const tokenScript = `
 <script>
   (function() {
@@ -119,7 +336,8 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
     }
   })();
 </script>`;
-        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>${tokenScript}`;
+        const localeBridge = buildLocaleBridgeScript(locale, "openclaw");
+        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>${tokenScript}${localeBridge}`;
         html = html.includes("<head>")
           ? html.replace("<head>", `<head>${injection}`)
           : `${injection}${html}`;
@@ -214,6 +432,11 @@ const mcBackendProxy = createProxyMiddleware<express.Request, express.Response>(
   target: MISSION_CONTROL_BACKEND_URL,
   changeOrigin: true,
   pathRewrite: { "^/mc-api": "" },
+  on: {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+  },
 });
 
 app.use("/mc-api", mcBackendProxy);
@@ -223,11 +446,16 @@ const mcFrontendProxy = createProxyMiddleware<express.Request, express.Response>
   changeOrigin: true,
   ws: true,
   pathRewrite: (p) => (p === "/" ? "/mission-control" : `/mission-control${p}`),
+  on: {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+  },
 });
 
 app.use("/mission-control", mcFrontendProxy);
 
-function rewritePaperclipHtml(html: string): string {
+function rewritePaperclipHtml(html: string, locale: string): string {
   const swScopeGuard = `
 <script>
   (function () {
@@ -268,6 +496,7 @@ function rewritePaperclipHtml(html: string): string {
     } catch (_err) {}
   })();
 </script>`;
+  const localeBridge = buildLocaleBridgeScript(locale, "paperclip");
 
   return html
     .replace(/(["'])\/assets\//g, "$1/paperclip/assets/")
@@ -275,7 +504,7 @@ function rewritePaperclipHtml(html: string): string {
     .replace(/(["'])\/sw\.js(["'])/g, "$1/paperclip/sw.js$2")
     .replace(/(["'])\/favicon([^"']*)(["'])/g, "$1/paperclip/favicon$2$3")
     .replace(/(["'])\/apple-touch-icon([^"']*)(["'])/g, "$1/paperclip/apple-touch-icon$2$3")
-    .replace(/<head>/i, `<head>${swScopeGuard}`);
+    .replace(/<head>/i, `<head>${swScopeGuard}${localeBridge}`);
 }
 
 function isPublicPaperclipAssetPath(pathname: string): boolean {
@@ -313,11 +542,14 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
     return rewritten;
   },
   on: {
-    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
-        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8"), resolveEmbeddedLocale(req)), "utf8");
       }
       return responseBuffer;
     }),
@@ -347,11 +579,14 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
     return rewritten;
   },
   on: {
-    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
-        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8"), resolveEmbeddedLocale(req)), "utf8");
       }
       return responseBuffer;
     }),
@@ -364,11 +599,14 @@ const paperclipDirectProxy = createProxyMiddleware<express.Request, express.Resp
   ws: true,
   selfHandleResponse: true,
   on: {
-    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
-        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8"), resolveEmbeddedLocale(req)), "utf8");
       }
       return responseBuffer;
     }),
@@ -509,7 +747,8 @@ app.use("/api/instance-proxy", async (req, res, next) => {
           const contentType = (proxyRes.headers["content-type"] ?? "") as string;
           if (contentType.includes("text/html")) {
             let html = responseBuffer.toString("utf8");
-            const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/instance-proxy";</script>`;
+            const localeBridge = buildLocaleBridgeScript(resolveEmbeddedLocale(req), "openclaw");
+            const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/instance-proxy";</script>${localeBridge}`;
             html = html.includes("<head>")
               ? html.replace("<head>", `<head>${injection}`)
               : `${injection}${html}`;
@@ -558,7 +797,8 @@ app.use("/api/instance-proxy", async (req, res, next) => {
           const contentType = (proxyRes.headers["content-type"] ?? "") as string;
           if (contentType.includes("text/html")) {
             let html = responseBuffer.toString("utf8");
-            const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/instance-proxy";</script>`;
+            const localeBridge = buildLocaleBridgeScript(resolveEmbeddedLocale(req), "openclaw");
+            const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/instance-proxy";</script>${localeBridge}`;
             html = html.includes("<head>")
               ? html.replace("<head>", `<head>${injection}`)
               : `${injection}${html}`;

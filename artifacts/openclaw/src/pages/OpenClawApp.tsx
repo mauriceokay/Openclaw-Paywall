@@ -42,6 +42,16 @@ function getWorkspaceSlug(email: string): string {
     .slice(0, 12);
 }
 
+function withLocale(url: string, locale: string): string {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    parsed.searchParams.set("oc_lang", locale);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return url;
+  }
+}
+
 function preloadOpenClawControlUi(locale: string, launchUrl?: string) {
   const defaultGatewayUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/gateway`;
   let gatewayUrl = defaultGatewayUrl;
@@ -235,13 +245,16 @@ export function OpenClawApp() {
       })
       .then((launch) => {
         if (cancelled) return;
-        const resolvedLaunchUrl = launch.launchUrl?.trim() || `${BASE_URL}/api/gateway/chat`;
+        const resolvedLaunchUrl = withLocale(
+          launch.launchUrl?.trim() || `${BASE_URL}/api/gateway/chat`,
+          locale,
+        );
         setLaunchUrl(resolvedLaunchUrl);
         preloadOpenClawControlUi(locale, resolvedLaunchUrl);
       })
       .catch(() => {
         if (cancelled) return;
-        const fallback = `${BASE_URL}/api/gateway/chat`;
+        const fallback = withLocale(`${BASE_URL}/api/gateway/chat`, locale);
         setLaunchUrl(fallback);
         preloadOpenClawControlUi(locale, fallback);
       });
@@ -249,7 +262,7 @@ export function OpenClawApp() {
     return () => {
       cancelled = true;
     };
-  }, [instanceUrl, provisionState]);
+  }, [instanceUrl, locale, provisionState]);
 
   if (statusLoading || provisionState === "provisioning") {
     return (

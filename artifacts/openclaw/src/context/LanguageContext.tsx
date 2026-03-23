@@ -23,6 +23,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = dir;
+    document.cookie = `oc_locale=${encodeURIComponent(locale)}; Path=/; Max-Age=31536000; SameSite=Lax`;
   }, [locale, dir]);
 
   const value: LanguageContextValue = {

@@ -21,7 +21,7 @@ function getWorkspaceSlug(email: string): string {
 
 export function PaperclipApp() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const p = t.paperclipApp;
   const [location, navigate] = useLocation();
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +61,7 @@ export function PaperclipApp() {
       .then((launch) => {
         if (cancelled) return;
         const target = new URL(launch.launchUrl, window.location.origin);
+        target.searchParams.set("oc_lang", locale);
         target.searchParams.set("ocv", String(Date.now()));
         setFrameSrc(`${target.pathname}${target.search}${target.hash}`);
       })
@@ -73,7 +74,7 @@ export function PaperclipApp() {
     return () => {
       cancelled = true;
     };
-  }, [location, navigate, user, p.launchNotAvailable, p.unableToOpen]);
+  }, [location, navigate, user, locale, p.launchNotAvailable, p.unableToOpen]);
 
   if (error) {
     return (

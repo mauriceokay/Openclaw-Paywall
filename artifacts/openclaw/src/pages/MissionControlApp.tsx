@@ -15,7 +15,7 @@ type LaunchConfig = {
 
 export function MissionControlApp() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const mc = t.missionControlApp;
   const [, navigate] = useLocation();
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +76,7 @@ export function MissionControlApp() {
         // Keep Mission Control on the current app origin so local session/localStorage
         // survive even if the backend accidentally returns a different host/port.
         const target = new URL(launch.launchUrl, window.location.origin);
+        target.searchParams.set("oc_lang", locale);
         setFrameSrc(`${target.pathname}${target.search}${target.hash}`);
       })
       .catch((err: unknown) => {
@@ -87,7 +88,7 @@ export function MissionControlApp() {
     return () => {
       cancelled = true;
     };
-  }, [navigate, user]);
+  }, [navigate, user, locale]);
 
   if (error) {
     return (
