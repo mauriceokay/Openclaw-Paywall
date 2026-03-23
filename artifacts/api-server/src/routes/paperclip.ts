@@ -1,7 +1,7 @@
-import { type Response, Router } from "express";
+import { type Response as ExpressResponse, Router } from "express";
 import crypto from "crypto";
 import { existsSync, readFileSync } from "fs";
-import { Pool } from "pg";
+import { createPool } from "@workspace/db";
 import { getSessionEmail } from "../sessionAuth";
 import { trackUsageEvent } from "../usageTracking";
 
@@ -19,7 +19,8 @@ const PAPERCLIP_AUTH_SECRET =
   process.env.BETTER_AUTH_SECRET?.trim() ||
   null;
 
-let paperclipDbPool: Pool | null = null;
+type PaperclipPool = ReturnType<typeof createPool>;
+let paperclipDbPool: PaperclipPool | null = null;
 
 function toAppRelativePaperclipUrl(url: string): string | null {
   try {
@@ -82,7 +83,7 @@ function deriveDisplayName(email: string): string {
     .join(" ");
 }
 
-function getResponseCookies(response: Response): string[] {
+function getResponseCookies(response: globalThis.Response): string[] {
   const withGetSetCookie = response.headers as unknown as { getSetCookie?: () => string[] };
   if (typeof withGetSetCookie.getSetCookie === "function") {
     return withGetSetCookie.getSetCookie();
@@ -92,7 +93,7 @@ function getResponseCookies(response: Response): string[] {
   return single ? [single] : [];
 }
 
-function appendSetCookies(res: Response, cookies: string[]): void {
+function appendSetCookies(res: ExpressResponse, cookies: string[]): void {
   if (!cookies.length) return;
 
   const current = res.getHeader("set-cookie");
@@ -118,11 +119,11 @@ function resolvePaperclipDatabaseUrl(): string | null {
   }
 }
 
-function getPaperclipDbPool(): Pool | null {
+function getPaperclipDbPool(): PaperclipPool | null {
   if (paperclipDbPool) return paperclipDbPool;
   const connectionString = resolvePaperclipDatabaseUrl();
   if (!connectionString) return null;
-  paperclipDbPool = new Pool({ connectionString, max: 4 });
+  paperclipDbPool = createPool(connectionString);
   return paperclipDbPool;
 }
 
@@ -131,7 +132,7 @@ function signBetterAuthCookieValue(value: string, secret: string): string {
   return encodeURIComponent(`${value}.${signature}`);
 }
 
-async function upsertPaperclipSession(email: string, res: Response): Promise<boolean> {
+async function upsertPaperclipSession(email: string, res: ExpressResponse): Promise<boolean> {
   const pool = getPaperclipDbPool();
   if (!pool || !PAPERCLIP_AUTH_SECRET) return false;
 
@@ -195,7 +196,7 @@ async function upsertPaperclipSession(email: string, res: Response): Promise<boo
 async function paperclipAuthRequest(
   path: string,
   payload: Record<string, unknown>,
-): Promise<Response> {
+): Promise<globalThis.Response> {
   const appOrigin = (() => {
     try {
       return new URL(APP_URL).origin;
@@ -227,7 +228,7 @@ async function paperclipAuthRequest(
   });
 }
 
-async function ensurePaperclipSession(sessionEmail: string, res: Response): Promise<void> {
+async function ensurePaperclipSession(sessionEmail: string, res: ExpressResponse): Promise<void> {
   const email = sessionEmail.trim().toLowerCase();
   const password = derivePaperclipPassword(email);
 
@@ -243,8 +244,8 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
   const tryCandidates = async (
     candidates: string[],
     payload: Record<string, unknown>,
-  ): Promise<Response> => {
-    let lastResponse: Response | null = null;
+  ): Promise<globalThis.Response> => {
+    let lastResponse: globalThis.Response | null = null;
     for (const candidate of candidates) {
       const response = await paperclipAuthRequest(candidate, payload);
       lastResponse = response;
