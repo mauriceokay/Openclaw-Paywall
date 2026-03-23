@@ -139,7 +139,25 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
     rememberMe: true,
   };
 
-  let signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
+  const signInCandidates = ["/api/auth/sign-in/email", "/api/auth/sign-in"];
+  const signUpCandidates = ["/api/auth/sign-up/email", "/api/auth/sign-up"];
+
+  const tryCandidates = async (
+    candidates: string[],
+    payload: Record<string, unknown>,
+  ): Promise<Response> => {
+    let lastResponse: Response | null = null;
+    for (const candidate of candidates) {
+      const response = await paperclipAuthRequest(candidate, payload);
+      lastResponse = response;
+      if (response.status !== 404) {
+        return response;
+      }
+    }
+    return lastResponse ?? (await paperclipAuthRequest(candidates[0], payload));
+  };
+
+  let signInResponse = await tryCandidates(signInCandidates, signInPayload);
 
   if (!signInResponse.ok) {
     let signInError = "";
@@ -151,7 +169,7 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
     console.warn("[paperclip-sso] sign-in failed", signInResponse.status, signInError.slice(0, 400));
 
     // First-time user flow: create account, then sign in.
-    const signUpResponse = await paperclipAuthRequest("/api/auth/sign-up/email", {
+    const signUpResponse = await tryCandidates(signUpCandidates, {
       email,
       password,
       name: deriveDisplayName(email),
@@ -166,7 +184,7 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
       console.warn("[paperclip-sso] sign-up failed", signUpResponse.status, signUpError.slice(0, 400));
     }
 
-    signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
+    signInResponse = await tryCandidates(signInCandidates, signInPayload);
     if (!signInResponse.ok) {
       let secondSignInError = "";
       try {
