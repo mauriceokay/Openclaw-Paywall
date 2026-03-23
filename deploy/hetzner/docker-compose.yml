@@ -117,6 +117,8 @@ services:
       PAPERCLIP_DEPLOYMENT_MODE: authenticated
       BETTER_AUTH_BASE_URL: ${APP_URL}/paperclip
       BETTER_AUTH_TRUSTED_ORIGINS: ${APP_URL},https://getlobster.org,https://www.getlobster.org,http://app:8080,http://localhost:8080,http://paperclip:3100
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      PAPERCLIP_AGENT_JWT_SECRET: ${PAPERCLIP_AGENT_JWT_SECRET}
       DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/paperclip
     volumes:
       - paperclip_data:/paperclip-data
