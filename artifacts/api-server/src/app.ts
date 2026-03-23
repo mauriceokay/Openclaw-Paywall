@@ -382,6 +382,8 @@ app.use("/api/auth", cookieParser(), (req, res, next) => {
   if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  // Preserve the expected Paperclip auth prefix when mounted under /api/auth.
+  req.url = `/api/auth${req.url}`;
   req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
@@ -391,6 +393,8 @@ app.use("/api/companies", cookieParser(), (req, res, next) => {
   if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  // Preserve companies API prefix for Paperclip backend routes.
+  req.url = `/api/companies${req.url}`;
   req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
@@ -401,6 +405,8 @@ app.use("/auth", cookieParser(), (req, res, next) => {
   if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  // Preserve /auth prefix so BetterAuth handlers match correctly.
+  req.url = `/auth${req.url}`;
   req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });

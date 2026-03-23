@@ -238,8 +238,18 @@ async function ensurePaperclipSession(sessionEmail: string, res: ExpressResponse
     rememberMe: true,
   };
 
-  const signInCandidates = ["/api/auth/sign-in/email", "/api/auth/sign-in"];
-  const signUpCandidates = ["/api/auth/sign-up/email", "/api/auth/sign-up"];
+  const signInCandidates = [
+    "/api/auth/sign-in/email",
+    "/api/auth/sign-in",
+    "/auth/sign-in/email",
+    "/auth/sign-in",
+  ];
+  const signUpCandidates = [
+    "/api/auth/sign-up/email",
+    "/api/auth/sign-up",
+    "/auth/sign-up/email",
+    "/auth/sign-up",
+  ];
 
   const tryCandidates = async (
     candidates: string[],
