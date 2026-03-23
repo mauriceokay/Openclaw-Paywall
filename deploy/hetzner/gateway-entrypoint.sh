@@ -54,9 +54,32 @@ cfg.gateway.controlUi.allowedOrigins = ["*"];
 cfg.models = cfg.models || {};
 cfg.models.providers = cfg.models.providers || {};
 cfg.models.providers.openai = cfg.models.providers.openai || {};
-if (!Array.isArray(cfg.models.providers.openai.models)) {
-  cfg.models.providers.openai.models = ["gpt-4o", "gpt-4o-mini"];
-}
+const rawOpenAiModels = Array.isArray(cfg.models.providers.openai.models)
+  ? cfg.models.providers.openai.models
+  : [];
+const normalizedOpenAiModels = (rawOpenAiModels.length
+  ? rawOpenAiModels
+  : [{ id: "gpt-4o", name: "gpt-4o" }, { id: "gpt-4o-mini", name: "gpt-4o-mini" }])
+  .map((model) => {
+    if (typeof model === "string") {
+      return { id: model, name: model };
+    }
+    if (model && typeof model === "object") {
+      const id =
+        typeof model.id === "string" && model.id.trim().length > 0
+          ? model.id
+          : typeof model.name === "string" && model.name.trim().length > 0
+            ? model.name
+            : "gpt-4o";
+      const name =
+        typeof model.name === "string" && model.name.trim().length > 0
+          ? model.name
+          : id;
+      return { ...model, id, name };
+    }
+    return { id: "gpt-4o", name: "gpt-4o" };
+  });
+cfg.models.providers.openai.models = normalizedOpenAiModels;
 
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
