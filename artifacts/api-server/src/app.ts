@@ -18,9 +18,6 @@ const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005"
 function resolveGatewayToken(raw: string | undefined): string | null {
   const token = raw?.trim();
   if (!token) return null;
-  // Legacy static gateway auth tokens (64-char hex) do not carry operator scopes
-  // and cause the Control UI to fail with "missing scope: operator.read".
-  if (/^[a-f0-9]{64}$/i.test(token)) return null;
   return token;
 }
 const GATEWAY_TOKEN = resolveGatewayToken(process.env.OPENCLAW_GATEWAY_TOKEN);

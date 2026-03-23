@@ -77,10 +77,7 @@ function getLocalGatewayToken(): string | null {
 
 function getSharedGatewayToken(): string | null {
   const token = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
-  if (!token) return null;
-  // Ignore legacy static auth tokens that do not include Control UI scopes.
-  if (/^[a-f0-9]{64}$/i.test(token)) return null;
-  return token;
+  return token || null;
 }
 
 let cachedScopedGatewayToken: { token: string; expiresAt: number } | null = null;
@@ -96,9 +93,6 @@ async function getScopedGatewayToken(): Promise<string | null> {
   const tokenMatch = dashboardOutput.match(/[?#&]token=([^&#\s]+)/i);
   if (tokenMatch?.[1]) {
     const token = decodeURIComponent(tokenMatch[1]);
-    if (/^[a-f0-9]{64}$/i.test(token)) {
-      return getSharedGatewayToken();
-    }
     // Dashboard tokens are short-lived; refresh conservatively every 3 minutes.
     cachedScopedGatewayToken = { token, expiresAt: now + 3 * 60_000 };
     return token;
