@@ -91,12 +91,14 @@ async function getScopedGatewayToken(): Promise<string | null> {
     return cachedScopedGatewayToken.token;
   }
 
-  const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL?.trim() || "http://gateway:3005";
-  const dashboardResult = await runOpenClawCli(["dashboard", "--no-open", "--gateway", gatewayUrl], 20_000);
+  const dashboardResult = await runOpenClawCli(["dashboard", "--no-open"], 20_000);
   const dashboardOutput = `${dashboardResult.stdout}\n${dashboardResult.stderr}`;
   const tokenMatch = dashboardOutput.match(/[?#&]token=([^&#\s]+)/i);
   if (tokenMatch?.[1]) {
     const token = decodeURIComponent(tokenMatch[1]);
+    if (/^[a-f0-9]{64}$/i.test(token)) {
+      return getSharedGatewayToken();
+    }
     // Dashboard tokens are short-lived; refresh conservatively every 3 minutes.
     cachedScopedGatewayToken = { token, expiresAt: now + 3 * 60_000 };
     return token;
