@@ -260,7 +260,7 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
   ws: true,
   selfHandleResponse: true,
   pathRewrite: (incomingPath) => {
-    const rewritten = incomingPath.replace(/^\/paperclip/, "") || "/";
+    const rewritten = incomingPath.replace(/^\/paperclip(?=\/|$)/, "") || "/";
     if (rewritten === "/health") return "/api/health";
     return rewritten;
   },
@@ -294,7 +294,7 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
   ws: true,
   selfHandleResponse: true,
   pathRewrite: (incomingPath) => {
-    const rewritten = incomingPath.replace(/^\/paperclip/, "") || "/";
+    const rewritten = incomingPath.replace(/^\/paperclip(?=\/|$)/, "") || "/";
     if (rewritten === "/health") return "/api/health";
     return rewritten;
   },
@@ -365,10 +365,13 @@ function isPaperclipFallbackPath(pathname: string): boolean {
   const reserved = new Set([
     "health",
     "mission-control",
+    "mission-control-app",
     "mc-api",
     "paperclip",
+    "paperclip-app",
     "openclaw",
     "dashboard",
+    "nemoclaw-app",
     "pricing",
     "setup",
     "signup",
