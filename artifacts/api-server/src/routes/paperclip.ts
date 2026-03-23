@@ -1,6 +1,7 @@
 import { type Response, Router } from "express";
 import crypto from "crypto";
 import { existsSync, readFileSync } from "fs";
+import { Pool } from "pg";
 import { getSessionEmail } from "../sessionAuth";
 import { trackUsageEvent } from "../usageTracking";
 
@@ -12,6 +13,13 @@ const APP_URL = process.env.APP_URL?.trim() || "http://localhost:8080";
 const PAPERCLIP_BOOTSTRAP_INVITE_FILE =
   process.env.PAPERCLIP_BOOTSTRAP_INVITE_FILE ?? "/paperclip-data/bootstrap_invite_url.txt";
 const PAPERCLIP_BOOTSTRAP_INVITE_URL = process.env.PAPERCLIP_BOOTSTRAP_INVITE_URL?.trim() || null;
+const PAPERCLIP_AUTH_SECRET =
+  process.env.PAPERCLIP_AUTH_SECRET?.trim() ||
+  process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim() ||
+  process.env.BETTER_AUTH_SECRET?.trim() ||
+  null;
+
+let paperclipDbPool: Pool | null = null;
 
 function toAppRelativePaperclipUrl(url: string): string | null {
   try {
@@ -92,6 +100,96 @@ function appendSetCookies(res: Response, cookies: string[]): void {
   // Keep cookies host-only and preserve all other attributes from Paperclip.
   const normalized = cookies.map((cookie) => cookie.replace(/;\s*Domain=[^;]+/i, ""));
   res.setHeader("set-cookie", [...existing, ...normalized]);
+}
+
+function resolvePaperclipDatabaseUrl(): string | null {
+  const explicit = process.env.PAPERCLIP_DATABASE_URL?.trim();
+  if (explicit) return explicit;
+
+  const base = process.env.DATABASE_URL?.trim();
+  if (!base) return null;
+
+  try {
+    const parsed = new URL(base);
+    parsed.pathname = "/paperclip";
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function getPaperclipDbPool(): Pool | null {
+  if (paperclipDbPool) return paperclipDbPool;
+  const connectionString = resolvePaperclipDatabaseUrl();
+  if (!connectionString) return null;
+  paperclipDbPool = new Pool({ connectionString, max: 4 });
+  return paperclipDbPool;
+}
+
+function signBetterAuthCookieValue(value: string, secret: string): string {
+  const signature = crypto.createHmac("sha256", secret).update(value).digest("base64");
+  return encodeURIComponent(`${value}.${signature}`);
+}
+
+async function upsertPaperclipSession(email: string, res: Response): Promise<boolean> {
+  const pool = getPaperclipDbPool();
+  if (!pool || !PAPERCLIP_AUTH_SECRET) return false;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const existingUser = await client.query<{ id: string }>(
+      'SELECT id FROM "user" WHERE LOWER(email) = LOWER($1) LIMIT 1',
+      [normalizedEmail],
+    );
+
+    const userId = existingUser.rows[0]?.id ?? `pcp_${crypto.randomUUID().replace(/-/g, "")}`;
+    if (!existingUser.rows[0]) {
+      await client.query(
+        `INSERT INTO "user" (id, name, email, email_verified, image, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [userId, deriveDisplayName(normalizedEmail), normalizedEmail, true, null, now, now],
+      );
+    } else {
+      await client.query('UPDATE "user" SET updated_at = $2 WHERE id = $1', [userId, now]);
+    }
+
+    const sessionToken = crypto.randomBytes(32).toString("hex");
+    const sessionId = `sess_${crypto.randomUUID().replace(/-/g, "")}`;
+    await client.query(
+      `INSERT INTO "session" (id, expires_at, token, created_at, updated_at, ip_address, user_agent, user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [sessionId, expiresAt, sessionToken, now, now, null, "openclaw-paperclip-bridge", userId],
+    );
+
+    await client.query("COMMIT");
+
+    const signedToken = signBetterAuthCookieValue(sessionToken, PAPERCLIP_AUTH_SECRET);
+    const secure = APP_URL.startsWith("https://");
+    const cookie = [
+      `better-auth.session_token=${signedToken}`,
+      "Path=/",
+      "HttpOnly",
+      "SameSite=Lax",
+      "Max-Age=2592000",
+      secure ? "Secure" : null,
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    appendSetCookies(res, [cookie]);
+    return true;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    return false;
+  } finally {
+    client.release();
+  }
 }
 
 async function paperclipAuthRequest(
@@ -197,6 +295,12 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
         signInResponse.status,
         secondSignInError.slice(0, 400),
       );
+
+      // Fallback for Paperclip builds where HTTP sign-in routes are unavailable:
+      // create a signed BetterAuth session directly in the Paperclip DB.
+      if (await upsertPaperclipSession(email, res)) {
+        return;
+      }
     }
   }
 
