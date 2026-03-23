@@ -546,14 +546,14 @@ if (existsSync(frontendDist)) {
   });
 
   app.use((req, res, next) => {
-    const isSpaRoute =
-      (req.method === "GET" || req.method === "HEAD") &&
-      path.extname(req.path) === "" &&
-      !req.path.startsWith("/api/") &&
-      !req.path.startsWith("/health") &&
-      !req.path.startsWith("/mission-control") &&
-      !req.path.startsWith("/mc-api") &&
-      !req.path.startsWith("/paperclip");
+      const isSpaRoute =
+        (req.method === "GET" || req.method === "HEAD") &&
+        path.extname(req.path) === "" &&
+        !req.path.startsWith("/api/") &&
+        !req.path.startsWith("/health") &&
+        !req.path.startsWith("/mission-control") &&
+        !req.path.startsWith("/mc-api") &&
+        !/^\/paperclip(?:\/|$)/.test(req.path);
 
     if (isSpaRoute) {
       return res.sendFile(path.join(frontendDist, "index.html"));
