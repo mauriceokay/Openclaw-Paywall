@@ -144,13 +144,44 @@ async function ensurePaperclipSession(sessionEmail: string, res: Response): Prom
   let signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
 
   if (!signInResponse.ok) {
+    let signInError = "";
+    try {
+      signInError = await signInResponse.text();
+    } catch {
+      signInError = "";
+    }
+    console.warn("[paperclip-sso] sign-in failed", signInResponse.status, signInError.slice(0, 400));
+
     // First-time user flow: create account, then sign in.
-    await paperclipAuthRequest("/api/auth/sign-up/email", {
+    const signUpResponse = await paperclipAuthRequest("/api/auth/sign-up/email", {
       email,
       password,
       name: deriveDisplayName(email),
     });
+    if (!signUpResponse.ok) {
+      let signUpError = "";
+      try {
+        signUpError = await signUpResponse.text();
+      } catch {
+        signUpError = "";
+      }
+      console.warn("[paperclip-sso] sign-up failed", signUpResponse.status, signUpError.slice(0, 400));
+    }
+
     signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
+    if (!signInResponse.ok) {
+      let secondSignInError = "";
+      try {
+        secondSignInError = await signInResponse.text();
+      } catch {
+        secondSignInError = "";
+      }
+      console.warn(
+        "[paperclip-sso] second sign-in failed",
+        signInResponse.status,
+        secondSignInError.slice(0, 400),
+      );
+    }
   }
 
   appendSetCookies(res, getResponseCookies(signInResponse));
