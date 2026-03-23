@@ -114,7 +114,7 @@ services:
       PORT: 3100
       APP_URL: ${APP_URL}
       PAPERCLIP_HOME: /paperclip-data
-      PAPERCLIP_DEPLOYMENT_MODE: authenticated
+      PAPERCLIP_DEPLOYMENT_MODE: public
       BETTER_AUTH_BASE_URL: ${APP_URL}/paperclip
       DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/paperclip
     volumes:
