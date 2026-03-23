@@ -53,6 +53,9 @@ const bundledControlUiIndex = "/usr/local/lib/node_modules/openclaw/dist/control
 const fallbackControlUiRoot = "/usr/local/lib/node_modules/openclaw/dist/canvas-host/a2ui";
 if (!fs.existsSync(bundledControlUiIndex) && fs.existsSync(`${fallbackControlUiRoot}/index.html`)) {
   cfg.gateway.controlUi.root = fallbackControlUiRoot;
+} else if (cfg.gateway.controlUi.root === fallbackControlUiRoot) {
+  // If bundled Control UI exists again (fixed package), remove emergency canvas override.
+  delete cfg.gateway.controlUi.root;
 }
 
 // Repair commonly broken provider config so gateway does not crash-loop.
