@@ -61,6 +61,7 @@ export function PaperclipApp() {
       .then((launch) => {
         if (cancelled) return;
         const target = new URL(launch.launchUrl, window.location.origin);
+        target.searchParams.set("ocv", String(Date.now()));
         setFrameSrc(`${target.pathname}${target.search}${target.hash}`);
       })
       .catch((err: unknown) => {
