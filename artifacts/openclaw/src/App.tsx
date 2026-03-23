@@ -49,6 +49,7 @@ function Router() {
       <Route path="/openclaw/:workspaceId" component={OpenClawApp} />
       <Route path="/mission-control-app" component={MissionControlApp} />
       <Route path="/paperclip-app" component={PaperclipApp} />
+      <Route path="/paperclip-app/:workspaceId" component={PaperclipApp} />
       <Route path="/nemoclaw-app" component={NemoClawApp} />
 
       {/* Standard layout routes */}

@@ -761,7 +761,7 @@ export function Dashboard() {
               size="lg"
               variant="outline"
               className="h-14 px-8 text-lg font-bold border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-200 rounded-xl group shrink-0"
-              onClick={() => navigate("/paperclip-app")}
+              onClick={() => navigate(`/paperclip-app/${getWorkspaceSlug(user?.email ?? "workspace")}`)}
             >
               <PaperclipIcon className="w-5 h-5 mr-2" />
               {d.openWorkspace}

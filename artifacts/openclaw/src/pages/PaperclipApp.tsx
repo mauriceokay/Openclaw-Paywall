@@ -11,11 +11,19 @@ type LaunchConfig = {
   launchUrl: string;
 };
 
+function getWorkspaceSlug(email: string): string {
+  return btoa(email.toLowerCase())
+    .replace(/=+$/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .slice(0, 12);
+}
+
 export function PaperclipApp() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const p = t.paperclipApp;
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [frameSrc, setFrameSrc] = useState<string | null>(null);
 
@@ -31,6 +39,11 @@ export function PaperclipApp() {
   useEffect(() => {
     if (!user) {
       navigate("/sign-in");
+      return;
+    }
+
+    if (/^\/paperclip-app\/?$/.test(location) && user.email) {
+      navigate(`/paperclip-app/${getWorkspaceSlug(user.email)}`);
       return;
     }
 
@@ -59,7 +72,7 @@ export function PaperclipApp() {
     return () => {
       cancelled = true;
     };
-  }, [navigate, user]);
+  }, [location, navigate, user, p.launchNotAvailable, p.unableToOpen]);
 
   if (error) {
     return (
