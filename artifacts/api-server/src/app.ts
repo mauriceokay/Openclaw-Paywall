@@ -230,6 +230,30 @@ function rewritePaperclipHtml(html: string): string {
     .replace(/(["'])\/apple-touch-icon([^"']*)(["'])/g, "$1/paperclip/apple-touch-icon$2$3");
 }
 
+function isPublicPaperclipAssetPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/assets/") ||
+    pathname === "/site.webmanifest" ||
+    pathname === "/sw.js" ||
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/apple-touch-icon")
+  );
+}
+
+function isPaperclipContextRequest(req: express.Request): boolean {
+  const referer = typeof req.headers.referer === "string" ? req.headers.referer : "";
+  if (referer.includes("/paperclip") || referer.includes("/paperclip-app")) {
+    return true;
+  }
+
+  const nextParam = typeof req.query.next === "string" ? req.query.next : "";
+  if (nextParam.includes("/paperclip")) {
+    return true;
+  }
+
+  return req.query.paperclip === "1";
+}
+
 const paperclipProxy = createProxyMiddleware<express.Request, express.Response>({
   target: PAPERCLIP_URL,
   changeOrigin: true,
@@ -253,6 +277,9 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
 });
 
 app.use("/paperclip", cookieParser(), (req, res, next) => {
+  if ((req.method === "GET" || req.method === "HEAD") && isPublicPaperclipAssetPath(req.path)) {
+    return next();
+  }
   if (!getSessionEmail(req)) {
     return res.status(401).json({ error: "Authentication required" });
   }
@@ -279,6 +306,49 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
       return responseBuffer;
     }),
   },
+});
+
+const paperclipDirectProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: PAPERCLIP_URL,
+  changeOrigin: true,
+  ws: true,
+  selfHandleResponse: true,
+  on: {
+    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
+      stripIframeHeaders(expressRes as express.Response);
+      const contentType = (proxyRes.headers["content-type"] ?? "") as string;
+      if (contentType.includes("text/html")) {
+        return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8")), "utf8");
+      }
+      return responseBuffer;
+    }),
+  },
+});
+
+// Paperclip UI performs some root-level calls (/api/auth/*, /api/companies, /auth)
+// that must be routed to the Paperclip backend when embedded in our dashboard.
+app.use("/api/auth", cookieParser(), (req, res, next) => {
+  if (!isPaperclipContextRequest(req)) return next();
+  if (!getSessionEmail(req)) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  return paperclipDirectProxy(req, res, next);
+});
+
+app.use("/api/companies", cookieParser(), (req, res, next) => {
+  if (!isPaperclipContextRequest(req)) return next();
+  if (!getSessionEmail(req)) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  return paperclipDirectProxy(req, res, next);
+});
+
+app.use("/auth", cookieParser(), (req, res, next) => {
+  if (!isPaperclipContextRequest(req)) return next();
+  if (!getSessionEmail(req)) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  return paperclipDirectProxy(req, res, next);
 });
 
 function isPaperclipFallbackPath(pathname: string): boolean {
