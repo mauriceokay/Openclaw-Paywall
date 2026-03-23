@@ -49,6 +49,11 @@ cfg.gateway.controlUi = cfg.gateway.controlUi || {};
 cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
+const bundledControlUiIndex = "/usr/local/lib/node_modules/openclaw/dist/control-ui/index.html";
+const fallbackControlUiRoot = "/usr/local/lib/node_modules/openclaw/dist/canvas-host/a2ui";
+if (!fs.existsSync(bundledControlUiIndex) && fs.existsSync(`${fallbackControlUiRoot}/index.html`)) {
+  cfg.gateway.controlUi.root = fallbackControlUiRoot;
+}
 
 // Repair commonly broken provider config so gateway does not crash-loop.
 cfg.models = cfg.models || {};
