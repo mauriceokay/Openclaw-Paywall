@@ -107,14 +107,14 @@ services:
       [
         "sh",
         "-lc",
-        "npx -y paperclipai onboard --yes || true; node -e \"const fs=require('fs');const p='/paperclip-data/instances/default/config.json';try{const c=JSON.parse(fs.readFileSync(p,'utf8'));c.server={...(c.server||{}),deploymentMode:'public',exposure:'public'};c.auth={...(c.auth||{}),disableSignUp:true};fs.writeFileSync(p,JSON.stringify(c,null,2));console.log('patched paperclip config to public mode');}catch(e){console.error(e)}\"; npx -y paperclipai allowed-hostname getlobster.org || true; npx -y paperclipai allowed-hostname www.getlobster.org || true; npx -y paperclipai allowed-hostname 178.156.231.45 || true; npx -y paperclipai auth bootstrap-ceo --force --expires-hours 720 --base-url ${APP_URL}/paperclip 2>&1 | sed -n 's/.*Invite URL: //p' | tail -n 1 | tr -d '\\r' > /paperclip-data/bootstrap_invite_url.txt || true; npx -y paperclipai run",
+        "npx -y paperclipai onboard --yes || true; node -e \"const fs=require('fs');const p='/paperclip-data/instances/default/config.json';try{const c=JSON.parse(fs.readFileSync(p,'utf8'));c.server={...(c.server||{}),deploymentMode:'authenticated',exposure:'private'};c.auth={...(c.auth||{}),disableSignUp:true};fs.writeFileSync(p,JSON.stringify(c,null,2));console.log('patched paperclip config to authenticated mode');}catch(e){console.error(e)}\"; npx -y paperclipai allowed-hostname getlobster.org || true; npx -y paperclipai allowed-hostname www.getlobster.org || true; npx -y paperclipai allowed-hostname 178.156.231.45 || true; npx -y paperclipai auth bootstrap-ceo --force --expires-hours 720 --base-url ${APP_URL}/paperclip 2>&1 | sed -n 's/.*Invite URL: //p' | tail -n 1 | tr -d '\\r' > /paperclip-data/bootstrap_invite_url.txt || true; npx -y paperclipai run",
       ]
     environment:
       HOST: 0.0.0.0
       PORT: 3100
       APP_URL: ${APP_URL}
       PAPERCLIP_HOME: /paperclip-data
-      PAPERCLIP_DEPLOYMENT_MODE: public
+      PAPERCLIP_DEPLOYMENT_MODE: authenticated
       BETTER_AUTH_BASE_URL: ${APP_URL}/paperclip
       DATABASE_URL: postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@app-db:5432/paperclip
     volumes:
