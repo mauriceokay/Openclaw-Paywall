@@ -235,6 +235,7 @@ export function Dashboard() {
         "openclaw.control.settings.v1",
         JSON.stringify({
           gatewayUrl,
+          locale,
           sessionKey: "main",
           lastActiveSessionKey: "main",
           theme: "claw",

@@ -42,7 +42,7 @@ function getWorkspaceSlug(email: string): string {
     .slice(0, 12);
 }
 
-function preloadOpenClawControlUi(launchUrl?: string) {
+function preloadOpenClawControlUi(locale: string, launchUrl?: string) {
   const defaultGatewayUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/gateway`;
   let gatewayUrl = defaultGatewayUrl;
   let token = "";
@@ -64,6 +64,7 @@ function preloadOpenClawControlUi(launchUrl?: string) {
     "openclaw.control.settings.v1",
     JSON.stringify({
       gatewayUrl,
+      locale,
       sessionKey: "main",
       lastActiveSessionKey: "main",
       theme: "claw",
@@ -105,7 +106,7 @@ function useRelativeTime(
 
 export function OpenClawApp() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const o = t.openclawApp;
   const [location, navigate] = useLocation();
   const [provisionState, setProvisionState] = useState<ProvisionState>("idle");
@@ -236,13 +237,13 @@ export function OpenClawApp() {
         if (cancelled) return;
         const resolvedLaunchUrl = launch.launchUrl?.trim() || `${BASE_URL}/api/gateway/chat`;
         setLaunchUrl(resolvedLaunchUrl);
-        preloadOpenClawControlUi(resolvedLaunchUrl);
+        preloadOpenClawControlUi(locale, resolvedLaunchUrl);
       })
       .catch(() => {
         if (cancelled) return;
         const fallback = `${BASE_URL}/api/gateway/chat`;
         setLaunchUrl(fallback);
-        preloadOpenClawControlUi(fallback);
+        preloadOpenClawControlUi(locale, fallback);
       });
 
     return () => {
