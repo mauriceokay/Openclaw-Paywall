@@ -280,9 +280,11 @@ app.use("/paperclip", cookieParser(), (req, res, next) => {
   if ((req.method === "GET" || req.method === "HEAD") && isPublicPaperclipAssetPath(req.path)) {
     return next();
   }
-  if (!getSessionEmail(req)) {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  req.headers["x-oc-user-email"] = sessionEmail;
   return next();
 }, paperclipProxy);
 
@@ -328,24 +330,30 @@ const paperclipDirectProxy = createProxyMiddleware<express.Request, express.Resp
 // Paperclip UI performs some root-level calls (/api/auth/*, /api/companies, /auth)
 // that must be routed to the Paperclip backend when embedded in our dashboard.
 app.use("/api/auth", cookieParser(), (req, res, next) => {
-  if (!getSessionEmail(req)) {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
 
 app.use("/api/companies", cookieParser(), (req, res, next) => {
-  if (!getSessionEmail(req)) {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
 
 app.use("/auth", cookieParser(), (req, res, next) => {
   if (!isPaperclipContextRequest(req)) return next();
-  if (!getSessionEmail(req)) {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
 
@@ -391,9 +399,11 @@ app.use(cookieParser(), (req, res, next) => {
   if (!shouldUseFallback) {
     return next();
   }
-  if (!getSessionEmail(req)) {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
     return next();
   }
+  req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipPassthroughProxy(req, res, next);
 });
 
