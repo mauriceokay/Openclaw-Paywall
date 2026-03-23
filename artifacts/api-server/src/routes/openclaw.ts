@@ -83,6 +83,28 @@ function getSharedGatewayToken(): string | null {
   return token;
 }
 
+let cachedScopedGatewayToken: { token: string; expiresAt: number } | null = null;
+
+async function getScopedGatewayToken(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedScopedGatewayToken && cachedScopedGatewayToken.expiresAt > now) {
+    return cachedScopedGatewayToken.token;
+  }
+
+  const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL?.trim() || "http://gateway:3005";
+  const dashboardResult = await runOpenClawCli(["dashboard", "--no-open", "--gateway", gatewayUrl], 20_000);
+  const dashboardOutput = `${dashboardResult.stdout}\n${dashboardResult.stderr}`;
+  const tokenMatch = dashboardOutput.match(/[?#&]token=([^&#\s]+)/i);
+  if (tokenMatch?.[1]) {
+    const token = decodeURIComponent(tokenMatch[1]);
+    // Dashboard tokens are short-lived; refresh conservatively every 3 minutes.
+    cachedScopedGatewayToken = { token, expiresAt: now + 3 * 60_000 };
+    return token;
+  }
+
+  return getSharedGatewayToken();
+}
+
 function getLocalOpenClawConfigPath(): string {
   return path.join(os.homedir(), ".openclaw", "openclaw.json");
 }
@@ -476,7 +498,7 @@ router.get("/launch", async (req, res) => {
   // so users skip manual dashboard connection and token entry.
   const sharedGateway = getSharedGatewayInstanceUrl();
   if (sharedGateway) {
-    const token = getSharedGatewayToken();
+    const token = await getScopedGatewayToken();
     const queryParams = new URLSearchParams();
     if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
