@@ -328,7 +328,6 @@ const paperclipDirectProxy = createProxyMiddleware<express.Request, express.Resp
 // Paperclip UI performs some root-level calls (/api/auth/*, /api/companies, /auth)
 // that must be routed to the Paperclip backend when embedded in our dashboard.
 app.use("/api/auth", cookieParser(), (req, res, next) => {
-  if (!isPaperclipContextRequest(req)) return next();
   if (!getSessionEmail(req)) {
     return res.status(401).json({ error: "Authentication required" });
   }
@@ -336,7 +335,6 @@ app.use("/api/auth", cookieParser(), (req, res, next) => {
 });
 
 app.use("/api/companies", cookieParser(), (req, res, next) => {
-  if (!isPaperclipContextRequest(req)) return next();
   if (!getSessionEmail(req)) {
     return res.status(401).json({ error: "Authentication required" });
   }
