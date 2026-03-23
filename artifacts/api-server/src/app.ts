@@ -228,11 +228,54 @@ const mcFrontendProxy = createProxyMiddleware<express.Request, express.Response>
 app.use("/mission-control", mcFrontendProxy);
 
 function rewritePaperclipHtml(html: string): string {
+  const swScopeGuard = `
+<script>
+  (function () {
+    try {
+      if (!("serviceWorker" in navigator)) return;
+      const sw = navigator.serviceWorker;
+      if (!sw || typeof sw.register !== "function") return;
+      const origRegister = sw.register.bind(sw);
+      sw.register = function (url, options) {
+        try {
+          let nextUrl = url;
+          if (typeof nextUrl === "string") {
+            if (nextUrl === "/sw.js") nextUrl = "/paperclip/sw.js";
+            else if (nextUrl.startsWith("/") && !nextUrl.startsWith("/paperclip/")) {
+              nextUrl = "/paperclip" + nextUrl;
+            }
+          }
+          const nextOptions = { ...(options || {}) };
+          if (!nextOptions.scope || nextOptions.scope === "/") {
+            nextOptions.scope = "/paperclip/";
+          }
+          return origRegister(nextUrl, nextOptions);
+        } catch (_err) {
+          return origRegister(url, options);
+        }
+      };
+
+      // Clean up accidentally registered root SW from previous broken embeds.
+      sw.getRegistrations().then(function (regs) {
+        regs.forEach(function (reg) {
+          try {
+            var scriptPath = new URL(reg.active ? reg.active.scriptURL : "").pathname;
+            var isRootPaperclipSw = scriptPath === "/sw.js" && reg.scope === window.location.origin + "/";
+            if (isRootPaperclipSw) reg.unregister();
+          } catch (_err) {}
+        });
+      }).catch(function () {});
+    } catch (_err) {}
+  })();
+</script>`;
+
   return html
     .replace(/(["'])\/assets\//g, "$1/paperclip/assets/")
     .replace(/(["'])\/site\.webmanifest(["'])/g, "$1/paperclip/site.webmanifest$2")
+    .replace(/(["'])\/sw\.js(["'])/g, "$1/paperclip/sw.js$2")
     .replace(/(["'])\/favicon([^"']*)(["'])/g, "$1/paperclip/favicon$2$3")
-    .replace(/(["'])\/apple-touch-icon([^"']*)(["'])/g, "$1/paperclip/apple-touch-icon$2$3");
+    .replace(/(["'])\/apple-touch-icon([^"']*)(["'])/g, "$1/paperclip/apple-touch-icon$2$3")
+    .replace(/<head>/i, `<head>${swScopeGuard}`);
 }
 
 function isPublicPaperclipAssetPath(pathname: string): boolean {
@@ -385,6 +428,8 @@ function isPaperclipFallbackPath(pathname: string): boolean {
     "usage",
     "subscription",
     "assets",
+    "sw.js",
+    "site.webmanifest",
     "favicon.ico",
   ]);
 
