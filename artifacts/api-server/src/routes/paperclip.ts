@@ -8,6 +8,7 @@ const router = Router();
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
 const PAPERCLIP_SSO_SECRET =
   process.env.PAPERCLIP_SSO_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || "openclaw-paperclip-sso";
+const APP_URL = process.env.APP_URL?.trim() || "http://localhost:8080";
 const PAPERCLIP_BOOTSTRAP_INVITE_FILE =
   process.env.PAPERCLIP_BOOTSTRAP_INVITE_FILE ?? "/paperclip-data/bootstrap_invite_url.txt";
 const PAPERCLIP_BOOTSTRAP_INVITE_URL = process.env.PAPERCLIP_BOOTSTRAP_INVITE_URL?.trim() || null;
@@ -97,11 +98,31 @@ async function paperclipAuthRequest(
   path: string,
   payload: Record<string, unknown>,
 ): Promise<Response> {
+  const appOrigin = (() => {
+    try {
+      return new URL(APP_URL).origin;
+    } catch {
+      return "http://localhost:8080";
+    }
+  })();
+  const appHost = (() => {
+    try {
+      return new URL(appOrigin).host;
+    } catch {
+      return "localhost:8080";
+    }
+  })();
+  const appProtocol = appOrigin.startsWith("https://") ? "https" : "http";
+
   return fetch(`${PAPERCLIP_URL}${path}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       accept: "application/json",
+      origin: appOrigin,
+      referer: `${appOrigin}/paperclip`,
+      "x-forwarded-host": appHost,
+      "x-forwarded-proto": appProtocol,
     },
     body: JSON.stringify(payload),
     redirect: "manual",
