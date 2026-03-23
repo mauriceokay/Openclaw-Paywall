@@ -49,6 +49,15 @@ cfg.gateway.controlUi = cfg.gateway.controlUi || {};
 cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
+
+// Repair commonly broken provider config so gateway does not crash-loop.
+cfg.models = cfg.models || {};
+cfg.models.providers = cfg.models.providers || {};
+cfg.models.providers.openai = cfg.models.providers.openai || {};
+if (!Array.isArray(cfg.models.providers.openai.models)) {
+  cfg.models.providers.openai.models = ["gpt-4o", "gpt-4o-mini"];
+}
+
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
 
