@@ -1,10 +1,13 @@
-import { Router } from "express";
+import { type Response, Router } from "express";
+import crypto from "crypto";
 import { existsSync, readFileSync } from "fs";
 import { getSessionEmail } from "../sessionAuth";
 import { trackUsageEvent } from "../usageTracking";
 
 const router = Router();
 const PAPERCLIP_URL = process.env.PAPERCLIP_URL ?? "http://127.0.0.1:3100";
+const PAPERCLIP_SSO_SECRET =
+  process.env.PAPERCLIP_SSO_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || "openclaw-paperclip-sso";
 const PAPERCLIP_BOOTSTRAP_INVITE_FILE =
   process.env.PAPERCLIP_BOOTSTRAP_INVITE_FILE ?? "/paperclip-data/bootstrap_invite_url.txt";
 const PAPERCLIP_BOOTSTRAP_INVITE_URL = process.env.PAPERCLIP_BOOTSTRAP_INVITE_URL?.trim() || null;
@@ -50,6 +53,86 @@ async function resolvePaperclipLaunchUrl(): Promise<string> {
   return "/paperclip?paperclip=1";
 }
 
+function derivePaperclipPassword(email: string): string {
+  const digest = crypto
+    .createHmac("sha256", PAPERCLIP_SSO_SECRET)
+    .update(email.trim().toLowerCase())
+    .digest("hex");
+
+  // Meets strong password requirements while staying deterministic per user.
+  return `${digest.slice(0, 20)}Aa!9${digest.slice(20, 40)}`;
+}
+
+function deriveDisplayName(email: string): string {
+  const localPart = email.split("@")[0] ?? "User";
+  const normalized = localPart.replace(/[._-]+/g, " ").trim();
+  if (!normalized) return "User";
+  return normalized
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function getResponseCookies(response: Response): string[] {
+  const withGetSetCookie = response.headers as unknown as { getSetCookie?: () => string[] };
+  if (typeof withGetSetCookie.getSetCookie === "function") {
+    return withGetSetCookie.getSetCookie();
+  }
+
+  const single = response.headers.get("set-cookie");
+  return single ? [single] : [];
+}
+
+function appendSetCookies(res: Response, cookies: string[]): void {
+  if (!cookies.length) return;
+
+  const current = res.getHeader("set-cookie");
+  const existing = Array.isArray(current) ? current.map(String) : current ? [String(current)] : [];
+  // Keep cookies host-only and preserve all other attributes from Paperclip.
+  const normalized = cookies.map((cookie) => cookie.replace(/;\s*Domain=[^;]+/i, ""));
+  res.setHeader("set-cookie", [...existing, ...normalized]);
+}
+
+async function paperclipAuthRequest(
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<Response> {
+  return fetch(`${PAPERCLIP_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+    redirect: "manual",
+  });
+}
+
+async function ensurePaperclipSession(sessionEmail: string, res: Response): Promise<void> {
+  const email = sessionEmail.trim().toLowerCase();
+  const password = derivePaperclipPassword(email);
+
+  const signInPayload = {
+    email,
+    password,
+    rememberMe: true,
+  };
+
+  let signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
+
+  if (!signInResponse.ok) {
+    // First-time user flow: create account, then sign in.
+    await paperclipAuthRequest("/api/auth/sign-up/email", {
+      email,
+      password,
+      name: deriveDisplayName(email),
+    });
+    signInResponse = await paperclipAuthRequest("/api/auth/sign-in/email", signInPayload);
+  }
+
+  appendSetCookies(res, getResponseCookies(signInResponse));
+}
+
 router.get("/paperclip/launch", async (req, res) => {
   const sessionEmail = getSessionEmail(req);
   if (!sessionEmail) {
@@ -59,6 +142,12 @@ router.get("/paperclip/launch", async (req, res) => {
   await trackUsageEvent(sessionEmail, "paperclip_open", {
     source: "dashboard",
   });
+
+  try {
+    await ensurePaperclipSession(sessionEmail, res);
+  } catch {
+    // Keep launch resilient: if Paperclip auth bridge fails transiently, the UI can still load.
+  }
 
   const launchUrl = await resolvePaperclipLaunchUrl();
 
