@@ -80,33 +80,6 @@ function getSharedGatewayToken(): string | null {
   return token || null;
 }
 
-let cachedScopedGatewayToken: { token: string; expiresAt: number } | null = null;
-
-async function getScopedGatewayToken(): Promise<string | null> {
-  const now = Date.now();
-  if (cachedScopedGatewayToken && cachedScopedGatewayToken.expiresAt > now) {
-    return cachedScopedGatewayToken.token;
-  }
-
-  const dashboardResult = await runOpenClawCli(["dashboard", "--no-open"], 20_000);
-  const dashboardOutput = `${dashboardResult.stdout}\n${dashboardResult.stderr}`;
-  const tokenMatch = dashboardOutput.match(/[?#&]token=([^&#\s]+)/i);
-  if (tokenMatch?.[1]) {
-    const token = decodeURIComponent(tokenMatch[1]);
-    // Dashboard tokens are short-lived; refresh conservatively every 3 minutes.
-    cachedScopedGatewayToken = { token, expiresAt: now + 3 * 60_000 };
-    return token;
-  }
-
-  // Fallback to shared gateway token when dashboard token generation fails.
-  const sharedToken = getSharedGatewayToken();
-  if (sharedToken) {
-    return sharedToken;
-  }
-
-  return null;
-}
-
 function getLocalOpenClawConfigPath(): string {
   return path.join(os.homedir(), ".openclaw", "openclaw.json");
 }
@@ -501,7 +474,9 @@ router.get("/launch", async (req, res) => {
   // so users skip manual dashboard connection and token entry.
   const sharedGateway = getSharedGatewayInstanceUrl();
   if (sharedGateway) {
-    const token = await getScopedGatewayToken();
+    // Use the stable shared gateway token for embedded web chat connections.
+    // Dashboard-scoped tokens can rotate/expire and cause websocket disconnect loops.
+    const token = getSharedGatewayToken();
     const queryParams = new URLSearchParams();
     if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
