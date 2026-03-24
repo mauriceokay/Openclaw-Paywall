@@ -804,7 +804,14 @@ function stripIframeHeaders(res: express.Response) {
     const relaxed = csp
       .replace(/frame-ancestors[^;]*(;|$)/g, "")
       .replace(/frame-src[^;]*(;|$)/g, "");
-    res.setHeader("content-security-policy", relaxed);
+    let normalized = relaxed;
+    if (/script-src/i.test(normalized) && !/unsafe-inline/i.test(normalized)) {
+      normalized = normalized.replace(
+        /script-src\s+([^;]*)/i,
+        (_full, sources: string) => `script-src ${sources} 'unsafe-inline' 'unsafe-eval'`,
+      );
+    }
+    res.setHeader("content-security-policy", normalized);
   }
 }
 
