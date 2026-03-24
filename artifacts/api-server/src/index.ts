@@ -175,6 +175,7 @@ const server = createServer(app);
 const wsProxy = createProxyMiddleware({
   target: GATEWAY_URL,
   changeOrigin: false,
+  pathRewrite: { "^/api/gateway": "" },
   ws: true,
   on: {
     proxyReqWs: (proxyReq) => {
