@@ -162,6 +162,17 @@ export function Dashboard() {
     enabled: true,
   });
 
+  const { data: adminMe } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["admin-me", user?.email],
+    enabled: !!user?.email,
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/api/admin/me`, { credentials: "include" });
+      if (!res.ok) return { isAdmin: false };
+      return (await res.json()) as { isAdmin: boolean };
+    },
+    retry: false,
+  });
+
   const queryClient = useQueryClient();
 
   const { data: gatewayData, isLoading: gatewayLoading } = useQuery<{ enabled: boolean }>({
@@ -647,6 +658,17 @@ export function Dashboard() {
                 <BarChart2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
                 See Usage
               </Button>
+              {adminMe?.isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="border-white/10 hover:bg-white/5 text-sm"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 mr-1.5 text-amber-300" />
+                  Admin
+                </Button>
+              )}
             </div>
           </div>
         </div>

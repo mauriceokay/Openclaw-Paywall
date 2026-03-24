@@ -22,6 +22,7 @@ import { Blog } from "@/pages/Blog";
 import { BlogPost } from "@/pages/BlogPost";
 import { Usage } from "@/pages/Usage";
 import { ManageSubscription } from "@/pages/ManageSubscription";
+import { Admin } from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ function Router() {
             <Route path="/blog/:slug" component={BlogPost} />
             <Route path="/usage" component={Usage} />
             <Route path="/subscription" component={ManageSubscription} />
+            <Route path="/admin" component={Admin} />
             <Route component={NotFound} />
           </Switch>
         </Layout>
