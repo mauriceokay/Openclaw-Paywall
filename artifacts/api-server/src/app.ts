@@ -983,7 +983,8 @@ app.use(
         callback(null, true);
         return;
       }
-      callback(new Error("CORS origin not allowed"));
+      // Reject cross-origin browser reads without turning this into a server error.
+      callback(null, false);
     },
   }),
 );

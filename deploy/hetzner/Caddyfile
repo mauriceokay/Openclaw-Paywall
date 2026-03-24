@@ -4,6 +4,16 @@ www.getlobster.org {
 
 getlobster.org {
   encode zstd gzip
+  header {
+    Strict-Transport-Security "max-age=31536000"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    X-Frame-Options "SAMEORIGIN"
+    Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss: ws: data: blob:; img-src 'self' https: data: blob:; font-src 'self' https: data:; style-src 'self' https: 'unsafe-inline'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+    -X-Powered-By
+  }
+
   handle_path /api/deploy {
     reverse_proxy deploy-hook:9000
   }
@@ -14,13 +24,7 @@ getlobster.org {
     path /api/gateway /api/gateway/
   }
   handle @gateway_ws {
-    reverse_proxy gateway:3005 {
-      header_down Strict-Transport-Security "max-age=31536000"
-      header_down X-Content-Type-Options "nosniff"
-      header_down Referrer-Policy "strict-origin-when-cross-origin"
-      header_down Permissions-Policy "camera=(), microphone=(), geolocation=()"
-      header_down X-Frame-Options "SAMEORIGIN"
-    }
+    reverse_proxy gateway:3005
   }
 
   reverse_proxy app:8080 {
@@ -28,13 +32,6 @@ getlobster.org {
       versions 1.1
     }
     # Allow embedded OpenClaw/Paperclip apps to render inside dashboard iframes.
-    header_down -X-Powered-By
     header_down -Content-Security-Policy
-    header_down Strict-Transport-Security "max-age=31536000"
-    header_down X-Content-Type-Options "nosniff"
-    header_down Referrer-Policy "strict-origin-when-cross-origin"
-    header_down Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    header_down X-Frame-Options "SAMEORIGIN"
-    header_down Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss: ws: data: blob:; img-src 'self' https: data: blob:; font-src 'self' https: data:; style-src 'self' https: 'unsafe-inline'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
   }
 }
