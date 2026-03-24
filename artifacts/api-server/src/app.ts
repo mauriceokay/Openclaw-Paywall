@@ -217,9 +217,12 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
     },
   };
 
-  // Do not run DOM text-rewrite on OpenClaw Control UI pages.
-  // It can interfere with dynamic rendering and cause blank/black screens.
-  const selected = target === "paperclip" ? paperclipTranslations[locale] ?? {} : {};
+  // Keep OpenClaw translation lightweight: short retry window instead of a long-lived
+  // mutation observer to avoid rendering regressions on dynamic canvas/chat views.
+  const selected =
+    target === "paperclip"
+      ? paperclipTranslations[locale] ?? {}
+      : openClawTranslations[locale] ?? {};
 
   const script = `
 <script>
@@ -247,21 +250,34 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
 
       if (!translations || Object.keys(translations).length === 0) return;
 
+      var normalize = function(value) {
+        return String(value || "").replace(/\s+/g, " ").trim();
+      };
+      var normalized = {};
+      Object.keys(translations).forEach(function(key) {
+        normalized[normalize(key)] = translations[key];
+      });
+
       var replace = function() {
         try {
           var nodes = document.querySelectorAll("body *");
           nodes.forEach(function(node) {
             if (!node) return;
             if (node.childElementCount === 0) {
-              var text = (node.textContent || "").trim();
-              if (text && translations[text]) node.textContent = translations[text];
+              var text = normalize(node.textContent);
+              if (text) {
+                var nextText = translations[text] || normalized[text];
+                if (nextText && node.textContent !== nextText) {
+                  node.textContent = nextText;
+                }
+              }
             }
             var aria = node.getAttribute && node.getAttribute("aria-label");
             if (aria && translations[aria]) node.setAttribute("aria-label", translations[aria]);
             if (node instanceof HTMLInputElement) {
-              var ph = (node.placeholder || "").trim();
+              var ph = normalize(node.placeholder || "");
               if (ph && translations[ph]) node.placeholder = translations[ph];
-              var value = (node.value || "").trim();
+              var value = normalize(node.value || "");
               if (value && translations[value]) node.value = translations[value];
             }
           });
@@ -269,8 +285,20 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       };
 
       replace();
-      var observer = new MutationObserver(function() { replace(); });
-      observer.observe(document.documentElement, { childList: true, subtree: true });
+      if (target === "openclaw") {
+        var tries = 0;
+        var maxTries = 40;
+        var timer = window.setInterval(function() {
+          tries += 1;
+          replace();
+          if (tries >= maxTries) {
+            window.clearInterval(timer);
+          }
+        }, 500);
+      } else {
+        var observer = new MutationObserver(function() { replace(); });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+      }
     } catch (_err) {}
   })();
 </script>`;
