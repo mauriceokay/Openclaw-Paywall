@@ -324,11 +324,10 @@ app.post(
   },
 );
 
-const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response>({
+const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
   changeOrigin: false,
   pathRewrite: { "^/api/gateway": "" },
-  ws: true,
   selfHandleResponse: true,
   on: {
     proxyReq: (proxyReq, req) => {
@@ -422,6 +421,18 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   },
 });
 
+const gatewayPassthroughProxy = createProxyMiddleware<express.Request, express.Response>({
+  target: GATEWAY_URL,
+  changeOrigin: false,
+  pathRewrite: { "^/api/gateway": "" },
+  ws: true,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      setLocaleHeaders(proxyReq, req);
+    },
+  },
+});
+
 app.use("/api/gateway", cookieParser(), async (req, res, next) => {
   if (req.method === "GET" && req.path === "/chat") {
     const incomingGatewayUrl = typeof req.query.gatewayUrl === "string" ? req.query.gatewayUrl.trim() : "";
@@ -439,9 +450,12 @@ app.use("/api/gateway", cookieParser(), async (req, res, next) => {
     if (sessionEmail) {
       await trackUsageEvent(sessionEmail, "terminal_open", { source: "gateway_chat_route" });
     }
+
+    return gatewayChatProxy(req, res, next);
   }
-  next();
-}, gatewayHttpProxy);
+
+  return gatewayPassthroughProxy(req, res, next);
+});
 
 // Fallback: some local routes can land on /chat without the /api/gateway prefix.
 // Redirecting keeps the control UI reachable instead of showing a proxy failure.
