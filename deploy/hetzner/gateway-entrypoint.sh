@@ -61,6 +61,7 @@ cfg.gateway.controlUi = cfg.gateway.controlUi || {};
 cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
+cfg.gateway.tailscale = { mode: "off" };
 const bundledControlUiIndex = "/usr/local/lib/node_modules/openclaw/dist/control-ui/index.html";
 const fallbackControlUiRoot = "/usr/local/lib/node_modules/openclaw/dist/canvas-host/a2ui";
 if (!fs.existsSync(bundledControlUiIndex) && fs.existsSync(`${fallbackControlUiRoot}/index.html`)) {
@@ -105,7 +106,7 @@ fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
 
 if [ -n "${TOKEN}" ]; then
-  exec openclaw gateway run --allow-unconfigured --port "${PORT}" --token "${TOKEN}"
+  exec openclaw gateway run --allow-unconfigured --port "${PORT}" --token "${TOKEN}" --tailscale off
 fi
 
-exec openclaw gateway run --allow-unconfigured --port "${PORT}"
+exec openclaw gateway run --allow-unconfigured --port "${PORT}" --tailscale off
