@@ -343,9 +343,14 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
           return null;
         };
         var queryLocale = null;
+        var cookieLocale = null;
         try {
           var search = new URLSearchParams(window.location.search || "");
           queryLocale = normalizeLocale(search.get("oc_lang"));
+        } catch (_err) {}
+        try {
+          var cookieMatch = document.cookie.match(/(?:^|;\\s*)oc_locale=([^;]+)/);
+          cookieLocale = normalizeLocale(cookieMatch ? decodeURIComponent(cookieMatch[1]) : null);
         } catch (_err) {}
         var keys = ["openclaw.locale", "openclaw.control.locale", "openclaw.control.language", "oc.locale"];
         keys.forEach(function(k) {
@@ -364,6 +369,7 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
           }
         } catch (_err) {}
         if (queryLocale) locale = queryLocale;
+        else if (cookieLocale) locale = cookieLocale;
         else if (storedLocale) locale = storedLocale;
         if (localeMaps && localeMaps[locale]) {
           translations = localeMaps[locale];
