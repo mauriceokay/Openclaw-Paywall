@@ -12,5 +12,8 @@ getlobster.org {
     transport http {
       versions 1.1
     }
+    # Allow embedded OpenClaw/Paperclip apps to render inside dashboard iframes.
+    header_down -X-Frame-Options
+    header_down -Content-Security-Policy
   }
 }
