@@ -4,6 +4,10 @@ www.getlobster.org {
 
 getlobster.org {
   encode zstd gzip
+  header {
+    # Enforce HTTPS for subsequent requests.
+    Strict-Transport-Security "max-age=31536000"
+  }
   handle_path /api/deploy {
     reverse_proxy deploy-hook:9000
   }
