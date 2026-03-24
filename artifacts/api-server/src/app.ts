@@ -142,6 +142,28 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       Logs: "\u30ed\u30b0",
       Protokolle: "\u30ed\u30b0",
       Chat: "\u30c1\u30e3\u30c3\u30c8",
+      "Paired devices, skills, and command approvals.": "\u30da\u30a2\u30ea\u30f3\u30b0\u6e08\u307f\u30c7\u30d0\u30a4\u30b9\u3001\u30b9\u30ad\u30eb\u3001\u30b3\u30de\u30f3\u30c9\u627f\u8a8d\u3002",
+      "Gekoppelte Ger\u00e4te, F\u00e4higkeiten und Befehlsfreigabe.": "\u30da\u30a2\u30ea\u30f3\u30b0\u6e08\u307f\u30c7\u30d0\u30a4\u30b9\u3001\u30b9\u30ad\u30eb\u3001\u30b3\u30de\u30f3\u30c9\u627f\u8a8d\u3002",
+      "Exec approvals": "\u5b9f\u884c\u627f\u8a8d",
+      "Allowlist and approval policy for exec host=gateway/node.": "exec host=gateway/node \u306e\u8a31\u53ef\u30ea\u30b9\u30c8\u3068\u627f\u8a8d\u30dd\u30ea\u30b7\u30fc\u3002",
+      Save: "\u4fdd\u5b58",
+      Target: "\u5bfe\u8c61",
+      "Gateway edits local approvals; node edits the selected node.": "Gateway \u306f\u30ed\u30fc\u30ab\u30eb\u627f\u8a8d\u3092\u7de8\u96c6\u3057\u3001node \u306f\u9078\u629e\u30ce\u30fc\u30c9\u3092\u7de8\u96c6\u3057\u307e\u3059\u3002",
+      Host: "\u30db\u30b9\u30c8",
+      Scope: "\u30b9\u30b3\u30fc\u30d7",
+      Defaults: "\u30c7\u30d5\u30a9\u30eb\u30c8",
+      Security: "\u30bb\u30ad\u30e5\u30ea\u30c6\u30a3",
+      "Default security mode.": "\u30c7\u30d5\u30a9\u30eb\u30c8\u306e\u30bb\u30ad\u30e5\u30ea\u30c6\u30a3\u30e2\u30fc\u30c9\u3002",
+      Mode: "\u30e2\u30fc\u30c9",
+      Deny: "\u62d2\u5426",
+      Ask: "\u78ba\u8a8d",
+      "Default prompt policy.": "\u30c7\u30d5\u30a9\u30eb\u30c8\u306e\u30d7\u30ed\u30f3\u30d7\u30c8\u30dd\u30ea\u30b7\u30fc\u3002",
+      "On miss": "\u672a\u4e00\u81f4\u6642",
+      "Ask fallback": "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u3067\u78ba\u8a8d",
+      "Applied when the UI prompt is unavailable.": "UI \u30d7\u30ed\u30f3\u30d7\u30c8\u304c\u5229\u7528\u3067\u304d\u306a\u3044\u5834\u5408\u306b\u9069\u7528\u3055\u308c\u307e\u3059\u3002",
+      Fallback: "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af",
+      "Auto-allow skill CLIs": "\u30b9\u30ad\u30eb CLI \u3092\u81ea\u52d5\u8a31\u53ef",
+      "Allow skill executables listed by the Gateway.": "Gateway \u306b\u4e00\u89a7\u3055\u308c\u305f\u30b9\u30ad\u30eb\u5b9f\u884c\u30d5\u30a1\u30a4\u30eb\u3092\u8a31\u53ef\u3057\u307e\u3059\u3002",
     },
     ko: {
       "Gateway Dashboard": "\uac8c\uc774\ud2b8\uc6e8\uc774 \ub300\uc2dc\ubcf4\ub4dc",
@@ -260,25 +282,55 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
 
       var replace = function() {
         try {
-          var nodes = document.querySelectorAll("body *");
-          nodes.forEach(function(node) {
-            if (!node) return;
-            if (node.childElementCount === 0) {
-              var text = normalize(node.textContent);
-              if (text) {
-                var nextText = translations[text] || normalized[text];
-                if (nextText && node.textContent !== nextText) {
-                  node.textContent = nextText;
+          var textWalker = document.createTreeWalker(
+            document.body || document.documentElement,
+            NodeFilter.SHOW_TEXT
+          );
+          var currentTextNode = textWalker.nextNode();
+          while (currentTextNode) {
+            var parentTag =
+              currentTextNode.parentElement && currentTextNode.parentElement.tagName
+                ? currentTextNode.parentElement.tagName.toLowerCase()
+                : "";
+            if (parentTag !== "script" && parentTag !== "style" && parentTag !== "noscript") {
+              var rawText = currentTextNode.nodeValue || "";
+              var normalizedText = normalize(rawText);
+              if (normalizedText) {
+                var translatedText = translations[normalizedText] || normalized[normalizedText];
+                if (translatedText) {
+                  var leading = rawText.match(/^\s*/);
+                  var trailing = rawText.match(/\s*$/);
+                  var nextRaw =
+                    (leading ? leading[0] : "") +
+                    translatedText +
+                    (trailing ? trailing[0] : "");
+                  if (nextRaw !== rawText) {
+                    currentTextNode.nodeValue = nextRaw;
+                  }
                 }
               }
             }
+            currentTextNode = textWalker.nextNode();
+          }
+
+          var nodes = document.querySelectorAll("body *");
+          nodes.forEach(function(node) {
+            if (!node) return;
             var aria = node.getAttribute && node.getAttribute("aria-label");
-            if (aria && translations[aria]) node.setAttribute("aria-label", translations[aria]);
+            if (aria) {
+              var normalizedAria = normalize(aria);
+              var translatedAria = translations[normalizedAria] || normalized[normalizedAria];
+              if (translatedAria && aria !== translatedAria) {
+                node.setAttribute("aria-label", translatedAria);
+              }
+            }
             if (node instanceof HTMLInputElement) {
               var ph = normalize(node.placeholder || "");
-              if (ph && translations[ph]) node.placeholder = translations[ph];
+              var translatedPlaceholder = translations[ph] || normalized[ph];
+              if (ph && translatedPlaceholder) node.placeholder = translatedPlaceholder;
               var value = normalize(node.value || "");
-              if (value && translations[value]) node.value = translations[value];
+              var translatedValue = translations[value] || normalized[value];
+              if (value && translatedValue) node.value = translatedValue;
             }
           });
         } catch (_err) {}
