@@ -14,6 +14,7 @@ const app: Express = express();
 // Respect X-Forwarded-* headers from Caddy/edge proxy so req.protocol is accurate
 // (required for generating wss:// gateway URLs on HTTPS domains).
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
 const GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:3005").trim();
 function resolveGatewayToken(raw: string | undefined): string | null {
   const token = raw?.trim();
@@ -954,7 +955,38 @@ app.use("/api/instance-proxy", async (req, res, next) => {
   }
 });
 
-app.use(cors());
+function isAllowedCorsOrigin(origin: string): boolean {
+  const appUrl = process.env.APP_URL?.trim();
+  if (appUrl) {
+    try {
+      if (new URL(appUrl).origin === origin) return true;
+    } catch {}
+  }
+
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+    return true;
+  }
+
+  return origin === "https://getlobster.org" || origin === "https://www.getlobster.org";
+}
+
+app.use(
+  cors({
+    credentials: true,
+    origin: (origin, callback) => {
+      // Non-browser or same-origin requests may not send Origin.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (isAllowedCorsOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("CORS origin not allowed"));
+    },
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
