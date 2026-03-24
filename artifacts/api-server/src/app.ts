@@ -325,15 +325,65 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
         return String(value || "").replace(/\\s+/g, " ").trim();
       };
       var normalized = {};
+      var normalizedLower = {};
       Object.keys(translations).forEach(function(key) {
-        normalized[normalize(key)] = translations[key];
+        var normalizedKey = normalize(key);
+        normalized[normalizedKey] = translations[key];
+        normalizedLower[normalizedKey.toLowerCase()] = translations[key];
       });
 
       var translateText = function(text) {
         var key = normalize(text);
         if (!key) return null;
-        var direct = translations[key] || normalized[key];
+        var direct = translations[key] || normalized[key] || normalizedLower[key.toLowerCase()];
         if (direct) return direct;
+
+        if (locale === "ja") {
+          var lowerKey = key.toLowerCase();
+          if (lowerKey.indexOf("broadcast and notification settings") !== -1) {
+            return translations["Broadcast and notification settings"] || null;
+          }
+          if (lowerKey.indexOf("broadcast strategy") !== -1) {
+            return translations["Broadcast Strategy"] || null;
+          }
+          if (
+            lowerKey.indexOf("delivery order for broadcast fan-out") !== -1 &&
+            lowerKey.indexOf("parallel") !== -1 &&
+            lowerKey.indexOf("sequential") !== -1
+          ) {
+            return (
+              translations[
+                "Delivery order for broadcast fan-out: \"parallel\" sends to all targets concurrently, while \"sequential\" sends one-by-one. Use \"parallel\" for speed and \"sequential\" for stricter ordering/backpressure control."
+              ] || null
+            );
+          }
+          if (lowerKey.indexOf("custom entries") !== -1) {
+            return translations["Custom entries"] || null;
+          }
+          if (lowerKey.indexOf("add entry") !== -1) {
+            return translations["Add Entry"] || null;
+          }
+          if (lowerKey.indexOf("no custom entries") !== -1) {
+            return translations["No custom entries."] || null;
+          }
+          if (lowerKey.indexOf("audio input/output settings") !== -1) {
+            return translations["Audio input/output settings"] || null;
+          }
+          if (lowerKey.indexOf("audio transcription") !== -1) {
+            return translations["Audio Transcription"] || null;
+          }
+          if (
+            lowerKey.indexOf("command-based transcription settings") !== -1 &&
+            lowerKey.indexOf("audio files") !== -1 &&
+            lowerKey.indexOf("text") !== -1
+          ) {
+            return (
+              translations["Command-based transcription settings for converting audio files into text before processing."] ||
+              translations["Command-based transcription settings for converting audio files into text bef"] ||
+              null
+            );
+          }
+        }
 
         var pendingMatch = key.match(/^View\\s+(\\d+)\\s+pending\\s+changes?$/i);
         if (pendingMatch) {
@@ -384,6 +434,27 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
               var translatedAria = translateText(aria);
               if (translatedAria && aria !== translatedAria) {
                 node.setAttribute("aria-label", translatedAria);
+              }
+            }
+            var titleAttr = node.getAttribute && node.getAttribute("title");
+            if (titleAttr) {
+              var translatedTitle = translateText(titleAttr);
+              if (translatedTitle && titleAttr !== translatedTitle) {
+                node.setAttribute("title", translatedTitle);
+              }
+            }
+            var labelAttr = node.getAttribute && node.getAttribute("label");
+            if (labelAttr) {
+              var translatedLabel = translateText(labelAttr);
+              if (translatedLabel && labelAttr !== translatedLabel) {
+                node.setAttribute("label", translatedLabel);
+              }
+            }
+            var dataLabel = node.getAttribute && node.getAttribute("data-label");
+            if (dataLabel) {
+              var translatedDataLabel = translateText(dataLabel);
+              if (translatedDataLabel && dataLabel !== translatedDataLabel) {
+                node.setAttribute("data-label", translatedDataLabel);
               }
             }
             if (node instanceof HTMLInputElement) {
