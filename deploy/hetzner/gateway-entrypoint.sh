@@ -65,8 +65,11 @@ cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
 cfg.gateway.tailscale = { mode: "off" };
-// Never force canvas-host root here; it can trap users in the raw canvas shell.
-if (cfg.gateway.controlUi.root) {
+const bundledControlUiIndex = "/usr/local/lib/node_modules/openclaw/dist/control-ui/index.html";
+const fallbackControlUiRoot = "/usr/local/lib/node_modules/openclaw/dist/canvas-host/a2ui";
+if (!fs.existsSync(bundledControlUiIndex) && fs.existsSync(`${fallbackControlUiRoot}/index.html`)) {
+  cfg.gateway.controlUi.root = fallbackControlUiRoot;
+} else if (cfg.gateway.controlUi.root === fallbackControlUiRoot) {
   delete cfg.gateway.controlUi.root;
 }
 
