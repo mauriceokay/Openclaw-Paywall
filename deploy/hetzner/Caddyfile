@@ -18,7 +18,9 @@ getlobster.org {
     path /api/gateway /api/gateway/
   }
   handle @gateway_ws {
-    reverse_proxy gateway:3005
+    reverse_proxy gateway:3005 {
+      header_down Strict-Transport-Security "max-age=31536000"
+    }
   }
 
   reverse_proxy app:8080 {
@@ -28,5 +30,6 @@ getlobster.org {
     # Allow embedded OpenClaw/Paperclip apps to render inside dashboard iframes.
     header_down -X-Frame-Options
     header_down -Content-Security-Policy
+    header_down Strict-Transport-Security "max-age=31536000"
   }
 }
