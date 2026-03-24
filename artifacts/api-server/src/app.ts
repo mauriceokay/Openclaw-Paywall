@@ -212,6 +212,24 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       media: "\u30e1\u30c7\u30a3\u30a2",
       "Command-based transcription settings for converting audio files into text before processing.": "\u51e6\u7406\u524d\u306b\u97f3\u58f0\u30d5\u30a1\u30a4\u30eb\u3092\u30c6\u30ad\u30b9\u30c8\u5316\u3059\u308b\u30b3\u30de\u30f3\u30c9\u30d9\u30fc\u30b9\u6587\u5b57\u8d77\u3053\u3057\u8a2d\u5b9a\u3002",
       "Command-based transcription settings for converting audio files into text bef": "\u51e6\u7406\u524d\u306b\u97f3\u58f0\u30d5\u30a1\u30a4\u30eb\u3092\u30c6\u30ad\u30b9\u30c8\u5316\u3059\u308b\u30b3\u30de\u30f3\u30c9\u30d9\u30fc\u30b9\u6587\u5b57\u8d77\u3053\u3057\u8a2d\u5b9a",
+      "Link WhatsApp Web and monitor connection health.": "WhatsApp Web\u3092\u30ea\u30f3\u30af\u3057\u3001\u63a5\u7d9a\u72b6\u614b\u3092\u76e3\u8996\u3057\u307e\u3059\u3002",
+      Configured: "\u8a2d\u5b9a\u6e08\u307f",
+      Linked: "\u9023\u643a\u6e08\u307f",
+      Running: "\u7a3c\u50cd\u4e2d",
+      Connected: "\u63a5\u7d9a\u6e08\u307f",
+      "Last connect": "\u6700\u7d42\u63a5\u7d9a",
+      "Last message": "\u6700\u7d42\u30e1\u30c3\u30bb\u30fc\u30b8",
+      "Auth age": "\u8a8d\u8a3c\u7d4c\u904e\u6642\u9593",
+      "Show QR": "QR\u3092\u8868\u793a",
+      Relink: "\u518d\u30ea\u30f3\u30af",
+      "Wait for scan": "\u30b9\u30ad\u30e3\u30f3\u5f85\u6a5f",
+      Logout: "\u30ed\u30b0\u30a2\u30a6\u30c8",
+      Refresh: "\u66f4\u65b0",
+      "Unsupported type: . Use Raw mode.": "\u672a\u5bfe\u5fdc\u306e\u30bf\u30a4\u30d7\u3067\u3059\u3002Raw \u30e2\u30fc\u30c9\u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+      "Use Raw mode.": "Raw \u30e2\u30fc\u30c9\u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+      "n/a": "\u8a72\u5f53\u306a\u3057",
+      No: "\u3044\u3044\u3048",
+      Yes: "\u306f\u3044",
       Auto: "\u81ea\u52d5",
     },
     ko: {
@@ -380,6 +398,16 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
             return (
               translations["Command-based transcription settings for converting audio files into text before processing."] ||
               translations["Command-based transcription settings for converting audio files into text bef"] ||
+              null
+            );
+          }
+          if (lowerKey.indexOf("link whatsapp web and monitor connection health") !== -1) {
+            return translations["Link WhatsApp Web and monitor connection health."] || null;
+          }
+          if (lowerKey.indexOf("unsupported type:") === 0 && lowerKey.indexOf("use raw mode") !== -1) {
+            return (
+              translations["Unsupported type: . Use Raw mode."] ||
+              translations["Use Raw mode."] ||
               null
             );
           }
