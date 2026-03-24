@@ -294,10 +294,6 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   changeOrigin: false,
   ws: true,
   selfHandleResponse: true,
-  pathRewrite: (incomingPath) => {
-    const rewritten = incomingPath.replace(/^\/api\/gateway/, "");
-    return rewritten.length > 0 ? rewritten : "/";
-  },
   on: {
     proxyReq: (proxyReq, req) => {
       setLocaleHeaders(proxyReq, req);
