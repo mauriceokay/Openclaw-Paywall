@@ -351,7 +351,8 @@ const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response
     var envToken = ${JSON.stringify(GATEWAY_TOKEN ?? "")};
     var queryParams = new URLSearchParams(window.location.search);
     var hashParams = new URLSearchParams(window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash);
-    var token = (queryParams.get("token") || hashParams.get("token") || envToken || "").trim();
+    // Always prioritize server-side token to avoid stale/cached URL token mismatches.
+    var token = (envToken || queryParams.get("token") || hashParams.get("token") || "").trim();
     if (!token) return;
     window.__OC_GATEWAY_TOKEN__ = token;
     var params = new URLSearchParams(window.location.search);
