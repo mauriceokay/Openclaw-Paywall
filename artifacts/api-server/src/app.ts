@@ -805,7 +805,8 @@ function stripIframeHeaders(res: express.Response) {
       .replace(/frame-ancestors[^;]*(;|$)/g, "")
       .replace(/frame-src[^;]*(;|$)/g, "");
     let normalized = relaxed;
-    if (/script-src/i.test(normalized) && !/unsafe-inline/i.test(normalized)) {
+    const scriptAllowsInline = /script-src[^;]*unsafe-inline/i.test(normalized);
+    if (/script-src/i.test(normalized) && !scriptAllowsInline) {
       normalized = normalized.replace(
         /script-src\s+([^;]*)/i,
         (_full, sources: string) => `script-src ${sources} 'unsafe-inline' 'unsafe-eval'`,
