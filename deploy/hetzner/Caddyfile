@@ -8,6 +8,15 @@ getlobster.org {
     reverse_proxy deploy-hook:9000
   }
 
+  # WebSocket upgrades for the gateway should go directly to the gateway service.
+  # Keep /api/gateway/chat on the app so token/bootstrap scripts can be injected.
+  @gateway_ws {
+    path /api/gateway /api/gateway/
+  }
+  handle @gateway_ws {
+    reverse_proxy gateway:3005
+  }
+
   reverse_proxy app:8080 {
     transport http {
       versions 1.1
