@@ -341,6 +341,8 @@ const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response
       if (contentType.includes("text/html") || (req.path.includes("/chat") && looksLikeHtml)) {
         let html = responseBuffer.toString("utf8");
         const locale = resolveEmbeddedLocale(req);
+        const uiVersion = (process.env.OPENCLAW_UI_VERSION ?? "20260324").trim();
+        html = html.replace(/a2ui\.bundle\.js(\?[^"']*)?/g, `a2ui.bundle.js?ocv=${encodeURIComponent(uiVersion)}`);
         const tokenScript = `
 <script>
   (function() {
