@@ -216,7 +216,9 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
     },
   };
 
-  const selected = target === "paperclip" ? paperclipTranslations[locale] ?? {} : openClawTranslations[locale] ?? {};
+  // Do not run DOM text-rewrite on OpenClaw Control UI pages.
+  // It can interfere with dynamic rendering and cause blank/black screens.
+  const selected = target === "paperclip" ? paperclipTranslations[locale] ?? {} : {};
 
   const script = `
 <script>
