@@ -4,6 +4,7 @@ set -euo pipefail
 CONFIG_DIR="/root/.openclaw"
 CONFIG_FILE="${CONFIG_DIR}/openclaw.json"
 PORT="${OPENCLAW_GATEWAY_PORT:-3005}"
+TOKEN="${OPENCLAW_GATEWAY_TOKEN:-}"
 
 mkdir -p "${CONFIG_DIR}"
 
@@ -35,11 +36,17 @@ try {
   cfg = JSON.parse(fs.readFileSync(path, "utf8"));
 } catch {}
 cfg.gateway = cfg.gateway || {};
-// Hosted Control UI should auto-connect without manual token entry.
-// Force auth mode "none" on every boot to avoid stale persisted token-mode configs.
 cfg.gateway.auth = cfg.gateway.auth || {};
-cfg.gateway.auth.mode = "none";
-delete cfg.gateway.auth.token;
+const token = (process.env.OPENCLAW_GATEWAY_TOKEN || "").trim();
+if (token) {
+  // Use token auth in hosted mode so gateway can bind on LAN safely.
+  cfg.gateway.auth.mode = "token";
+  cfg.gateway.auth.token = token;
+} else {
+  // Fallback for local/dev scenarios.
+  cfg.gateway.auth.mode = "none";
+  delete cfg.gateway.auth.token;
+}
 cfg.gateway.trustedProxies = Array.from(
   new Set([
     ...(Array.isArray(cfg.gateway.trustedProxies) ? cfg.gateway.trustedProxies : []),
@@ -96,5 +103,9 @@ cfg.models.providers.openai.models = normalizedOpenAiModels;
 
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
+
+if [ -n "${TOKEN}" ]; then
+  exec openclaw gateway run --allow-unconfigured --port "${PORT}" --token "${TOKEN}"
+fi
 
 exec openclaw gateway run --allow-unconfigured --port "${PORT}"
