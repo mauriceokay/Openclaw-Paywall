@@ -342,6 +342,11 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
           if (value.indexOf("en") === 0) return "en";
           return null;
         };
+        var queryLocale = null;
+        try {
+          var search = new URLSearchParams(window.location.search || "");
+          queryLocale = normalizeLocale(search.get("oc_lang"));
+        } catch (_err) {}
         var keys = ["openclaw.locale", "openclaw.control.locale", "openclaw.control.language", "oc.locale"];
         keys.forEach(function(k) {
           try {
@@ -358,15 +363,18 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
             if (!storedLocale && nested) storedLocale = nested;
           }
         } catch (_err) {}
-        if (locale === "en" && storedLocale && storedLocale !== "en") {
-          locale = storedLocale;
-        }
+        if (queryLocale) locale = queryLocale;
+        else if (storedLocale) locale = storedLocale;
         if (localeMaps && localeMaps[locale]) {
           translations = localeMaps[locale];
         }
         document.documentElement.lang = locale;
 
         keys.forEach(function(k) { try { localStorage.setItem(k, locale); } catch (_e) {} });
+        try {
+          var encodedLocale = encodeURIComponent(locale);
+          document.cookie = "oc_locale=" + encodedLocale + "; Path=/; Max-Age=31536000; SameSite=Lax";
+        } catch (_err) {}
         try {
           var raw = localStorage.getItem("openclaw.control.settings.v1");
           if (raw) {
