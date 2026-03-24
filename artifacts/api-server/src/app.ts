@@ -309,7 +309,9 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
         const tokenScript = `
 <script>
   (function() {
-    var token = ${JSON.stringify(GATEWAY_TOKEN ?? "")};
+    var envToken = ${JSON.stringify(GATEWAY_TOKEN ?? "")};
+    var hashParams = new URLSearchParams(window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash);
+    var token = (hashParams.get("token") || envToken || "").trim();
     if (!token) return;
     var params = new URLSearchParams(window.location.search);
     var gatewayUrl = params.get("gatewayUrl");
