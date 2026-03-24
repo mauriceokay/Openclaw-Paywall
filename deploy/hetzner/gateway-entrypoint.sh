@@ -5,7 +5,7 @@ CONFIG_DIR="/root/.openclaw"
 CONFIG_FILE="${CONFIG_DIR}/openclaw.json"
 PORT="${OPENCLAW_GATEWAY_PORT:-3005}"
 TOKEN="${OPENCLAW_GATEWAY_TOKEN:-}"
-AUTH_MODE="${OPENCLAW_GATEWAY_AUTH_MODE:-none}"
+AUTH_MODE="${OPENCLAW_GATEWAY_AUTH_MODE:-auto}"
 
 mkdir -p "${CONFIG_DIR}"
 
@@ -39,7 +39,8 @@ try {
 cfg.gateway = cfg.gateway || {};
 cfg.gateway.auth = cfg.gateway.auth || {};
 const token = (process.env.OPENCLAW_GATEWAY_TOKEN || "").trim();
-const authMode = (process.env.OPENCLAW_GATEWAY_AUTH_MODE || "none").trim().toLowerCase();
+const requestedAuthMode = (process.env.OPENCLAW_GATEWAY_AUTH_MODE || "auto").trim().toLowerCase();
+const authMode = requestedAuthMode === "auto" ? (token ? "token" : "none") : requestedAuthMode;
 if (authMode === "token" && token) {
   // Optional token mode for hardened deployments.
   cfg.gateway.auth.mode = "token";
@@ -103,7 +104,16 @@ cfg.models.providers.openai.models = normalizedOpenAiModels;
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
 
-if [ "${AUTH_MODE}" = "token" ] && [ -n "${TOKEN}" ]; then
+EFFECTIVE_AUTH_MODE="${AUTH_MODE}"
+if [ "${AUTH_MODE}" = "auto" ]; then
+  if [ -n "${TOKEN}" ]; then
+    EFFECTIVE_AUTH_MODE="token"
+  else
+    EFFECTIVE_AUTH_MODE="none"
+  fi
+fi
+
+if [ "${EFFECTIVE_AUTH_MODE}" = "token" ] && [ -n "${TOKEN}" ]; then
   exec openclaw gateway run --allow-unconfigured --port "${PORT}" --token "${TOKEN}" --tailscale off
 fi
 
