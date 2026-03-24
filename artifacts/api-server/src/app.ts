@@ -164,6 +164,40 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       Fallback: "\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af",
       "Auto-allow skill CLIs": "\u30b9\u30ad\u30eb CLI \u3092\u81ea\u52d5\u8a31\u53ef",
       "Allow skill executables listed by the Gateway.": "Gateway \u306b\u4e00\u89a7\u3055\u308c\u305f\u30b9\u30ad\u30eb\u5b9f\u884c\u30d5\u30a1\u30a4\u30eb\u3092\u8a31\u53ef\u3057\u307e\u3059\u3002",
+      "1 unsaved change": "1\u4ef6\u306e\u672a\u4fdd\u5b58\u5909\u66f4",
+      "unsaved change": "\u672a\u4fdd\u5b58\u5909\u66f4",
+      "unsaved changes": "\u672a\u4fdd\u5b58\u5909\u66f4",
+      Open: "\u958b\u304f",
+      Reload: "\u518d\u8aad\u307f\u8fbc\u307f",
+      Apply: "\u9069\u7528",
+      Update: "\u66f4\u65b0",
+      "Search settings...": "\u8a2d\u5b9a\u3092\u691c\u7d22...",
+      Environment: "\u74b0\u5883",
+      Authentication: "\u8a8d\u8a3c",
+      Updates: "\u30a2\u30c3\u30d7\u30c7\u30fc\u30c8",
+      Meta: "\u30e1\u30bf",
+      Logging: "\u30ed\u30ae\u30f3\u30b0",
+      Diagnostics: "\u8a3a\u65ad",
+      Cli: "CLI",
+      Secrets: "\u30b7\u30fc\u30af\u30ec\u30c3\u30c8",
+      Acp: "ACP",
+      Mcp: "MCP",
+      Form: "\u30d5\u30a9\u30fc\u30e0",
+      Raw: "\u751f\u30c7\u30fc\u30bf",
+      "View 1 pending change": "1\u4ef6\u306e\u4fdd\u7559\u4e2d\u5909\u66f4\u3092\u8868\u793a",
+      "View 1 pending changes": "1\u4ef6\u306e\u4fdd\u7559\u4e2d\u5909\u66f4\u3092\u8868\u793a",
+      "Auto-update settings and release channel": "\u81ea\u52d5\u66f4\u65b0\u8a2d\u5b9a\u3068\u30ea\u30ea\u30fc\u30b9\u30c1\u30e3\u30f3\u30cd\u30eb",
+      "Auto Update Beta Check Interval (hours)": "\u30d9\u30fc\u30bf\u66f4\u65b0\u30c1\u30a7\u30c3\u30af\u9593\u9694\uff08\u6642\u9593\uff09",
+      "How often beta-channel checks run in hours (default: 1).": "\u30d9\u30fc\u30bf\u30c1\u30e3\u30f3\u30cd\u30eb\u306e\u30c1\u30a7\u30c3\u30af\u983b\u5ea6\uff08\u6642\u9593\u3001\u30c7\u30d5\u30a9\u30eb\u30c8: 1\uff09\u3002",
+      performance: "\u30d1\u30d5\u30a9\u30fc\u30de\u30f3\u30b9",
+      "Auto Update Enabled": "\u81ea\u52d5\u66f4\u65b0\u3092\u6709\u52b9\u5316",
+      "Enable background auto-update for package installs (default: false).": "\u30d1\u30c3\u30b1\u30fc\u30b8\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u306e\u80cc\u666f\u81ea\u52d5\u66f4\u65b0\u3092\u6709\u52b9\u5316\uff08\u30c7\u30d5\u30a9\u30eb\u30c8: false\uff09\u3002",
+      advanced: "\u8a73\u7d30",
+      "Auto Update Stable Delay (hours)": "\u5b89\u5b9a\u7248\u81ea\u52d5\u66f4\u65b0\u9045\u5ef6\uff08\u6642\u9593\uff09",
+      "Minimum delay before stable-channel auto-apply starts (default: 6).": "\u5b89\u5b9a\u30c1\u30e3\u30f3\u30cd\u30eb\u306e\u81ea\u52d5\u9069\u7528\u958b\u59cb\u307e\u3067\u306e\u6700\u5c0f\u9045\u5ef6\uff08\u30c7\u30d5\u30a9\u30eb\u30c8: 6\uff09\u3002",
+      "Auto Update Stable Jitter (hours)": "\u5b89\u5b9a\u7248\u81ea\u52d5\u66f4\u65b0\u30b8\u30c3\u30bf\u30fc\uff08\u6642\u9593\uff09",
+      "Extra stable-channel rollout spread window in hours (default: 12).": "\u5b89\u5b9a\u30c1\u30e3\u30f3\u30cd\u30eb\u5c55\u958b\u306e\u8ffd\u52a0\u5206\u6563\u30a6\u30a3\u30f3\u30c9\u30a6\uff08\u6642\u9593\u3001\u30c7\u30d5\u30a9\u30eb\u30c8: 12\uff09\u3002",
+      Auto: "\u81ea\u52d5",
     },
     ko: {
       "Gateway Dashboard": "\uac8c\uc774\ud2b8\uc6e8\uc774 \ub300\uc2dc\ubcf4\ub4dc",
@@ -280,12 +314,27 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
         normalized[normalize(key)] = translations[key];
       });
 
-      var replace = function() {
+      var translateText = function(text) {
+        var key = normalize(text);
+        if (!key) return null;
+        var direct = translations[key] || normalized[key];
+        if (direct) return direct;
+
+        var pendingMatch = key.match(/^View\\s+(\\d+)\\s+pending\\s+changes?$/i);
+        if (pendingMatch) {
+          return pendingMatch[1] + "\u4ef6\u306e\u4fdd\u7559\u4e2d\u5909\u66f4\u3092\u8868\u793a";
+        }
+        var unsavedMatch = key.match(/^(\\d+)\\s+unsaved\\s+changes?$/i);
+        if (unsavedMatch) {
+          return unsavedMatch[1] + "\u4ef6\u306e\u672a\u4fdd\u5b58\u5909\u66f4";
+        }
+        return null;
+      };
+
+      var processRoot = function(root) {
+        if (!root) return;
         try {
-          var textWalker = document.createTreeWalker(
-            document.body || document.documentElement,
-            NodeFilter.SHOW_TEXT
-          );
+          var textWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
           var currentTextNode = textWalker.nextNode();
           while (currentTextNode) {
             var parentTag =
@@ -294,45 +343,50 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
                 : "";
             if (parentTag !== "script" && parentTag !== "style" && parentTag !== "noscript") {
               var rawText = currentTextNode.nodeValue || "";
-              var normalizedText = normalize(rawText);
-              if (normalizedText) {
-                var translatedText = translations[normalizedText] || normalized[normalizedText];
-                if (translatedText) {
-                  var leading = rawText.match(/^\\s*/);
-                  var trailing = rawText.match(/\\s*$/);
-                  var nextRaw =
-                    (leading ? leading[0] : "") +
-                    translatedText +
-                    (trailing ? trailing[0] : "");
-                  if (nextRaw !== rawText) {
-                    currentTextNode.nodeValue = nextRaw;
-                  }
+              var translatedText = translateText(rawText);
+              if (translatedText) {
+                var leading = rawText.match(/^\\s*/);
+                var trailing = rawText.match(/\\s*$/);
+                var nextRaw =
+                  (leading ? leading[0] : "") +
+                  translatedText +
+                  (trailing ? trailing[0] : "");
+                if (nextRaw !== rawText) {
+                  currentTextNode.nodeValue = nextRaw;
                 }
               }
             }
             currentTextNode = textWalker.nextNode();
           }
+        } catch (_err) {}
 
-          var nodes = document.querySelectorAll("body *");
+        try {
+          var nodes = root.querySelectorAll ? root.querySelectorAll("*") : [];
           nodes.forEach(function(node) {
             if (!node) return;
             var aria = node.getAttribute && node.getAttribute("aria-label");
             if (aria) {
-              var normalizedAria = normalize(aria);
-              var translatedAria = translations[normalizedAria] || normalized[normalizedAria];
+              var translatedAria = translateText(aria);
               if (translatedAria && aria !== translatedAria) {
                 node.setAttribute("aria-label", translatedAria);
               }
             }
             if (node instanceof HTMLInputElement) {
-              var ph = normalize(node.placeholder || "");
-              var translatedPlaceholder = translations[ph] || normalized[ph];
-              if (ph && translatedPlaceholder) node.placeholder = translatedPlaceholder;
-              var value = normalize(node.value || "");
-              var translatedValue = translations[value] || normalized[value];
-              if (value && translatedValue) node.value = translatedValue;
+              var translatedPlaceholder = translateText(node.placeholder || "");
+              if (translatedPlaceholder) node.placeholder = translatedPlaceholder;
+              var translatedValue = translateText(node.value || "");
+              if (translatedValue) node.value = translatedValue;
+            }
+            if (node.shadowRoot) {
+              processRoot(node.shadowRoot);
             }
           });
+        } catch (_err) {}
+      };
+
+      var replace = function() {
+        try {
+          processRoot(document.body || document.documentElement);
         } catch (_err) {}
       };
 
