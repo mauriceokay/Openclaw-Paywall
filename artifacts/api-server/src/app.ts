@@ -6,7 +6,8 @@ import cookieParser from "cookie-parser";
 import { createProxyMiddleware, responseInterceptor } from "http-proxy-middleware";
 import router from "./routes";
 import { WebhookHandlers } from "./webhookHandlers";
-import { getSessionEmail } from "./sessionAuth";
+import { getSessionEmail, setSessionCookie } from "./sessionAuth";
+import { getVerifiedClerkEmail } from "./clerkAuth";
 import { getLocalAgent, isDbEnabled } from "./localDev";
 import { trackUsageEvent } from "./usageTracking";
 
@@ -58,6 +59,45 @@ function setLocaleHeaders(proxyReq: { setHeader: (name: string, value: string) =
   const locale = resolveEmbeddedLocale(req);
   proxyReq.setHeader("accept-language", locale);
   proxyReq.setHeader("x-oc-locale", locale);
+}
+
+function resolvePublicRequestOrigin(req: express.Request): string | null {
+  const appUrl = process.env.APP_URL?.trim();
+  if (appUrl) {
+    try {
+      return new URL(appUrl).origin;
+    } catch {}
+  }
+
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || req.get("host")?.trim();
+  if (!host) return null;
+
+  const proto = forwardedProto === "https" || req.protocol === "https" ? "https" : "http";
+  return `${proto}://${host}`;
+}
+
+function setPaperclipForwardHeaders(
+  proxyReq: { setHeader: (name: string, value: string) => void },
+  req: express.Request,
+): void {
+  const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || req.get("host")?.trim();
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const proto = forwardedProto === "https" || req.protocol === "https" ? "https" : "http";
+  const origin = resolvePublicRequestOrigin(req);
+
+  if (host) {
+    // Keep browser-visible host so Paperclip trusted-origin guards work behind reverse proxies.
+    proxyReq.setHeader("host", host);
+    proxyReq.setHeader("x-forwarded-host", host);
+  }
+  proxyReq.setHeader("x-forwarded-proto", proto);
+  if (origin) {
+    proxyReq.setHeader("origin", origin);
+    proxyReq.setHeader("referer", `${origin}/paperclip`);
+  }
 }
 
 function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip"): string {
@@ -974,6 +1014,7 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
   on: {
     proxyReq: (proxyReq, req) => {
       setLocaleHeaders(proxyReq, req);
+      setPaperclipForwardHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
@@ -1011,6 +1052,7 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
   on: {
     proxyReq: (proxyReq, req) => {
       setLocaleHeaders(proxyReq, req);
+      setPaperclipForwardHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
@@ -1031,6 +1073,7 @@ const paperclipDirectProxy = createProxyMiddleware<express.Request, express.Resp
   on: {
     proxyReq: (proxyReq, req) => {
       setLocaleHeaders(proxyReq, req);
+      setPaperclipForwardHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
@@ -1063,6 +1106,24 @@ app.use("/api/companies", cookieParser(), (req, res, next) => {
   }
   // Preserve companies API prefix for Paperclip backend routes.
   req.url = `/api/companies${req.url}`;
+  req.headers["x-oc-user-email"] = sessionEmail;
+  return paperclipDirectProxy(req, res, next);
+});
+
+app.use("/api/plugins", cookieParser(), (req, res, next) => {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  req.headers["x-oc-user-email"] = sessionEmail;
+  return paperclipDirectProxy(req, res, next);
+});
+
+app.use("/api/instance", cookieParser(), (req, res, next) => {
+  const sessionEmail = getSessionEmail(req);
+  if (!sessionEmail) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
   req.headers["x-oc-user-email"] = sessionEmail;
   return paperclipDirectProxy(req, res, next);
 });
@@ -1169,6 +1230,13 @@ function stripIframeHeaders(
         /script-src\s+([^;]*)/i,
         (_full, sources: string) => `script-src ${sources} 'unsafe-inline' 'unsafe-eval'`,
       );
+    }
+    if (!/worker-src/i.test(normalized)) {
+      normalized = `${normalized}; worker-src 'self' blob: https:`;
+    } else if (!/blob:/i.test(normalized)) {
+      normalized = normalized.replace(/worker-src\s+([^;]*)/i, (_full, sources: string) => {
+        return `worker-src ${sources} blob:`;
+      });
     }
     if (proxyHeaders) {
       proxyHeaders["content-security-policy"] = normalized;
@@ -1310,6 +1378,22 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", async (req, _res, next) => {
+  const cookieEmail = getSessionEmail(req);
+  if (cookieEmail) {
+    (req as any).sessionEmail = cookieEmail;
+    return next();
+  }
+
+  const verifiedEmail = await getVerifiedClerkEmail(req);
+  if (verifiedEmail) {
+    (req as any).sessionEmail = verifiedEmail;
+    setSessionCookie(_res, verifiedEmail);
+  }
+
+  return next();
+});
 
 app.use("/api", router);
 
