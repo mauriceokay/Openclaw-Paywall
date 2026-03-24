@@ -22,7 +22,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates docker.io curl \
-  && npm install -g openclaw@2026.3.22 \
+  && npm install -g openclaw@2026.3.13 \
   && npm install -g nemoclaw \
   && rm -rf /var/lib/apt/lists/*
 
