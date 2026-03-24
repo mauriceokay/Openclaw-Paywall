@@ -35,6 +35,11 @@ try {
   cfg = JSON.parse(fs.readFileSync(path, "utf8"));
 } catch {}
 cfg.gateway = cfg.gateway || {};
+// Hosted Control UI should auto-connect without manual token entry.
+// Force auth mode "none" on every boot to avoid stale persisted token-mode configs.
+cfg.gateway.auth = cfg.gateway.auth || {};
+cfg.gateway.auth.mode = "none";
+delete cfg.gateway.auth.token;
 cfg.gateway.trustedProxies = Array.from(
   new Set([
     ...(Array.isArray(cfg.gateway.trustedProxies) ? cfg.gateway.trustedProxies : []),

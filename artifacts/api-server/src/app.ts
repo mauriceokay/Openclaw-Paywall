@@ -232,7 +232,6 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       replace();
       var observer = new MutationObserver(function() { replace(); });
       observer.observe(document.documentElement, { childList: true, subtree: true });
-      window.setTimeout(function() { try { observer.disconnect(); } catch (_e) {} }, 30000);
     } catch (_err) {}
   })();
 </script>`;
@@ -306,7 +305,8 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
       stripIframeHeaders(expressRes as express.Response);
 
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
-      if (contentType.includes("text/html")) {
+      const looksLikeHtml = responseBuffer.toString("utf8", 0, 512).toLowerCase().includes("<html");
+      if (contentType.includes("text/html") || (req.path.includes("/chat") && looksLikeHtml)) {
         let html = responseBuffer.toString("utf8");
         const locale = resolveEmbeddedLocale(req);
         const tokenScript = `
