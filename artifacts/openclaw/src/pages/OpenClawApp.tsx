@@ -124,7 +124,6 @@ export function OpenClawApp() {
   const [instanceUrl, setInstanceUrl] = useState<string | null>(null);
   const [instanceIsLocalDev, setInstanceIsLocalDev] = useState(false);
   const [launchUrl, setLaunchUrl] = useState<string | null>(null);
-  const [iframeKey, setIframeKey] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [checkMessage, setCheckMessage] = useState<string | null>(null);
@@ -384,12 +383,10 @@ export function OpenClawApp() {
           </Button>
         </div>
         <iframe
-          key={iframeKey}
           src={frameSrc}
           className="w-full h-full border-0"
           title="OpenClaw"
           allow="clipboard-read; clipboard-write; microphone"
-          onError={() => setIframeKey((k) => k + 1)}
         />
       </div>
     );

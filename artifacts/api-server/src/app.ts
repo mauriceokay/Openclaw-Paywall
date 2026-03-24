@@ -328,8 +328,11 @@ app.post(
 
 const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
-  changeOrigin: false,
-  pathRewrite: { "^/api/gateway": "" },
+  changeOrigin: true,
+  pathRewrite: (requestPath) => {
+    const rewritten = requestPath.replace(/^\/api\/gateway/, "");
+    return rewritten.length > 0 ? rewritten : "/";
+  },
   selfHandleResponse: true,
   on: {
     proxyReq: (proxyReq, req) => {
@@ -402,15 +405,26 @@ const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response
         if (connectButton) {
           var statusText = (document.body && document.body.textContent ? document.body.textContent : "").toLowerCase();
           var isDisconnected = statusText.includes("disconnected") || statusText.includes("getrennt");
-          if (isDisconnected) {
+          if (isDisconnected && !window.__OC_CONNECT_CLICKED__) {
+            window.__OC_CONNECT_CLICKED__ = true;
             connectButton.click();
+            return true;
           }
         }
-      } catch (_err) {}
+        return false;
+      } catch (_err) {
+        return false;
+      }
     };
-    run();
-    var id = window.setInterval(run, 1200);
-    window.setTimeout(function() { window.clearInterval(id); }, 20000);
+    if (run()) return;
+    var attempts = 0;
+    var maxAttempts = 6;
+    var id = window.setInterval(function() {
+      attempts += 1;
+      if (run() || attempts >= maxAttempts) {
+        window.clearInterval(id);
+      }
+    }, 1200);
   })();
 </script>`;
         const localeBridge = buildLocaleBridgeScript(locale, "openclaw");
@@ -428,8 +442,11 @@ const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response
 
 const gatewayPassthroughProxy = createProxyMiddleware<express.Request, express.Response>({
   target: GATEWAY_URL,
-  changeOrigin: false,
-  pathRewrite: { "^/api/gateway": "" },
+  changeOrigin: true,
+  pathRewrite: (requestPath) => {
+    const rewritten = requestPath.replace(/^\/api\/gateway/, "");
+    return rewritten.length > 0 ? rewritten : "/";
+  },
   ws: true,
   on: {
     proxyReq: (proxyReq, req) => {
