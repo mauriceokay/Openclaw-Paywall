@@ -83,14 +83,6 @@ function getSharedGatewayToken(): string | null {
 let cachedScopedGatewayToken: { token: string; expiresAt: number } | null = null;
 
 async function getScopedGatewayToken(): Promise<string | null> {
-  // Prefer the long-lived shared gateway token in hosted/shared deployments.
-  // Dashboard-scoped tokens can be short-lived and occasionally miss write scopes,
-  // which causes "missing scope: operator.read/operator.write" in Control UI.
-  const sharedToken = getSharedGatewayToken();
-  if (sharedToken) {
-    return sharedToken;
-  }
-
   const now = Date.now();
   if (cachedScopedGatewayToken && cachedScopedGatewayToken.expiresAt > now) {
     return cachedScopedGatewayToken.token;
@@ -104,6 +96,12 @@ async function getScopedGatewayToken(): Promise<string | null> {
     // Dashboard tokens are short-lived; refresh conservatively every 3 minutes.
     cachedScopedGatewayToken = { token, expiresAt: now + 3 * 60_000 };
     return token;
+  }
+
+  // Fallback to shared gateway token when dashboard token generation fails.
+  const sharedToken = getSharedGatewayToken();
+  if (sharedToken) {
+    return sharedToken;
   }
 
   return null;

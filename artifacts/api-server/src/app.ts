@@ -297,9 +297,6 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
   on: {
     proxyReq: (proxyReq, req) => {
       setLocaleHeaders(proxyReq, req);
-      if (GATEWAY_TOKEN) {
-        proxyReq.setHeader("authorization", `Bearer ${GATEWAY_TOKEN}`);
-      }
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
       stripIframeHeaders(expressRes as express.Response);
