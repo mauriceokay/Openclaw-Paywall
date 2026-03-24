@@ -32,6 +32,7 @@ services:
     restart: unless-stopped
     environment:
       OPENCLAW_GATEWAY_PORT: 3005
+      OPENCLAW_GATEWAY_AUTH_MODE: ${OPENCLAW_GATEWAY_AUTH_MODE:-none}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       NODE_OPTIONS: --max-old-space-size=1536
     volumes:

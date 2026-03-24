@@ -5,6 +5,7 @@ CONFIG_DIR="/root/.openclaw"
 CONFIG_FILE="${CONFIG_DIR}/openclaw.json"
 PORT="${OPENCLAW_GATEWAY_PORT:-3005}"
 TOKEN="${OPENCLAW_GATEWAY_TOKEN:-}"
+AUTH_MODE="${OPENCLAW_GATEWAY_AUTH_MODE:-none}"
 
 mkdir -p "${CONFIG_DIR}"
 
@@ -38,12 +39,13 @@ try {
 cfg.gateway = cfg.gateway || {};
 cfg.gateway.auth = cfg.gateway.auth || {};
 const token = (process.env.OPENCLAW_GATEWAY_TOKEN || "").trim();
-if (token) {
-  // Use token auth in hosted mode so gateway can bind on LAN safely.
+const authMode = (process.env.OPENCLAW_GATEWAY_AUTH_MODE || "none").trim().toLowerCase();
+if (authMode === "token" && token) {
+  // Optional token mode for hardened deployments.
   cfg.gateway.auth.mode = "token";
   cfg.gateway.auth.token = token;
 } else {
-  // Fallback for local/dev scenarios.
+  // Default to none to avoid scope/token mismatches breaking the embedded UI.
   cfg.gateway.auth.mode = "none";
   delete cfg.gateway.auth.token;
 }
@@ -62,12 +64,8 @@ cfg.gateway.controlUi.allowInsecureAuth = true;
 cfg.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
 cfg.gateway.controlUi.allowedOrigins = ["*"];
 cfg.gateway.tailscale = { mode: "off" };
-const bundledControlUiIndex = "/usr/local/lib/node_modules/openclaw/dist/control-ui/index.html";
-const fallbackControlUiRoot = "/usr/local/lib/node_modules/openclaw/dist/canvas-host/a2ui";
-if (!fs.existsSync(bundledControlUiIndex) && fs.existsSync(`${fallbackControlUiRoot}/index.html`)) {
-  cfg.gateway.controlUi.root = fallbackControlUiRoot;
-} else if (cfg.gateway.controlUi.root === fallbackControlUiRoot) {
-  // If bundled Control UI exists again (fixed package), remove emergency canvas override.
+// Never force canvas-host root here; it can trap users in the raw canvas shell.
+if (cfg.gateway.controlUi.root) {
   delete cfg.gateway.controlUi.root;
 }
 
@@ -105,7 +103,7 @@ cfg.models.providers.openai.models = normalizedOpenAiModels;
 fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
 NODE
 
-if [ -n "${TOKEN}" ]; then
+if [ "${AUTH_MODE}" = "token" ] && [ -n "${TOKEN}" ]; then
   exec openclaw gateway run --allow-unconfigured --port "${PORT}" --token "${TOKEN}" --tailscale off
 fi
 
