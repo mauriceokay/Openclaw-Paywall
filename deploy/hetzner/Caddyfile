@@ -8,15 +8,6 @@ getlobster.org {
     reverse_proxy deploy-hook:9000
   }
 
-  @gateway path /api/gateway /api/gateway/*
-  handle @gateway {
-    reverse_proxy gateway:3005 {
-      header_up Authorization "Bearer {$OPENCLAW_GATEWAY_TOKEN}"
-      header_down -X-Frame-Options
-      header_down -Content-Security-Policy
-    }
-  }
-
   reverse_proxy app:8080 {
     transport http {
       versions 1.1
