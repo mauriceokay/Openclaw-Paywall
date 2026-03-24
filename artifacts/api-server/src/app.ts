@@ -273,7 +273,7 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
       if (!translations || Object.keys(translations).length === 0) return;
 
       var normalize = function(value) {
-        return String(value || "").replace(/\s+/g, " ").trim();
+        return String(value || "").replace(/\\s+/g, " ").trim();
       };
       var normalized = {};
       Object.keys(translations).forEach(function(key) {
@@ -298,8 +298,8 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
               if (normalizedText) {
                 var translatedText = translations[normalizedText] || normalized[normalizedText];
                 if (translatedText) {
-                  var leading = rawText.match(/^\s*/);
-                  var trailing = rawText.match(/\s*$/);
+                  var leading = rawText.match(/^\\s*/);
+                  var trailing = rawText.match(/\\s*$/);
                   var nextRaw =
                     (leading ? leading[0] : "") +
                     translatedText +
@@ -338,15 +338,31 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
 
       replace();
       if (target === "openclaw") {
-        var tries = 0;
-        var maxTries = 40;
-        var timer = window.setInterval(function() {
-          tries += 1;
-          replace();
-          if (tries >= maxTries) {
-            window.clearInterval(timer);
-          }
-        }, 500);
+        var pending = false;
+        var schedule = function() {
+          if (pending) return;
+          pending = true;
+          window.setTimeout(function() {
+            pending = false;
+            replace();
+          }, 120);
+        };
+        var observer = new MutationObserver(function() {
+          schedule();
+        });
+        observer.observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+        window.addEventListener("hashchange", schedule);
+        window.addEventListener("popstate", schedule);
+        // Safety net for lazy-rendered panels.
+        var poll = window.setInterval(schedule, 3000);
+        window.setTimeout(function() {
+          window.clearInterval(poll);
+          observer.disconnect();
+        }, 30 * 60 * 1000);
       } else {
         var observer = new MutationObserver(function() { replace(); });
         observer.observe(document.documentElement, { childList: true, subtree: true });
