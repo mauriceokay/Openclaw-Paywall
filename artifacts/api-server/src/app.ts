@@ -334,7 +334,7 @@ const gatewayChatProxy = createProxyMiddleware<express.Request, express.Response
       setLocaleHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
-      stripIframeHeaders(expressRes as express.Response);
+      stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
 
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       const looksLikeHtml = responseBuffer.toString("utf8", 0, 512).toLowerCase().includes("<html");
@@ -635,7 +635,7 @@ const paperclipProxy = createProxyMiddleware<express.Request, express.Response>(
       setLocaleHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
-      stripIframeHeaders(expressRes as express.Response);
+      stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
         return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8"), resolveEmbeddedLocale(req)), "utf8");
@@ -672,7 +672,7 @@ const paperclipPassthroughProxy = createProxyMiddleware<express.Request, express
       setLocaleHeaders(proxyReq, req);
     },
     proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, expressRes) => {
-      stripIframeHeaders(expressRes as express.Response);
+      stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
       const contentType = (proxyRes.headers["content-type"] ?? "") as string;
       if (contentType.includes("text/html")) {
         return Buffer.from(rewritePaperclipHtml(responseBuffer.toString("utf8"), resolveEmbeddedLocale(req)), "utf8");
@@ -799,11 +799,26 @@ app.get("/api/health", (req, res, next) => {
   return paperclipPassthroughProxy(req, res, next);
 });
 
-function stripIframeHeaders(res: express.Response) {
+function stripIframeHeaders(
+  res: express.Response,
+  proxyHeaders?: Record<string, string | string[] | undefined>,
+) {
+  if (proxyHeaders) {
+    delete proxyHeaders["x-frame-options"];
+    delete proxyHeaders["X-Frame-Options"];
+  }
   res.removeHeader("x-frame-options");
+  res.removeHeader("X-Frame-Options");
   const csp = res.getHeader("content-security-policy");
-  if (typeof csp === "string") {
-    const relaxed = csp
+  const headerCsp =
+    typeof proxyHeaders?.["content-security-policy"] === "string"
+      ? proxyHeaders["content-security-policy"]
+      : typeof proxyHeaders?.["Content-Security-Policy"] === "string"
+        ? proxyHeaders["Content-Security-Policy"]
+        : null;
+  const effectiveCsp = typeof csp === "string" ? csp : headerCsp;
+  if (typeof effectiveCsp === "string") {
+    const relaxed = effectiveCsp
       .replace(/frame-ancestors[^;]*(;|$)/g, "")
       .replace(/frame-src[^;]*(;|$)/g, "");
     let normalized = relaxed;
@@ -813,6 +828,10 @@ function stripIframeHeaders(res: express.Response) {
         /script-src\s+([^;]*)/i,
         (_full, sources: string) => `script-src ${sources} 'unsafe-inline' 'unsafe-eval'`,
       );
+    }
+    if (proxyHeaders) {
+      proxyHeaders["content-security-policy"] = normalized;
+      delete proxyHeaders["Content-Security-Policy"];
     }
     res.setHeader("content-security-policy", normalized);
   }
@@ -839,7 +858,7 @@ app.use("/api/instance-proxy", async (req, res, next) => {
       pathRewrite: { "^/api/instance-proxy": "" },
       on: {
         proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
-          stripIframeHeaders(expressRes as express.Response);
+          stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
 
           const contentType = (proxyRes.headers["content-type"] ?? "") as string;
           if (contentType.includes("text/html")) {
@@ -889,7 +908,7 @@ app.use("/api/instance-proxy", async (req, res, next) => {
       pathRewrite: { "^/api/instance-proxy": "" },
       on: {
         proxyRes: responseInterceptor(async (responseBuffer, proxyRes, _req, expressRes) => {
-          stripIframeHeaders(expressRes as express.Response);
+          stripIframeHeaders(expressRes as express.Response, proxyRes.headers);
 
           const contentType = (proxyRes.headers["content-type"] ?? "") as string;
           if (contentType.includes("text/html")) {
