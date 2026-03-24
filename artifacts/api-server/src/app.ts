@@ -308,10 +308,11 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
 
   // Keep OpenClaw translation lightweight: short retry window instead of a long-lived
   // mutation observer to avoid rendering regressions on dynamic canvas/chat views.
-  const selected =
+  const localeMaps =
     target === "paperclip"
-      ? paperclipTranslations[locale] ?? {}
-      : openClawTranslations[locale] ?? {};
+      ? paperclipTranslations
+      : openClawTranslations;
+  const selected = localeMaps[locale] ?? {};
 
   const script = `
 <script>
@@ -319,11 +320,52 @@ function buildLocaleBridgeScript(locale: string, target: "openclaw" | "paperclip
     try {
       var locale = ${JSON.stringify(locale)};
       var target = ${JSON.stringify(target)};
+      var localeMaps = ${JSON.stringify(localeMaps)};
       var translations = ${JSON.stringify(selected)};
       document.documentElement.lang = locale;
 
       if (target === "openclaw") {
+        var storedLocale = null;
+        var normalizeLocale = function(raw) {
+          var value = String(raw || "").trim().toLowerCase();
+          if (!value) return null;
+          if (value.indexOf("ja") === 0) return "ja";
+          if (value.indexOf("ko") === 0) return "ko";
+          if (value.indexOf("de") === 0) return "de";
+          if (value.indexOf("fr") === 0) return "fr";
+          if (value.indexOf("it") === 0) return "it";
+          if (value.indexOf("pl") === 0) return "pl";
+          if (value.indexOf("ar") === 0) return "ar";
+          if (value.indexOf("ms") === 0) return "ms";
+          if (value.indexOf("zh-cn") === 0 || value === "zh" || value === "zh-hans") return "zh-CN";
+          if (value.indexOf("zh-tw") === 0 || value.indexOf("zh-hk") === 0 || value === "zh-hant") return "zh-TW";
+          if (value.indexOf("en") === 0) return "en";
+          return null;
+        };
         var keys = ["openclaw.locale", "openclaw.control.locale", "openclaw.control.language", "oc.locale"];
+        keys.forEach(function(k) {
+          try {
+            var current = normalizeLocale(localStorage.getItem(k));
+            if (!storedLocale && current) storedLocale = current;
+          } catch (_e) {}
+        });
+        try {
+          var rawStored = localStorage.getItem("openclaw.control.settings.v1");
+          if (rawStored) {
+            var parsedStored = JSON.parse(rawStored);
+            var nested =
+              normalizeLocale(parsedStored && (parsedStored.locale || parsedStored.lang || parsedStored.language));
+            if (!storedLocale && nested) storedLocale = nested;
+          }
+        } catch (_err) {}
+        if (locale === "en" && storedLocale && storedLocale !== "en") {
+          locale = storedLocale;
+        }
+        if (localeMaps && localeMaps[locale]) {
+          translations = localeMaps[locale];
+        }
+        document.documentElement.lang = locale;
+
         keys.forEach(function(k) { try { localStorage.setItem(k, locale); } catch (_e) {} });
         try {
           var raw = localStorage.getItem("openclaw.control.settings.v1");
