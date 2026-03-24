@@ -4,6 +4,8 @@ services:
   caddy:
     image: caddy:2.8-alpine
     restart: unless-stopped
+    environment:
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
     ports:
       - "80:80"
       - "443:443"
