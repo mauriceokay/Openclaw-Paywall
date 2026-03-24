@@ -310,9 +310,11 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
 <script>
   (function() {
     var envToken = ${JSON.stringify(GATEWAY_TOKEN ?? "")};
+    var queryParams = new URLSearchParams(window.location.search);
     var hashParams = new URLSearchParams(window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash);
-    var token = (hashParams.get("token") || envToken || "").trim();
+    var token = (queryParams.get("token") || hashParams.get("token") || envToken || "").trim();
     if (!token) return;
+    window.__OC_GATEWAY_TOKEN__ = token;
     var params = new URLSearchParams(window.location.search);
     var gatewayUrl = params.get("gatewayUrl");
     if (!gatewayUrl) {
@@ -332,8 +334,47 @@ const gatewayHttpProxy = createProxyMiddleware<express.Request, express.Response
     }
   })();
 </script>`;
+        const autoConnectScript = `
+<script>
+  (function() {
+    var token = (window.__OC_GATEWAY_TOKEN__ || "").trim();
+    if (!token) return;
+    var run = function() {
+      try {
+        var tokenInput =
+          document.querySelector('input[placeholder*="OPENCLAW_GATEWAY_TOKEN"]') ||
+          document.querySelector('input[name*="token" i]') ||
+          document.querySelectorAll('input')[1];
+        if (tokenInput && tokenInput.value !== token) {
+          tokenInput.value = token;
+          tokenInput.dispatchEvent(new Event("input", { bubbles: true }));
+          tokenInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        var connectButton = Array.prototype.find.call(
+          document.querySelectorAll("button"),
+          function(btn) {
+            var text = (btn.textContent || "").trim().toLowerCase();
+            return text === "connect" || text === "verbinden";
+          }
+        );
+
+        if (connectButton) {
+          var statusText = (document.body && document.body.textContent ? document.body.textContent : "").toLowerCase();
+          var isDisconnected = statusText.includes("disconnected") || statusText.includes("getrennt");
+          if (isDisconnected) {
+            connectButton.click();
+          }
+        }
+      } catch (_err) {}
+    };
+    run();
+    var id = window.setInterval(run, 1200);
+    window.setTimeout(function() { window.clearInterval(id); }, 20000);
+  })();
+</script>`;
         const localeBridge = buildLocaleBridgeScript(locale, "openclaw");
-        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>${tokenScript}${localeBridge}`;
+        const injection = `<script>window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/api/gateway";</script>${tokenScript}${autoConnectScript}${localeBridge}`;
         html = html.includes("<head>")
           ? html.replace("<head>", `<head>${injection}`)
           : `${injection}${html}`;

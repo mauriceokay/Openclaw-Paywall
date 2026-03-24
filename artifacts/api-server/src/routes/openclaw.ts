@@ -480,6 +480,7 @@ router.get("/launch", async (req, res) => {
     if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
     if (token) {
+      queryParams.set("token", token);
       hashParams.set("token", token);
     }
     const query = queryParams.toString();
@@ -505,6 +506,7 @@ router.get("/launch", async (req, res) => {
     if (publicGatewayWsUrl) queryParams.set("gatewayUrl", publicGatewayWsUrl);
     const hashParams = new URLSearchParams();
     if (token) {
+      queryParams.set("token", token);
       hashParams.set("token", token);
     }
     const query = queryParams.toString();
